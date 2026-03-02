@@ -26,7 +26,22 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         return array_merge(parent::share($request), [
-            //
+             // Synchronously...
+            'appName' => config('app.name'),
+
+            // Lazily...
+            'auth.user' => fn () => $request->user()
+                ? $request->user()->only('id', 'name', 'email')
+                : null,
+             'flash' => [
+                    'greet' => fn () => $request->session()->get('greet')
+                ],
+            'appUrl' => config('app.url'),
+            'translations' => function () {
+                // If you’re using Laravel localization like resources/lang/en/message.php
+                return __('message');
+            },
+            
         ]);
     }
 }
