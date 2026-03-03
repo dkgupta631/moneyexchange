@@ -9,7 +9,7 @@ use App\Http\Controllers\Web\MoneyExchangeController;
 //     return inertia('Home');
 // });
 
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/moneyexchange', [MoneyExchangeController::class, 'openForm'])->name('open.moneyexchange.form');
 Route::post('/calculateMoney', [MoneyExchangeController::class, 'SaveCalculatedMoney']);
 Route::get('/invoices/{id}', [MoneyExchangeController::class, 'showInvoices'])->name('invoices.show');
