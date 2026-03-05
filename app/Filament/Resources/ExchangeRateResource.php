@@ -31,16 +31,16 @@ class ExchangeRateResource extends Resource
                 Forms\Components\TextInput::make('to_currency')
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('normal_buy_rate')
-                    ->maxLength(255)
-                    ->default(null),
                 Forms\Components\TextInput::make('normal_sell_rate')
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('standard_buy_rate')
+                Forms\Components\TextInput::make('normal_buy_rate')
                     ->maxLength(255)
                     ->default(null),
                 Forms\Components\TextInput::make('standard_sell_rate')
+                    ->maxLength(255)
+                    ->default(null),
+                Forms\Components\TextInput::make('standard_buy_rate')
                     ->maxLength(255)
                     ->default(null),
                 Forms\Components\DatePicker::make('rate_date')
@@ -63,13 +63,13 @@ class ExchangeRateResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('to_currency')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('normal_buy_rate')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('normal_sell_rate')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('standard_buy_rate')
+                Tables\Columns\TextColumn::make('normal_buy_rate')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('standard_sell_rate')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('standard_buy_rate')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('rate_date')
                     ->searchable(),
@@ -84,6 +84,7 @@ class ExchangeRateResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('ordering', 'asc')
             ->filters([
                 //
             ])
@@ -109,9 +110,9 @@ class ExchangeRateResource extends Resource
     {
         return [
             'index' => Pages\ListExchangeRates::route('/'),
-            'create' => Pages\CreateExchangeRate::route('/create'),
-            'view' => Pages\ViewExchangeRate::route('/{record}'),
-            'edit' => Pages\EditExchangeRate::route('/{record}/edit'),
+            // 'create' => Pages\CreateExchangeRate::route('/create'),
+            // 'view' => Pages\ViewExchangeRate::route('/{record}'),
+            // 'edit' => Pages\EditExchangeRate::route('/{record}/edit'),
         ];
     }
 }

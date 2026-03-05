@@ -28,6 +28,7 @@
 
     <!-- Template Stylesheet -->
     <link href="{{ asset('website/assets/css/style.css') }}" rel="stylesheet">
+    <link href="{{ asset('website/assets/css/customStyle.css') }}" rel="stylesheet">
 
     @viteReactRefresh
     @vite('resources/js/app.jsx')

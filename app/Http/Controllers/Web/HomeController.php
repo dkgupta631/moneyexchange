@@ -10,10 +10,22 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $records = ExchangeRate::select('*')->orderBy('ordering', 'asc')->get();
+        $Leftrecords = ExchangeRate::select(['id', 'from_currency', 'to_currency', 'normal_buy_rate', 'normal_sell_rate'])->orderBy('ordering', 'asc')->get();
+        $Rightrecords = ExchangeRate::select([
+                                                'id',
+                                                'from_currency',
+                                                'to_currency',
+                                                'standard_buy_rate',
+                                                'standard_sell_rate'
+                                            ])
+                                            ->whereNotNull('standard_buy_rate')
+                                            ->whereNotNull('standard_sell_rate')
+                                            ->orderBy('ordering', 'asc')
+                                            ->get();
        
         return Inertia::render('Home', [
-            'records' => $records,
+            'Leftrecords' => $Leftrecords,
+            'Rightrecords' => $Rightrecords,
         ]);
 
 
