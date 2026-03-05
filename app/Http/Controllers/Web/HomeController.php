@@ -11,16 +11,9 @@ class HomeController extends Controller
     public function index()
     {
         $records = ExchangeRate::select('*')->orderBy('ordering', 'asc')->get();
-        //  dd($recommendedstors);
-        //100 great restaurants
-        // $stors = Stor::select('*')->orderBy('openStatus', 'desc')->get();
-        // $popups = Popup::select('*')->where('status', '1')->orderBy('ordering', 'asc')->get();
        
         return Inertia::render('Home', [
             'records' => $records,
-            // 'stors' => $stors,
-            // 'popups' => $popups,
-            
         ]);
 
 

@@ -4,19 +4,42 @@ import { useEffect, useState } from 'react';
  export default function Home({records}) {
   // console.log(records);
 
-  const [boardBg, setBoardBg] = useState('');
-    // 🎨 Change board background daily
-    useEffect(() => {
-        const colors = [
-            'board-bg-orange',
-            'board-bg-blue',
-            'board-bg-green',
-            'board-bg-purple',
-            'board-bg-dark',
-        ];
+//   const [boardBg, setBoardBg] = useState('');
+//     // 🎨 Change board background daily
+//     useEffect(() => {
+//         const colors = [
+//             'board-bg-orange',
+//             'board-bg-blue',
+//             'board-bg-green',
+//             'board-bg-purple',
+//             'board-bg-dark',
+//         ];
 
-        const index = new Date().getDate() % colors.length;
-        setBoardBg(colors[index]);
+//         const index = new Date().getDate() % colors.length;
+//         setBoardBg(colors[index]);
+//     }, []);
+
+    const boardColors = [
+        'board-bg-1',
+        'board-bg-2',
+        'board-bg-3',
+        'board-bg-4',
+        'board-bg-5',
+    ];
+
+    const getHourlyColor = () => {
+        const hour = new Date().getHours();
+        return boardColors[hour % boardColors.length];
+    };
+
+    const [boardBg, setBoardBg] = useState(getHourlyColor());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setBoardBg(getHourlyColor());
+        }, 60 * 60 * 1000); // every 1 hour
+
+        return () => clearInterval(interval);
     }, []);
 
   return (
@@ -132,26 +155,12 @@ import { useEffect, useState } from 'react';
     font-weight: bold;
 }
 
-/* 🎨 BOARD BACKGROUND THEMES (changes daily) */
-.board-bg-orange {
-    background: linear-gradient(180deg, #fff7e6, #ffd180);
-}
-
-.board-bg-blue {
-    background: linear-gradient(180deg, #e3f2fd, #90caf9);
-}
-
-.board-bg-green {
-    background: linear-gradient(180deg, #e8f5e9, #a5d6a7);
-}
-
-.board-bg-purple {
-    background: linear-gradient(180deg, #e5ebf5, lightblue);
-}
-
-.board-bg-dark {
-    background: linear-gradient(180deg, #eceff1, #b0bec5);
-}
+/* 🎨 HOURLY BOARD BACKGROUNDS */
+.board-bg-1 { background: #fffaf0; }
+.board-bg-2 { background: #f0f9ff; }
+.board-bg-3 { background: #f5fff3; }
+.board-bg-4 { background: #fff5f7; }
+.board-bg-5 { background: #f4f4ff; }
               `}
       </style>
     {/* <Head title="Home" /> */}
