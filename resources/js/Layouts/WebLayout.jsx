@@ -1,12 +1,29 @@
 import { Link, usePage } from '@inertiajs/react';
 
 
-export default function WebLayout({children}) {
+export default function WebLayout({ children }) {
 
-  const { ziggy } = usePage().props;
-
+    // For language setup START
+    const { translations, locale, ziggy } = usePage().props;
     const isActive = (name) => route().current(name);
-
+    const languages = {
+        en: {
+            name: "English",
+            flag: "/website/assets/flags/en.png"
+        },
+        "th-TH": {
+            name: "Thai",
+            flag: "/website/assets/flags/th.png"
+        },
+        km: {
+            name: "Khmer",
+            flag: "/website/assets/flags/kh.png"
+        }
+    };
+    const currentLang = languages[locale];
+    // console.log(locale)
+    // console.log(translations)
+     // For language setup END
 
   return (
     <>
@@ -33,7 +50,41 @@ export default function WebLayout({children}) {
                 <div className="collapse navbar-collapse" id="navbarCollapse">
                     <div className="navbar-nav ms-auto py-0">
                         <Link href={route('home')} className={`nav-item nav-link ${isActive('home') ? 'active' : ''}`}>Home</Link>
-                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>MoneyExchange</Link>
+                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>Register</Link>
+                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>Administrator Login</Link>
+                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>Today Exchange Rate</Link>
+                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>Money Transfer</Link>
+                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>Language</Link>
+                        <div className="nav-item dropdown">
+                            <a href="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                                <img
+                                    src={currentLang.flag}
+                                    width="20"
+                                    style={{marginRight:'6px'}}
+                                />
+                                {currentLang.name}
+                            </a>
+
+                            <div className="dropdown-menu m-0">
+
+                                <a href="/lang/en" className="dropdown-item">
+                                    <img src="/website/assets/flags/en.png" width="20" className="me-2"/>
+                                    English
+                                </a>
+
+                                <a href="/lang/th-TH" className="dropdown-item">
+                                    <img src="/website/assets/flags/th.png" width="20" className="me-2"/>
+                                    Thai
+                                </a>
+
+                                <a href="/lang/km" className="dropdown-item">
+                                    <img src="/website/assets/flags/kH.png" width="20" className="me-2"/>
+                                    Khmer
+                                </a>
+
+                            </div>
+                        </div>
+
                     </div>
                     {/* <button type="button" className="btn text-secondary ms-3"><i className="fa fa-search"></i></button> */}
                 </div>

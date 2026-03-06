@@ -14,5 +14,18 @@ Route::get('/moneyexchange', [MoneyExchangeController::class, 'openForm'])->name
 Route::post('/calculateMoney', [MoneyExchangeController::class, 'SaveCalculatedMoney']);
 Route::get('/invoices/{id}', [MoneyExchangeController::class, 'showInvoices'])->name('invoices.show');
 
-// Route::inertia('/', 'Home');
-// Route::inertia('/moneyexchange', 'ExchangeMoneyForm');
+
+
+Route::get('/lang/{locale}', function ($locale) {
+
+    if (! in_array($locale, ['en','th-TH','km'])) {
+        abort(400);
+    }
+
+    session(['locale' => $locale]);
+
+    //   dd(session()->all());
+
+    return back();
+
+});
