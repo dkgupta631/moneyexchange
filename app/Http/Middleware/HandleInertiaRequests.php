@@ -37,10 +37,11 @@ class HandleInertiaRequests extends Middleware
                     'greet' => fn () => $request->session()->get('greet')
                 ],
             'appUrl' => config('app.url'),
+            'locale' => fn () => app()->getLocale(),
             'translations' => function () {
-                // If you’re using Laravel localization like resources/lang/en/message.php
-                return __('message');
+                return require resource_path('lang/' . app()->getLocale() . '/message.php');
             },
+
             
         ]);
     }
