@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\MoneyExchangeController;
 // });
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/ExchangeRate', [HomeController::class, 'ShowExchangeRate'])->name('showExchangeRate');
 Route::get('/moneyexchange', [MoneyExchangeController::class, 'openForm'])->name('open.moneyexchange.form');
 Route::post('/calculateMoney', [MoneyExchangeController::class, 'SaveCalculatedMoney']);
 Route::get('/invoices/{id}', [MoneyExchangeController::class, 'showInvoices'])->name('invoices.show');
