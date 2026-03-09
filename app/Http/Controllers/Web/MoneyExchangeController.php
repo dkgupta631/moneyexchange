@@ -5,6 +5,8 @@ use Illuminate\Http\Request;
 
 use Inertia\Inertia;
 use App\Models\ExchangeRate;
+use App\Models\Invoice;
+use Illuminate\Support\Str;
 
 class MoneyExchangeController extends Controller
 {
@@ -12,8 +14,6 @@ class MoneyExchangeController extends Controller
     {
         $records = ExchangeRate::select('*')->orderBy('id', 'asc')->get();
         //  dd($recommendedstors);
-     
-       
         return Inertia::render('ExchangeMoneyForm', [
             'records' => $records,
         ]);
@@ -23,31 +23,70 @@ class MoneyExchangeController extends Controller
     public function SaveCalculatedMoney(Request $request)
     {
         $request->validate([
-            'Customer_name' => ['required'],
-            'phone' => ['required'],
+            // 'customer_name' => ['required'],
+            // 'phone' => ['required'],
             'enter_amount' => ['required'],
         ]);
-    //    dd($request);
-        
+       dd($request);
 
+       Invoice::create([
+        'invoice_number' => 'INV'.time(),
+        'customer_name' => $request->customer_name,
+        'phone' => $request->phone,
+
+        'exchange_rate_id' => $request->exchange_rate_id,
+        'pair' => $request->from_currency.'-'.$request->to_currency,
+        'exchange_type' => $request->exchange_type,
+        'exchange_rate' => $request->exchange_rate,
+
+        'where_to_send' => $request->where_to_send,
+        'entered_amount' => $request->enter_amount,
+        'subtotal' => $request->subtotal,
+        'service_fee' => $request->service_fee,
+        'final_amount' => $request->final_amount
+    ]);
+
+    // return back()->with('success','Invoice Created Successfully');
 
        return redirect('/invoices'.'/'.$request->Customer_name)->with('greet' , 'Invoice Generated Successfully!');
 
+    }
+
+
+   
+    public function getRate(Request $request)
+    {
+        //  dd($request->all());
+        // return $request;
+         $rate = ExchangeRate::where('from_currency',$request->from_currency)
+            ->where('to_currency',$request->to_currency)
+            ->first();
+
+        if(!$rate){
+            return response()->json([
+                'exchange_rate'=>null
+            ]);
+        }
+
+        if($request->exchange_type == "Normal"){
+            $exchangeRate = $rate->normal_sell_rate;
+        }else{
+            $exchangeRate = $rate->standard_sell_rate;
+        }
+
+        return response()->json([
+            'exchange_rate'=>$exchangeRate,
+            'id'=>$rate->id
+        ]);
     }
 
     public function showInvoices($id)
     {
     //    dd($id);
        $records = ExchangeRate::where('id', $id)->get();
-      
-       
         return Inertia::render('ShowInvoices', [
             'records' => $records,
         ]);
-        
-
-
-     
 
     }
 

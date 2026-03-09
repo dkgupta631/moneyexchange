@@ -1,94 +1,193 @@
-import { useForm, Link } from '@inertiajs/react';
-// import { useRoute } from '../../../vendor/tightenco/ziggy';
+import { useForm, usePage, Link } from '@inertiajs/react';
+import { useEffect, useState } from "react";
+import Select from "react-select";
+import axios from "axios";
 export default function ExchangeMoneyForm() {
 
-    const { data, setData, post, errors, processing } = useForm({
-        Customer_name : "",
+        const { translations, locale, ziggy } = usePage().props;
+        const appUrl = window.location.origin;
+        const t = (key) => translations[key] ?? key;
+
+        const currencies = [
+            { value: "Dollar", label: "US Dollar", flag: "/website/assets/flags/USD.png" },
+            { value: "Bhat", label: "Thai Baht", flag: "/website/assets/flags/THB.png" },
+            { value: "Riel", label: "Khmer Riel", flag: "/website/assets/flags/KHR.png" },
+            ];
+        const formatOptionLabel = ({ value, label, flag }) => (
+            <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+                <img src={flag} style={{ width: 22, height: 16, marginRight: 10 }} />
+                <span>{value}</span>
+
+            <span style={{ marginLeft: "auto", color: "#666", display: "flex", alignItems: "center", gap: "8px" }}>
+                    {label}
+                    <i className="fa fa-angle-right"></i>
+                </span>
+            </div>
+        );
+
+        const { data, setData, post, errors, processing } = useForm({
+        customer_name : "",
         phone : "",
+        from_currency : "Dollar",
+        to_currency : "Bhat",
         enter_amount : "",
+        exchange_type : "Normal",
+        where_to_send : "TRF-IN",
     });
     // console.log(useForm());
     function submit(e) {
         e.preventDefault();
         post("/calculateMoney");
     }
-    console.log(errors);
+    // console.log(errors);
+
+
+
+
+    const [exchangeRate,setExchangeRate] = useState(0);
+    const [receivedAmount,setReceivedAmount] = useState(0);
+    const [serviceFee,setServiceFee] = useState(0);
+    const fetchRate = async () => {
+
+    const res = await axios.post("/get-exchange-rate",{
+            from_currency:data.from_currency,
+            to_currency:data.to_currency,
+            exchange_type:data.exchange_type
+        });
+         console.log(res.data);
+        setExchangeRate(res.data.exchange_rate);
+    };
+   useEffect(()=>{
+        if(data.enter_amount !== ""){
+            fetchRate();
+        }
+    },[
+        data.from_currency,
+        data.to_currency,
+        data.exchange_type,
+        data.enter_amount
+    ]);
+
+    useEffect(()=>{
+
+    if(!data.enter_amount || !exchangeRate) return;
+
+    let subtotal = data.enter_amount / exchangeRate;
+    let fee = subtotal * 0.02;
+    let final = subtotal;
+
+    setReceivedAmount(final.toFixed(2));
+    setServiceFee(fee.toFixed(2));
+
+},[data.enter_amount, exchangeRate]);
+
+
+
+
+    
   return (
-    <div>
-        <style>
-            {`
-                .redborder {
-                  border: 1px solid red;
-                }
-              `}
-      </style>
-      <h1>This is ExchangeMoneyForm page</h1>
-      {data.Customer_name}
-      <form onSubmit={submit}>
-       Customer_name : <input type="text" className={errors.Customer_name && 'redborder'} value={data.Customer_name} onChange={(e) => setData('Customer_name', e.target.value)}/>
-       {errors.Customer_name && ( <p style={{ color: 'red' }}>{errors.Customer_name}</p> )}<br/>
-
-        phone :<input type="text" className={errors.phone && 'redborder'} value={data.phone} onChange={(e) => setData('phone', e.target.value)}/>
-        {errors.phone && ( <p style={{ color: 'red' }}>{errors.phone}</p> )}<br/>
-
-        Select : pair<select name="country" defaultValue="uk">
-            <option value="us">United States</option>
-            <option value="ca">Canada</option>
-            <option value="uk">United Kingdom</option>
-        </select><br/>
-
-        enter_amount :<input type="text" className={errors.enter_amount && 'redborder'} value={data.enter_amount} onChange={(e) => setData('enter_amount', e.target.value)}/>
-        {errors.enter_amount && ( <p style={{ color: 'red' }}>{errors.enter_amount}</p> )}<br/>
-      
-        <button type="submit" disabled={processing}>
-            {processing ? 'Calculating...' : 'Calculate'}
-        </button>
-      </form>
-
-
-       <Link href={route('invoices.show', 1)} >Show Invoices</Link><br/>
-      
-
-      
-       <div className="container-fluid py-5">
+    <>
+       <div className="container-fluid">
             <div className="container px-lg-5">
                 <div className="row justify-content-center">
                     <div className="col-lg-7">
                         <div className="section-title position-relative text-center mb-5 pb-2 wow fadeInUp" data-wow-delay="0.1s">
-                            <h6 className="position-relative d-inline text-primary ps-4">Contact Us</h6>
-                            <h2 className="mt-2">Contact For Any Query</h2>
+                            <h6 className="position-relative d-inline text-primary ps-4">{t('Exchange your money with confidence. Our rates are updated daily based on the international market to ensure fair and transparent transactions')}</h6>
+                            {/* <h2 className="mt-2">Contact For Any Query</h2> */}
                         </div>
                         <div className="wow fadeInUp" data-wow-delay="0.3s">
-                            <h4 className="text-center mb-4">Receive messages instantly with our PHP and Ajax contact form - available in the <a href="https://htmlcodex.com/downloading/?item=2059">Pro Version</a> only.</h4>
-                            <form>
+                            <h4 className="text-center mb-4">{t('Live Exchange Rates – USD | THB | KHR')}</h4>
+                            <form onSubmit={submit}>
                                 <div className="row g-3">
                                     <div className="col-md-6">
                                         <div className="form-floating">
-                                            <input type="text" className="form-control" id="name" placeholder="Your Name"/>
-                                            <label htmlFor="name">Your Name</label>
+                                            <input type="text"  className={`form-control ${errors.customer_name ? 'redborder' : ''}`} value={data.customer_name} onChange={(e) => setData('customer_name', e.target.value)} placeholder={t('Enter Name')}/>
+                                                {errors.customer_name && ( <p style={{ color: 'red' }}>{errors.customer_name}</p> )}
+                                            <label htmlFor="name">{t('Customer name')} ({t('optional')})</label>
+                                            
                                         </div>
                                     </div>
                                     <div className="col-md-6">
                                         <div className="form-floating">
-                                            <input type="email" className="form-control" id="email" placeholder="Your Email"/>
-                                            <label htmlFor="email">Your Email</label>
+                                            <input type="text" className={`form-control ${errors.phone ? 'redborder' : ''}`} value={data.phone} onChange={(e) => setData('phone', e.target.value)} placeholder={t('Enter phone number')}/>
+                                                {errors.phone && ( <p style={{ color: 'red' }}>{errors.phone}</p> )}
+                                            <label htmlFor="phone">{t('Phone Number')} ({t('optional')})</label>
                                         </div>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <label className="mb-2">{t('From currency')}</label>
+                                        <Select
+                                            options={currencies}
+                                            value={currencies.find(c => c.value === data.from_currency)}
+                                            onChange={(selected) => setData("from_currency", selected.value)}
+                                            formatOptionLabel={formatOptionLabel}
+                                            className="form-floating currency-select"
+                                        />
+                                    </div>
+                                    <div className="col-md-6">
+                                        <label className="mb-2">{t('To currency')}</label>
+                                        <Select
+                                            options={currencies}
+                                            value={currencies.find(c => c.value === data.to_currency)}
+                                            onChange={(selected) => setData("to_currency", selected.value)}
+                                            formatOptionLabel={formatOptionLabel}
+                                            className="form-floating currency-select"
+                                        />
                                     </div>
                                     <div className="col-12">
                                         <div className="form-floating">
-                                            <input type="text" className="form-control" id="subject" placeholder="Subject"/>
-                                            <label htmlFor="subject">Subject</label>
+                                              <input type="number" className={`form-control ${errors.enter_amount ? 'redborder' : ''}`} value={data.enter_amount} onChange={(e)=> setData('enter_amount', e.target.value)} placeholder={t('Enter amount')} />
+                                                {errors.enter_amount && ( <p style={{ color: 'red' }}>{errors.enter_amount}</p> )}
+                                            <label htmlFor="enter_amount">{t('Amount')}</label>
                                         </div>
                                     </div>
-                                    <div className="col-12">
+                                    {Number(data.enter_amount) > 0 && (
+                                        <>
+                                            <p className="text-primary text-center mt-3 animated zoomIn">
+                                                {t('International Money Exchange')}
+                                            </p>
+
+                                            <div className="card p-3 mt-3">
+                                                <h6>Exchange Summary</h6>
+
+                                                <p>1 {data.from_currency} = {exchangeRate} {data.to_currency}</p>
+
+                                                <p>Entered Amount : {data.enter_amount} {data.to_currency}</p>
+
+                                                <p>Subtotal : {receivedAmount}</p>
+
+                                                <p>Service Fee : {serviceFee}</p>
+
+                                                <h5>Total Receive : {receivedAmount}</h5>
+                                            </div>
+                                        </>
+                                    )}
+                                    
+
+                                    <div className="col-md-6">
                                         <div className="form-floating">
-                                            <textarea className="form-control" placeholder="Leave a message here" id="message" style={{ height: '150px' }}></textarea>
-                                            <label htmlFor="message">Message</label>
+                                                <select className="form-control" value={data.exchange_type} onChange={(e) => setData('exchange_type', e.target.value)}>
+                                                    <option value="Normal">{t('Normal')}</option>
+                                                    <option value="Standard">{t('Standard')}</option>
+                                                </select>   
+                                            <label htmlFor="exchange_type">{t('Exchange Type')}</label>
+                                        </div>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <div className="form-floating">
+                                                <select className="form-control" value={data.where_to_send} onChange={(e) => setData('where_to_send', e.target.value)}>
+                                                    <option value="TRF-OUT">{t('TRF-OUT')}</option>
+                                                    <option value="TRF-IN">{t('TRF-IN')}</option>
+                                                    <option value="Bank to Cash">{t('Bank to Cash')}</option>
+                                                    <option value="Cash to Bank">{t('Cash to Bank')}</option>
+                                                </select>   
+                                            <label htmlFor="where_to_send">{t('Where to send')}</label>
                                         </div>
                                     </div>
                                     <div className="col-12">
-                                        <button className="btn btn-primary w-100 py-3" type="submit">Send Message</button>
+                                        <button className="btn btn-primary w-100 py-3" type="submit" disabled={processing}>{processing ? t('Calculating...') : t('Calculate')}</button>
                                     </div>
+                                    <p className="text-center mb-4">{t('Secure and fast currency exchange with the best daily rates')}.</p>
                                 </div>
                             </form>
                         </div>
@@ -96,11 +195,11 @@ export default function ExchangeMoneyForm() {
                 </div>
             </div>
         </div>
+            <br/>
 
+       
 
-
-
-    </div>
+    </>
     
   );
 }
