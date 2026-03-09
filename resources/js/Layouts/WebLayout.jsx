@@ -56,7 +56,7 @@ export default function WebLayout({ children }) {
                         <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Register')}</Link>
                         <Link href={route('showExchangeRate')} className={`nav-item nav-link ${ isActive('showExchangeRate') ? 'active' : '' }`}>{t('Today Exchange Rate')}</Link>
                         <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Money Transfer')}</Link>
-                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Administrator Login')}</Link>
+                        {/* <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Administrator Login')}</Link> */}
                         <div className="nav-item dropdown">
                             <a href="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                                 <img src={currentLang.flag} width="20" style={{marginRight:'6px'}}/>
@@ -90,6 +90,14 @@ export default function WebLayout({ children }) {
                                                                     {t('Today Exchange')}
                                                                 </h1>
                                                             )}
+                            {isActive('open.moneyexchange.form') && (
+                                                                <h1 className="text-white animated zoomIn">
+                                                                    {t('International Money Exchange')}
+                                                                </h1>
+                                                            )}
+
+
+
                             
                         </div>
                     </div>

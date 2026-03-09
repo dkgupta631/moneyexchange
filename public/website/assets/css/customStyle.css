@@ -1,3 +1,4 @@
+/* // For Exchange Rate board START */
 .board-wrapper{
     /* min-height:150vh;
     background:#2b2b2b; */
@@ -119,9 +120,7 @@
     font-weight:bold;
     font-size: 20px;
 }
-
-/* IMPORTANT
-keeps same design on mobile */
+/* IMPORTANT keeps same design on mobile */
 
 @media(max-width:500px){
 
@@ -148,4 +147,28 @@ keeps same design on mobile */
         font-weight: bold;
     }
 
+}
+/* // For Exchange Rate board END */
+
+.redborder {
+    border: 1px solid red;
+}
+
+
+.css-13cymwt-control{
+    height: calc(3.5rem + 2px);
+}
+
+.currency-select .react-select__control {
+    border-radius: 10px;
+    min-height: 55px;
+    border: 1px solid #ddd;
+}
+
+.currency-select .react-select__menu {
+    border-radius: 10px;
+}
+
+.currency-select img {
+    border-radius: 2px;
 }
