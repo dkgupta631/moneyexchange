@@ -1,4 +1,4 @@
-import { useForm, usePage, Link } from '@inertiajs/react';
+import { useForm, Head, usePage, Link } from '@inertiajs/react';
 import { useEffect, useState } from "react";
 import Select from "react-select";
 import axios from "axios";
@@ -47,39 +47,57 @@ export default function ExchangeMoneyForm() {
     const [exchangeRate,setExchangeRate] = useState(0);
     const [receivedAmount,setReceivedAmount] = useState(0);
     const [serviceFee,setServiceFee] = useState(0);
-    const fetchRate = async () => {
+    const [loadingRate,setLoadingRate] = useState(false);
 
-    const res = await axios.post("/get-exchange-rate",{
-            from_currency:data.from_currency,
-            to_currency:data.to_currency,
-            exchange_type:data.exchange_type
+    const fetchRate = async (from_currency,to_currency,exchange_type,enter_amount) => {
+        setLoadingRate(true);
+        const res = await axios.post("/get-exchange-rate",{
+            from_currency,
+            to_currency,
+            exchange_type,
+            enter_amount
+
         });
-         console.log(res.data);
+        console.log(res.data);
+        // console.log("FROM:", data.from_currency);
+        // console.log("TO:", data.to_currency);
+        // console.log("TYPE:", data.exchange_type);
         setExchangeRate(res.data.exchange_rate);
+
+        setReceivedAmount(res.data.total.toFixed(2));
+        setServiceFee(res.data.service_fee);
+
+        setLoadingRate(false);
     };
-   useEffect(()=>{
-        if(data.enter_amount !== ""){
-            fetchRate();
-        }
-    },[
+
+
+    
+   useEffect(() => {
+        if (!data.enter_amount || data.enter_amount <= 0) return;
+        fetchRate(
+            data.from_currency,
+            data.to_currency,
+            data.exchange_type,
+            data.enter_amount
+        );
+
+    }, [
         data.from_currency,
         data.to_currency,
         data.exchange_type,
         data.enter_amount
     ]);
 
-    useEffect(()=>{
+//     useEffect(()=>{
+//     if(!data.enter_amount || !exchangeRate) return;
+//     let subtotal = data.enter_amount / exchangeRate;
+//     let fee = subtotal * 0.02;
+//     let final = subtotal;
 
-    if(!data.enter_amount || !exchangeRate) return;
+//     setReceivedAmount(final.toFixed(2));
+//     setServiceFee(fee.toFixed(2));
 
-    let subtotal = data.enter_amount / exchangeRate;
-    let fee = subtotal * 0.02;
-    let final = subtotal;
-
-    setReceivedAmount(final.toFixed(2));
-    setServiceFee(fee.toFixed(2));
-
-},[data.enter_amount, exchangeRate]);
+// },[data.enter_amount, exchangeRate]);
 
 
 
@@ -87,6 +105,7 @@ export default function ExchangeMoneyForm() {
     
   return (
     <>
+        <Head title={t('International')} />
        <div className="container-fluid">
             <div className="container px-lg-5">
                 <div className="row justify-content-center">
@@ -119,9 +138,17 @@ export default function ExchangeMoneyForm() {
                                         <Select
                                             options={currencies}
                                             value={currencies.find(c => c.value === data.from_currency)}
-                                            onChange={(selected) => setData("from_currency", selected.value)}
+                                            // onChange={(selected) => setData("from_currency", selected.value)}
                                             formatOptionLabel={formatOptionLabel}
                                             className="form-floating currency-select"
+                                            onChange={(selected) => {
+                                                    setData("from_currency", selected.value);
+                                                    fetchRate(
+                                                        selected.value,
+                                                        data.to_currency,
+                                                        data.exchange_type
+                                                    );
+                                                }}
                                         />
                                     </div>
                                     <div className="col-md-6">
@@ -129,9 +156,18 @@ export default function ExchangeMoneyForm() {
                                         <Select
                                             options={currencies}
                                             value={currencies.find(c => c.value === data.to_currency)}
-                                            onChange={(selected) => setData("to_currency", selected.value)}
+                                            // onChange={(selected) => setData("to_currency", selected.value)}
                                             formatOptionLabel={formatOptionLabel}
                                             className="form-floating currency-select"
+                                            onChange={(selected) => {
+                                                setData("to_currency", selected.value);
+
+                                                fetchRate(
+                                                    data.from_currency,
+                                                    selected.value,
+                                                    data.exchange_type
+                                                );
+                                            }}
                                         />
                                     </div>
                                     <div className="col-12">
@@ -143,30 +179,32 @@ export default function ExchangeMoneyForm() {
                                     </div>
                                     {Number(data.enter_amount) > 0 && (
                                         <>
-                                            <p className="text-primary text-center mt-3 animated zoomIn">
-                                                {t('International Money Exchange')}
-                                            </p>
-
-                                            <div className="card p-3 mt-3">
-                                                <h6>Exchange Summary</h6>
-
-                                                <p>1 {data.from_currency} = {exchangeRate} {data.to_currency}</p>
-
-                                                <p>Entered Amount : {data.enter_amount} {data.to_currency}</p>
-
-                                                <p>Subtotal : {receivedAmount}</p>
-
-                                                <p>Service Fee : {serviceFee}</p>
-
-                                                <h5>Total Receive : {receivedAmount}</h5>
+                                            <span className="text-primary text-center animated zoomIn"><b>{t('Real time update')}</b></span>
+                                            <div className="card p-3">
+                                                <h6>{t('Exchange Summary')}</h6>
+                                               <p><b>{data.from_currency}  ⇄  {data.to_currency}   ⟹   {loadingRate ? ( <span className="text-success">{t('Loading')}...</span> ) : ( exchangeRate )}</b></p>
+                                                <p>{t('Amount')} : {data.enter_amount}</p>
+                                                <p>{t('Subtotal')} : {receivedAmount}</p>
+                                                <p>{t('Service Fee')} : {serviceFee}</p>
+                                                <h5>{t('Total Receive amount')} : {receivedAmount}</h5>
                                             </div>
                                         </>
                                     )}
-                                    
 
                                     <div className="col-md-6">
                                         <div className="form-floating">
-                                                <select className="form-control" value={data.exchange_type} onChange={(e) => setData('exchange_type', e.target.value)}>
+                                                <select className="form-control" value={data.exchange_type} 
+                                                // onChange={(e) => setData('exchange_type', e.target.value)}
+                                                onChange={(e) => {
+                                                    setData("exchange_type", e.target.value);
+
+                                                    fetchRate(
+                                                        data.from_currency,
+                                                        data.to_currency,
+                                                        e.target.value
+                                                    );
+                                                }}
+                                                >
                                                     <option value="Normal">{t('Normal')}</option>
                                                     <option value="Standard">{t('Standard')}</option>
                                                 </select>   
@@ -185,7 +223,7 @@ export default function ExchangeMoneyForm() {
                                         </div>
                                     </div>
                                     <div className="col-12">
-                                        <button className="btn btn-primary w-100 py-3" type="submit" disabled={processing}>{processing ? t('Calculating...') : t('Calculate')}</button>
+                                        <button className="btn btn-primary w-100 py-3" type="submit" disabled={processing}>{processing ? t('Generating...') : t('Generate invoice')} ⟶</button>
                                     </div>
                                     <p className="text-center mb-4">{t('Secure and fast currency exchange with the best daily rates')}.</p>
                                 </div>

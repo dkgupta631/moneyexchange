@@ -58,25 +58,35 @@ class MoneyExchangeController extends Controller
     {
         //  dd($request->all());
         // return $request;
-         $rate = ExchangeRate::where('from_currency',$request->from_currency)
+        $rate = ExchangeRate::where('from_currency',$request->from_currency)
             ->where('to_currency',$request->to_currency)
             ->first();
 
-        if(!$rate){
-            return response()->json([
-                'exchange_rate'=>null
-            ]);
-        }
+        if($rate){
+                if($request->exchange_type == "Normal"){
+                    $exchangeRate = $rate->normal_rate;
+                }else{
+                    $exchangeRate = $rate->standard_rate;
+                }
+                if($rate->buy_or_sell == 'sell'){
+                     $subtotal  = $request->enter_amount*$exchangeRate;
+                }else{
+                    $subtotal  = $request->enter_amount/$exchangeRate;
+                }
+            
+         } 
 
-        if($request->exchange_type == "Normal"){
-            $exchangeRate = $rate->normal_sell_rate;
-        }else{
-            $exchangeRate = $rate->standard_sell_rate;
-        }
 
         return response()->json([
+            'id'=>$rate->id,
+            'from_currency'=>$rate->from_currency,
+            'to_currency'=>$rate->to_currency,
+            'buy_or_sell'=>$rate->buy_or_sell,
             'exchange_rate'=>$exchangeRate,
-            'id'=>$rate->id
+            'subtotal'=>$subtotal,
+            'service_fee'=> '0.1',
+            'total'=>$subtotal,
+            
         ]);
     }
 

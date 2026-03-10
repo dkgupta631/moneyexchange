@@ -25,24 +25,46 @@ class ExchangeRateResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('from_currency')
+                // Forms\Components\Select::make('section')
+                //     ->label(__('message.section'))
+                //     ->options([
+                //                 'left' => 'Left section',
+                //                 'right' => 'right section',
+                //             ])
+                //             ->prefixIcon('heroicon-m-document-currency-dollar')
+                //     ->required(),
+                Forms\Components\Select::make('buy_or_sell')
+                    ->label(__('message.Buy/Sell'))
+                    ->options([
+                                'sell' => 'Sell',
+                                'buy' => 'Buy',
+                            ])
+                            ->prefixIcon('heroicon-m-document-currency-dollar')
+                    ->required(),
+                Forms\Components\Select::make('from_currency')
+                     ->options([
+                                'Dollar' => 'Dollar',
+                                'Bhat' => 'Bhat',
+                                'Riel' => 'Riel',
+                            ])
+                    ->prefixIcon('heroicon-m-document-currency-dollar')
+                    ->required(),
+                Forms\Components\Select::make('to_currency')
+                     ->options([
+                                'Dollar' => 'Dollar',
+                                'Bhat' => 'Bhat',
+                                'Riel' => 'Riel',
+                            ])
+                    ->prefixIcon('heroicon-m-document-currency-dollar')
+                    ->required(),
+                Forms\Components\TextInput::make('normal_rate')
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('to_currency')
+                Forms\Components\TextInput::make('standard_rate')
                     ->maxLength(255)
                     ->default(null),
-                Forms\Components\TextInput::make('normal_sell_rate')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('normal_buy_rate')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('standard_sell_rate')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('standard_buy_rate')
-                    ->maxLength(255)
-                    ->default(null),
+               
+              
                 Forms\Components\DatePicker::make('rate_date')
                     ->required()
                     ->label(__('message.Event date'))
@@ -59,17 +81,19 @@ class ExchangeRateResource extends Resource
     {
         return $table
             ->columns([
+                //  Tables\Columns\TextColumn::make('section')
+                //     ->searchable(),
+                Tables\Columns\TextColumn::make('buy_or_sell')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('from_currency')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('to_currency')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('normal_sell_rate')
+               
+                
+                Tables\Columns\TextColumn::make('normal_rate')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('normal_buy_rate')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('standard_sell_rate')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('standard_buy_rate')
+                Tables\Columns\TextColumn::make('standard_rate')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('rate_date')
                     ->searchable(),

@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('exchange_rates', function (Blueprint $table) {
             $table->id();
+            $table->string('section')->nullable();
             $table->string('from_currency')->nullable();
             $table->string('to_currency')->nullable();
-            $table->string('normal_buy_rate')->nullable();
-            $table->string('normal_sell_rate')->nullable();
-            $table->string('standard_buy_rate')->nullable();
-            $table->string('standard_sell_rate')->nullable();
+            $table->string('buy_or_sell')->nullable();
+            $table->string('normal_rate')->nullable();
+            $table->string('standard_rate')->nullable();
             $table->string('rate_date')->nullable();
             $table->string('ordering')->nullable();
             $table->timestamps();
