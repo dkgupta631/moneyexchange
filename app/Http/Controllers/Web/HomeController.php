@@ -32,21 +32,14 @@ class HomeController extends Controller
     
     public function ShowExchangeRate()
     {
-        $Leftrecords = ExchangeRate::select(['id', 'from_currency', 'to_currency', 'normal_buy_rate', 'normal_sell_rate'])->orderBy('ordering', 'asc')->get();
-        $Rightrecords = ExchangeRate::select([
-                                                'id',
-                                                'from_currency',
-                                                'to_currency',
-                                                'standard_buy_rate',
-                                                'standard_sell_rate'
-                                            ])
-                                            ->whereNotNull('standard_buy_rate')
-                                            ->whereNotNull('standard_sell_rate')
-                                            ->orderBy('ordering', 'asc')
-                                            ->get();
+        $LeftRecords = ExchangeRate::select(['id', 'from_currency', 'to_currency', 'normal_rate'])->orderBy('ordering', 'asc')->get();
+        $RightRecords = ExchangeRate::select(['id', 'from_currency', 'to_currency', 'standard_rate'])->whereNotNull('standard_rate')->orderBy('ordering', 'asc')->get();
+      
+        // echo "<pre>"; print_r($LeftSellRecords); exit;
+       
         return Inertia::render('ShowExchangeRatePage', [
-            'Leftrecords' => $Leftrecords,
-            'Rightrecords' => $Rightrecords,
+            'LeftRecords' => $LeftRecords,
+            'RightRecords' => $RightRecords,
         ]);
 
     }

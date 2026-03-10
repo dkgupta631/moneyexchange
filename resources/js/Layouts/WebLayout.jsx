@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, Head, usePage } from '@inertiajs/react';
 
 
 export default function WebLayout({ children }) {
@@ -39,6 +39,10 @@ export default function WebLayout({ children }) {
             <Link href="/moneyexchange">moneyexchange</Link>
         </nav>
       </header> */}
+      <Head>
+        <meta head-key="description" name="description" content={t('Exchange currency rates help customers convert money correctly, make secure payments, and ensure transparency and trust in international transactions')}/>
+        <link rel="icon" type="image/svg+xml" href={`${appUrl}/website/assets/logo/logo.png`}/>
+    </Head>
     {/* <!-- Navbar & Hero Start --> */}
         <div className="container-fluid position-relative p-0">
             <nav className="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
@@ -53,7 +57,7 @@ export default function WebLayout({ children }) {
                 <div className="collapse navbar-collapse" id="navbarCollapse">
                     <div className="navbar-nav ms-auto py-0">
                         <Link href={route('home')} className={`nav-item nav-link ${isActive('home') ? 'active' : ''}`}>{t('Home')}</Link>
-                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Register')}</Link>
+                        <Link href="register" className={`nav-item nav-link`}>{t('Register')}</Link>
                         <Link href={route('showExchangeRate')} className={`nav-item nav-link ${ isActive('showExchangeRate') ? 'active' : '' }`}>{t('Today Exchange Rate')}</Link>
                         <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Money Transfer')}</Link>
                         {/* <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Administrator Login')}</Link> */}

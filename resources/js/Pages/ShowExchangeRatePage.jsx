@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Head, usePage } from '@inertiajs/react';
-export default function ShowExchangeRatePage({Leftrecords, Rightrecords}) {
+export default function ShowExchangeRatePage({LeftRecords, RightRecords}) {
     // console.log(Leftrecords);
     const { translations, locale, ziggy } = usePage().props;
     const appUrl = window.location.origin;
@@ -74,20 +74,17 @@ export default function ShowExchangeRatePage({Leftrecords, Rightrecords}) {
               <div>{t('For sale')}</div><div>{t('Buy')}</div>
             </div>
 
-            {Leftrecords.map(row => (
 
-                <div key={row.id} className="rate-row">
-                <div>
-                    <div>{t(row.from_currency)} - {t(row.to_currency)}</div>    {/*  for Sale */}
-                    <b>{row.normal_sell_rate}</b>
-                </div>
-                <div>
-                    <div>{t(row.to_currency)} - {t(row.from_currency)}</div>    {/*  for Buy */}
-                    <b>{row.normal_buy_rate}</b>
-                </div>
-                </div>
+          <div className="rate-row">
+                {LeftRecords.map(row => (
 
-            ))}
+                    <div key={row.id}>
+                        <div>{t(row.from_currency)} - {t(row.to_currency)}</div>    {/*  for Sale */}
+                        <b>{row.normal_rate}</b>
+                    </div>
+
+                ))}
+          </div>
 
             <div className="bottom-label">
               <span className="black-color">&nbsp;&nbsp;{t('Rate in hours')}</span>
@@ -104,20 +101,16 @@ export default function ShowExchangeRatePage({Leftrecords, Rightrecords}) {
               <div>{t('For sale')}</div><div>{t('Buy')}</div>
             </div>
 
-             {Rightrecords.map(row => (
+            <div className="rate-row">
+                  {RightRecords.map(row => (
+                    
+                      <div key={row.id}>
+                          <div>{t(row.from_currency)} - {t(row.to_currency)}</div>    
+                          <b>{row.standard_rate}</b>
+                      </div>  
 
-                <div key={row.id} className="rate-row">
-                <div>
-                    <div>{t(row.from_currency)} - {t(row.to_currency)}</div>    {/*  for Sale */}
-                    <b>{row.standard_sell_rate}</b>
-                </div>
-                <div>
-                    <div>{t(row.to_currency)} - {t(row.from_currency)}</div>    {/*  for Buy */}
-                    <b>{row.standard_buy_rate}</b>
-                </div>
-                </div>
-
-            ))}
+                    ))}
+            </div>
 
             <div className="bottom-label">
               <span className="time-css"><b>
