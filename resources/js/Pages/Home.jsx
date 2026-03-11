@@ -18,8 +18,8 @@ export default function Home() {
         <link rel="icon" type="image/svg+xml" href={`${appUrl}/website/assets/logo/logo.png`}/>
     </Head>
     {/* <!-- Service Start --> */}
-        <div className="container-fluid py-5">
-            <div className="container px-lg-5">
+        <div className="container-fluid py-10 mb-5 bg-primary hero-header">
+            <div className="container px-lg-5 py-10"><br/><br/><br/><br/>
                 <div className="section-title position-relative text-center mb-5 pb-2 wow fadeInUp" data-wow-delay="0.1s">
                     <h6 className="position-relative d-inline text-primary ps-4">Our Services</h6>
                     <h2 className="mt-2">What Solutions We Provide</h2>
@@ -95,6 +95,22 @@ export default function Home() {
             </div>
         </div>
         {/* <!-- Service End --> */}
+
+         <div className="container-fluid py-5 bg-primary mb-5">
+                <div className="container my-5 py-5 px-lg-5">
+                    <div className="row g-5 py-5">
+                        <div className="col-lg-6 text-center text-lg-start">
+                            <h1 className="text-white mb-4 animated zoomIn">{t('Secure and fast currency exchange with the best daily rates')}</h1>
+                            <p className="text-white pb-3 animated zoomIn">{t('Exchange your money with confidence. Our rates are updated daily based on the international market to ensure fair and transparent transactions')}</p>
+                            <a href="" className="btn btn-light py-sm-3 px-sm-5 rounded-pill me-3 animated slideInLeft">Free Quote</a>
+                            <a href="" className="btn btn-outline-light py-sm-3 px-sm-5 rounded-pill animated slideInRight">Contact Us</a>
+                        </div>
+                        <div className="col-lg-6 text-center text-lg-start">
+                            <img className="img-fluid" src={`${appUrl}/website/assets/img/home.gif`}/>
+                        </div>  
+                    </div>
+                </div>
+            </div>
 
         {/* <!-- Portfolio Start --> */}
          <div className="container-fluid py-5">

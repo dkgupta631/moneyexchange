@@ -45,7 +45,7 @@ export default function WebLayout({ children }) {
     </Head>
     {/* <!-- Navbar & Hero Start --> */}
         <div className="container-fluid position-relative p-0">
-            <nav className="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+            <nav className={`navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0 ${isActive('home') ? '' : 'bg-primary'}`}>
                 <Link href="/" className="navbar-brand p-0">
                     {/* <h1 className="m-0">Money<span className="fs-5">Exchange AI</span></h1> */}
                     {/* <!-- <img src="img/logo.png" alt="Logo"> --> */}
@@ -85,28 +85,10 @@ export default function WebLayout({ children }) {
                 </div>
             </nav>
 
-            <div className="container-fluid py-5 bg-primary hero-header mb-5">
+            {/* <div className="container-fluid py-5 mb-5">
                 <div className="container my-5 py-5 px-lg-5">
                     <div className="row g-5 py-5">
 
-                         {isActive('home') && (
-                                                            <>
-                                                                <div className="col-lg-6 text-center text-lg-start">
-                                                                    <h1 className="text-white mb-4 animated zoomIn">{t('Secure and fast currency exchange with the best daily rates')}</h1>
-                                                                    <p className="text-white pb-3 animated zoomIn">{t('Exchange your money with confidence. Our rates are updated daily based on the international market to ensure fair and transparent transactions')}</p>
-                                                                    <a href="" className="btn btn-light py-sm-3 px-sm-5 rounded-pill me-3 animated slideInLeft">Free Quote</a>
-                                                                    <a href="" className="btn btn-outline-light py-sm-3 px-sm-5 rounded-pill animated slideInRight">Contact Us</a>
-                                                                </div>
-                                                                <div className="col-lg-6 text-center text-lg-start">
-                                                                    <img className="img-fluid" src={`${appUrl}/website/assets/img/home.gif`}/>
-                                                                </div>
-                                                                </>
-                                                            )}
-
-                       
-
-
-                        
                             {isActive('showExchangeRate') && (
                                                                 <div className="col-12 text-center">
                                                                     <h1 className="text-white animated zoomIn">
@@ -128,7 +110,7 @@ export default function WebLayout({ children }) {
                         
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
         {/* <!-- Navbar & Hero End --> */}
 

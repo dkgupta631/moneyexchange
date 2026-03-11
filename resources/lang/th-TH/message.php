@@ -820,6 +820,13 @@ return [
     "From currency" => "จากสกุลเงิน",
     "To currency" => "เพื่อเป็นสกุลเงิน",
     "International Money Exchange" => "การแลกเปลี่ยนเงินระหว่างประเทศ",
+    "Cash to Cash" => "เงินสดเป็นเงินสด",
+    "Track exchange rates" => "ติดตามอัตราแลกเปลี่ยน",
+    "Bank to Bank" => "ธนาคารต่อธนาคาร",
+    "Exchange Rate" => "อัตราแลกเปลี่ยน",
+    "Money Exchange" => "การแลกเปลี่ยนเงิน",
+    "From" => "จาก",
+    "To" => "ถึง",
     
     
     

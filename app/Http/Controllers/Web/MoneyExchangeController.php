@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 
 use Inertia\Inertia;
 use App\Models\ExchangeRate;
-use App\Models\Invoice;
+use App\Models\MoneyExchangeInvoice;
 use Illuminate\Support\Str;
 
 class MoneyExchangeController extends Controller
@@ -27,15 +27,18 @@ class MoneyExchangeController extends Controller
             // 'phone' => ['required'],
             'enter_amount' => ['required'],
         ]);
-       dd($request);
+    //    dd($request);
 
-       Invoice::create([
-        'invoice_number' => 'INV'.time(),
+        $now = now()->setTimezone('Asia/Bangkok');
+        $invoiceNumber = '#E' . $now->format('dmYHis');
+       MoneyExchangeInvoice::create([
+        'invoice_number' => $invoiceNumber,
         'customer_name' => $request->customer_name,
         'phone' => $request->phone,
 
         'exchange_rate_id' => $request->exchange_rate_id,
-        'pair' => $request->from_currency.'-'.$request->to_currency,
+        'from_currency' => $request->from_currency,
+        'to_currency' => $request->to_currency,
         'exchange_type' => $request->exchange_type,
         'exchange_rate' => $request->exchange_rate,
 
@@ -43,7 +46,8 @@ class MoneyExchangeController extends Controller
         'entered_amount' => $request->enter_amount,
         'subtotal' => $request->subtotal,
         'service_fee' => $request->service_fee,
-        'final_amount' => $request->final_amount
+        'final_amount' => $request->final_amount,
+        'receive_type' => $request->receive_type
     ]);
 
     // return back()->with('success','Invoice Created Successfully');
@@ -57,7 +61,6 @@ class MoneyExchangeController extends Controller
     public function getRate(Request $request)
     {
         //  dd($request->all());
-        // return $request;
         $rate = ExchangeRate::where('from_currency',$request->from_currency)
             ->where('to_currency',$request->to_currency)
             ->first();
@@ -78,7 +81,7 @@ class MoneyExchangeController extends Controller
 
 
         return response()->json([
-            'id'=>$rate->id,
+            'exchange_rate_id'=>$rate->id,
             'from_currency'=>$rate->from_currency,
             'to_currency'=>$rate->to_currency,
             'buy_or_sell'=>$rate->buy_or_sell,
