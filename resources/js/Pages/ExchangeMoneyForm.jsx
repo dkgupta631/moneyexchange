@@ -10,7 +10,7 @@ export default function ExchangeMoneyForm() {
 
         const currencies = [
             { value: "Dollar", label: "US Dollar", flag: "/website/assets/flags/USD.png" },
-            { value: "Bhat", label: "Thai Baht", flag: "/website/assets/flags/THB.png" },
+            { value: "Baht", label: "Thai Baht", flag: "/website/assets/flags/THB.png" },
             { value: "Riel", label: "Khmer Riel", flag: "/website/assets/flags/KHR.png" },
             ];
         const formatOptionLabel = ({ value, label, flag }) => (
@@ -29,7 +29,7 @@ export default function ExchangeMoneyForm() {
         customer_name : "",
         phone : "",
         from_currency : "Dollar",
-        to_currency : "Bhat",
+        to_currency : "Baht",
         enter_amount : "",
         exchange_type : "Normal",
         where_to_send : "TRF-IN",
@@ -106,7 +106,7 @@ export default function ExchangeMoneyForm() {
   return (
     <>
         <Head title={t('International')} />
-       <div className="container-fluid">
+       <div className="container-fluid py-5"><br/><br/><br/>
             <div className="container px-lg-5">
                 <div className="row justify-content-center">
                     <div className="col-lg-7">
@@ -138,7 +138,6 @@ export default function ExchangeMoneyForm() {
                                         <Select
                                             options={currencies}
                                             value={currencies.find(c => c.value === data.from_currency)}
-                                            // onChange={(selected) => setData("from_currency", selected.value)}
                                             formatOptionLabel={formatOptionLabel}
                                             className="form-floating currency-select"
                                             onChange={(selected) => {
@@ -183,10 +182,10 @@ export default function ExchangeMoneyForm() {
                                             <div className="card p-3">
                                                 <h6>{t('Exchange Summary')}</h6>
                                                <p><b>{data.from_currency}  ⇄  {data.to_currency}   ⟹   {loadingRate ? ( <span className="text-success">{t('Loading')}...</span> ) : ( exchangeRate )}</b></p>
-                                                <p>{t('Amount')} : {data.enter_amount}</p>
-                                                <p>{t('Subtotal')} : {receivedAmount}</p>
+                                                <p>{t('Amount')} : {data.enter_amount} {data.from_currency}</p>
+                                                <p>{t('Subtotal')} : {receivedAmount} {data.to_currency}</p>
                                                 <p>{t('Service Fee')} : {serviceFee}</p>
-                                                <h5>{t('Total Receive amount')} : {receivedAmount}</h5>
+                                                <h5>{t('Total Receive amount')} : {receivedAmount} {data.to_currency}</h5>
                                             </div>
                                         </>
                                     )}

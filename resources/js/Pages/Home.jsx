@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
    
 
 export default function Home() {
@@ -27,61 +27,67 @@ export default function Home() {
                 <div className="row g-4">
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.1s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
+                            <Link href={route('showExchangeRate')}>
                             <div className="service-icon flex-shrink-0">
-                                <i className="fa fa-chart-line fa-2x"></i>
+                                <img src={`${appUrl}/website/assets/img/money-exchange3.jpg`} style={{ height: '100px', borderRadius: '50px' }}/>
                             </div>
-                            <h5 className="mb-3">SEO Optimization</h5>
-                            <p>Erat ipsum justo amet duo et elitr dolor, est duo duo eos lorem sed diam stet diam sed stet lorem.</p>
-                            <a className="btn px-3 mt-auto mx-auto" href="">Read More</a>
+                            <h5 className="mb-3">Money Exchange</h5></Link>
+                            <p>Money exchange services provide real-time exchange rates between currencies like USD, THB, KHR etc.</p>
+                            <Link href={route('showExchangeRate')} className="btn px-3 mt-auto mx-auto">Read More</Link>
                         </div>
                     </div>
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.3s">
+                        
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
+                            <Link href={route('open.moneyexchange.form')}>
                             <div className="service-icon flex-shrink-0">
-                                <i className="fa fa-laptop-code fa-2x"></i>
+                                <img src={`${appUrl}/website/assets/img/money-transfer2.jpg`} style={{ height: '100px', borderRadius: '50px' }}/>
                             </div>
-                            <h5 className="mb-3">Web Design</h5>
-                            <p>Erat ipsum justo amet duo et elitr dolor, est duo duo eos lorem sed diam stet diam sed stet lorem.</p>
-                            <a className="btn px-3 mt-auto mx-auto" href="">Read More</a>
+                            <h5 className="mb-3">Money Transfer</h5></Link>
+                            <p>Money can be transferred to different countries and currencies easily. This helps people send money to family, friends, or businesses internationally.</p>
+                            <Link href={route('open.moneyexchange.form')} className="btn px-3 mt-auto mx-auto">Read More</Link>
                         </div>
+                        
                     </div>
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
                             <div className="service-icon flex-shrink-0">
-                                <i className="fa fa-share-alt fa-2x"></i>
+                                <img src={`${appUrl}/website/assets/img/cash-transfer.jpg`} style={{ height: '100px', borderRadius: '50px' }}/>
                             </div>
-                            <h5 className="mb-3">Social Media Marketing</h5>
-                            <p>Erat ipsum justo amet duo et elitr dolor, est duo duo eos lorem sed diam stet diam sed stet lorem.</p>
+                            <h5 className="mb-3">Cash Transfer</h5>
+                            <p>Customers only need basic details like the receiver’s name and phone number. This makes sending money simple and convenient.</p>
                             <a className="btn px-3 mt-auto mx-auto" href="">Read More</a>
                         </div>
                     </div>
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.1s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
                             <div className="service-icon flex-shrink-0">
-                                <i className="fa fa-envelope-open-text fa-2x"></i>
+                                {/* <i className="fa fa-envelope-open-text fa-2x"></i> */}
+                                <img src={`${appUrl}/website/assets/img/withdraw-money2.jpg`} style={{ height: '100px', borderRadius: '50px' }}/>
                             </div>
-                            <h5 className="mb-3">Email Marketing</h5>
-                            <p>Erat ipsum justo amet duo et elitr dolor, est duo duo eos lorem sed diam stet diam sed stet lorem.</p>
+                            <h5 className="mb-3">Withdraw Money</h5>
+                            <p>Withdrawing money allows customers to quickly access their funds whenever they need it for daily expenses, shopping, or emergencies.</p>
                             <a className="btn px-3 mt-auto mx-auto" href="">Read More</a>
                         </div>
                     </div>
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.3s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
                             <div className="service-icon flex-shrink-0">
-                                <i className="fa fa-mouse-pointer fa-2x"></i>
+                                {/* <i className="fa fa-mouse-pointer fa-2x"></i> */}
+                                <img src={`${appUrl}/website/assets/img/money-deposit.png`} style={{ height: '100px', borderRadius: '50px' }}/>
                             </div>
-                            <h5 className="mb-3">PPC Advertising</h5>
-                            <p>Erat ipsum justo amet duo et elitr dolor, est duo duo eos lorem sed diam stet diam sed stet lorem.</p>
+                            <h5 className="mb-3">Deposit service</h5>
+                            <p>Your money is kept securely in a bank or authorized financial institution instead of keeping cash at home.</p>
                             <a className="btn px-3 mt-auto mx-auto" href="">Read More</a>
                         </div>
                     </div>
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
                             <div className="service-icon flex-shrink-0">
-                                <i className="fa fa-mobile-alt fa-2x"></i>
+                                <img src={`${appUrl}/website/assets/img/epay.png`} style={{ height: '100px', borderRadius: '50px' }}/>
                             </div>
-                            <h5 className="mb-3">App Development</h5>
-                            <p>Erat ipsum justo amet duo et elitr dolor, est duo duo eos lorem sed diam stet diam sed stet lorem.</p>
+                            <h5 className="mb-3">E Pay</h5>
+                            <p>E-Pay (Electronic Payment) is fast, convenient, and secure, making it one of the best ways to handle modern financial transactions.</p>
                             <a className="btn px-3 mt-auto mx-auto" href="">Read More</a>
                         </div>
                     </div>
