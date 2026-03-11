@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 export default function ShowExchangeRatePage({LeftRecords, RightRecords}) {
     // console.log(Leftrecords);
     const { translations, locale, ziggy } = usePage().props;
@@ -52,7 +52,7 @@ export default function ShowExchangeRatePage({LeftRecords, RightRecords}) {
 
   return (
     <>
-    <Head title={t('Today Exchange Rate')}/>
+    <Head title={t('Today Exchange Rate')}/><br/><br/><br/><br/><br/>
     <div className="board-wrapper">
 
       <div className="exchange-board" style={{ background: bg }}>
@@ -136,8 +136,18 @@ export default function ShowExchangeRatePage({LeftRecords, RightRecords}) {
         </div>
 
       </div>
-
-    </div><br/><br/><br/>
+   
+    </div>
+                                               
+    <br/><br/>
+      <Link href={route('open.moneyexchange.form')}>
+          <div className="text-center">
+              <button className="mb-3 btn btn-primary py-3 px-5" type="button">
+                  {t('Money Exchange')} ⟶
+              </button>
+          </div>
+      </Link>
+    <br/>
     </>
   );
 }

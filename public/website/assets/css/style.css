@@ -1,9 +1,15 @@
 /********** Template CSS **********/
-:root {
+/* :root {
     --primary: #2124B1;
     --secondary: #4777F5;
     --light: #F7FAFF;
     --dark: #1D1D27;
+} */
+ :root {
+    --primary: #5B2D8E;
+    --secondary: #9B59B6;
+    --light: #F5F0FA;
+    --dark: #1A0A2E;
 }
 
 

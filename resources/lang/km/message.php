@@ -819,6 +819,13 @@ return [
     "From currency" => "ពីរូបិយប័ណ្ណ",
     "To currency" => "ទៅរូបិយប័ណ្ណ",
     "International Money Exchange" => "ការប្តូរប្រាក់អន្តរជាតិ",
+    "Cash to Cash" => "សាច់ប្រាក់ទៅជាសាច់ប្រាក់",
+    "Track exchange rates" => "តាមដានអត្រាប្តូរប្រាក់",
+    "Bank to Bank" => "ធនាគារទៅធនាគារ",
+    "Exchange Rate" => "អត្រាប្តូរប្រាក់",
+    "Money Exchange" => "ការប្តូរប្រាក់",
+    "From" => "ពី",
+    "To" => "ទៅ",
 
 
 

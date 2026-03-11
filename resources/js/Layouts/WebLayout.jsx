@@ -45,7 +45,7 @@ export default function WebLayout({ children }) {
     </Head>
     {/* <!-- Navbar & Hero Start --> */}
         <div className="container-fluid position-relative p-0">
-            <nav className="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+            <nav className={`navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0 ${isActive('home') ? '' : 'bg-primary'}`}>
                 <Link href="/" className="navbar-brand p-0">
                     {/* <h1 className="m-0">Money<span className="fs-5">Exchange AI</span></h1> */}
                     {/* <!-- <img src="img/logo.png" alt="Logo"> --> */}
@@ -85,28 +85,32 @@ export default function WebLayout({ children }) {
                 </div>
             </nav>
 
-            <div className="container-fluid py-5 bg-primary hero-header mb-5">
+            {/* <div className="container-fluid py-5 mb-5">
                 <div className="container my-5 py-5 px-lg-5">
                     <div className="row g-5 py-5">
-                        <div className="col-12 text-center">
+
                             {isActive('showExchangeRate') && (
-                                                                <h1 className="text-white animated zoomIn">
-                                                                    {t('Today Exchange')}
-                                                                </h1>
+                                                                <div className="col-12 text-center">
+                                                                    <h1 className="text-white animated zoomIn">
+                                                                        {t('Today Exchange')}
+                                                                    </h1>
+                                                                </div>
                                                             )}
                             {isActive('open.moneyexchange.form') && (
-                                                                <h1 className="text-white animated zoomIn">
-                                                                    {t('International Money Exchange')}
-                                                                </h1>
+                                                                <div className="col-12 text-center">
+                                                                    <h1 className="text-white animated zoomIn">
+                                                                        {t('International Money Exchange')}
+                                                                    </h1>
+                                                                </div>
                                                             )}
 
 
 
                             
-                        </div>
+                        
                     </div>
                 </div>
-            </div>
+            </div> */}
         </div>
         {/* <!-- Navbar & Hero End --> */}
 
@@ -115,7 +119,7 @@ export default function WebLayout({ children }) {
       </main>
 
         {/* <!-- Footer Start --> */}
-        <div className="container-fluid py-1 bg-primary text-light footer wow fadeIn" data-wow-delay="0.1s">
+        <div className="container-fluid py-3 bg-primary text-light footer wow fadeIn" data-wow-delay="0.1s">
             <div className="container py-1 px-lg-5">
                 <div className="row g-5">
                     <div className="col-md-6 col-lg-3">

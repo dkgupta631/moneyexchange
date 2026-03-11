@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invoices', function (Blueprint $table) {
+        Schema::create('money_exchange_invoices', function (Blueprint $table) {
             $table->id();
             $table->string('invoice_number')->nullable();
             $table->string('customer_name')->nullable();
             $table->string('phone')->nullable();
             
             $table->string('exchange_rate_id')->nullable();
-            $table->string('pair')->nullable();
+            $table->string('from_currency')->nullable();
+            $table->string('to_currency')->nullable();
             $table->string('exchange_type')->nullable();
             $table->string('exchange_rate')->nullable();
 
@@ -38,6 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('invoices');
+        Schema::dropIfExists('money_exchange_invoices');
     }
 };
