@@ -49,7 +49,7 @@ export default function WebLayout({ children }) {
                 <Link href="/" className="navbar-brand p-0">
                     {/* <h1 className="m-0">Money<span className="fs-5">Exchange AI</span></h1> */}
                     {/* <!-- <img src="img/logo.png" alt="Logo"> --> */}
-                    <img src={`${appUrl}/website/assets/logo/logo.png`} style={{ borderRadius: '10px' }}/>
+                    <img src={`${appUrl}/website/assets/logo/logo2.png`} style={{ borderRadius: '10px' }}/>
                 </Link>
                 <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                     <span className="fa fa-bars"></span>
@@ -57,9 +57,9 @@ export default function WebLayout({ children }) {
                 <div className="collapse navbar-collapse" id="navbarCollapse">
                     <div className="navbar-nav ms-auto py-0">
                         <Link href={route('home')} className={`nav-item nav-link ${isActive('home') ? 'active' : ''}`}>{t('Home')}</Link>
-                        <Link href="register" className={`nav-item nav-link`}>{t('Register')}</Link>
+                        <Link href="register" className={`nav-item nav-link`}>{t('Staff Login')}</Link>
                         <Link href={route('showExchangeRate')} className={`nav-item nav-link ${ isActive('showExchangeRate') ? 'active' : '' }`}>{t('Today Exchange Rate')}</Link>
-                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Money Transfer')}</Link>
+                        <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Money Exchange')}</Link>
                         {/* <Link href={route('open.moneyexchange.form')} className={`nav-item nav-link ${ isActive('open.moneyexchange.*') ? 'active' : '' }`}>{t('Administrator Login')}</Link> */}
                         <div className="nav-item dropdown">
                             <a href="#" className="nav-link dropdown-toggle" data-bs-toggle="dropdown">

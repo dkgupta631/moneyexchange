@@ -36,7 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->profile()
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::Purple,
                 'sidebar' => [
                     'background' => '#053cb1', // Sidebar bg color
                     'text' => '#F3F4F6',       // Sidebar text color

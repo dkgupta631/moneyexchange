@@ -51,8 +51,8 @@ class MoneyExchangeController extends Controller
     ]);
 
     // return back()->with('success','Invoice Created Successfully');
-
-       return redirect('/invoices'.'/'.$request->Customer_name)->with('greet' , 'Invoice Generated Successfully!');
+        $msg = __('message.Invoice Generated Successfully!');
+       return redirect('/moneyexchange-invoices'.'/'.base64_encode($invoiceNumber))->with('greet' , $msg);
 
     }
 
@@ -93,11 +93,11 @@ class MoneyExchangeController extends Controller
         ]);
     }
 
-    public function showInvoices($id)
+    public function showMoneyExchangeInvoices($invoice_number)
     {
-    //    dd($id);
-       $records = ExchangeRate::where('id', $id)->get();
-        return Inertia::render('ShowInvoices', [
+       $records = MoneyExchangeInvoice::where('invoice_number', base64_decode($invoice_number))->first();
+        // dd($records);
+        return Inertia::render('ShowMoneyExchangeInvoices', [
             'records' => $records,
         ]);
 

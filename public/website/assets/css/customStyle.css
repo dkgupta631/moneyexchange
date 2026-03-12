@@ -172,3 +172,11 @@
 .currency-select img {
     border-radius: 2px;
 }
+
+.home-card-img{
+    height: 100px;
+    border-radius: 50px;
+}
+.text-purple{
+    color: #5B2D8E;
+}
