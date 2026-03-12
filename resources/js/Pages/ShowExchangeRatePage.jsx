@@ -53,7 +53,7 @@ export default function ShowExchangeRatePage({LeftRecords, RightRecords}) {
   return (
     <>
     <Head title={t('Today Exchange Rate')}/><br/><br/><br/><br/><br/>
-    <div className="board-wrapper">
+    <div className="board-wrapper wow zoomIn">
 
       <div className="exchange-board" style={{ background: bg }}>
 

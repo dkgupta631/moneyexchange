@@ -384,7 +384,7 @@ export default function ExchangeMoneyForm() {
                                         {/* Exchange Summary */}
                                         {hasResult && (
                                             <div className="col-12">
-                                                <div className="xsummary">
+                                                <div className="xsummary wow zoomIn">
                                                     <h6>{t('Exchange Summary')}</h6>
                                                     <div className="xsum-row">
                                                         <span>{t('Amount')}</span>
