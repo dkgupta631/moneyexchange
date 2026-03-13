@@ -1,5 +1,5 @@
 import { useForm, Head, usePage } from '@inertiajs/react';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
 export default function ExchangeMoneyForm() {
@@ -13,7 +13,7 @@ export default function ExchangeMoneyForm() {
         { value: "Riel",   label: "Khmer Riel", code: "KHR", flag: "/website/assets/flags/KHR.png" },
     ];
 
-    const getCurrencySymbol = (val) => ({ Dollar: "$", Baht: "฿", Riel: "៛" }[val] || "");
+    const getCurrencySymbol  = (val) => ({ Dollar: "$", Baht: "฿", Riel: "៛" }[val] || "");
     const getCurrencyByValue = (val) => currencies.find(c => c.value === val);
 
     const { data, setData, post, errors, processing } = useForm({
@@ -25,7 +25,6 @@ export default function ExchangeMoneyForm() {
         exchange_type:    "Normal",
         where_to_send:    "TRF-IN",
         receive_type:     "Cash to Cash",
-        // invoice fields — filled automatically when rate is fetched
         exchange_rate_id: "",
         exchange_rate:    "",
         subtotal:         "",
@@ -33,60 +32,113 @@ export default function ExchangeMoneyForm() {
         final_amount:     "",
     });
 
-    const [receivedAmount,   setReceivedAmount]   = useState("");
-    const [exchangeRate,     setExchangeRate]     = useState(""); // raw DB rate (stored in invoice)
-    const [displayRate,      setDisplayRate]      = useState(""); // correct display: 1 FROM = X TO
-    const [serviceFee,       setServiceFee]       = useState("");
-    const [loadingRate,      setLoadingRate]      = useState(false);
-    const [fromOpen,         setFromOpen]         = useState(false);
-    const [toOpen,           setToOpen]           = useState(false);
+    // ── Single source of truth for both display values ──
+    const [fromDisplayAmount, setFromDisplayAmount] = useState("");
+    const [toDisplayAmount,   setToDisplayAmount]   = useState("");
+    const [displayRate,       setDisplayRate]       = useState("");
+    const [serviceFee,        setServiceFee]        = useState("");
+    const [fromOpen,          setFromOpen]          = useState(false);
+    const [toOpen,            setToOpen]            = useState(false);
 
-    const fetchRate = async (from_currency, to_currency, exchange_type, enter_amount) => {
-        if (!enter_amount || Number(enter_amount) <= 0) return;
-        setLoadingRate(true);
-        try {
-            const res      = await axios.post("/get-exchange-rate", { from_currency, to_currency, exchange_type, enter_amount });
-            const rawRate  = res.data.exchange_rate;          // DB rate (e.g. 31.14)
-            const buyOrSell= res.data.buy_or_sell;            // 'sell' = multiply, else divide
-            const total    = parseFloat(res.data.total).toFixed(2);
-            const fee      = res.data.service_fee;
-            const rid      = res.data.exchange_rate_id ?? "";
-
-            // ── Compute correct display rate: how much 1 unit of FROM currency gives in TO ──
-            // If buy_or_sell = 'sell'  → total = amount * rate  → 1 FROM = rate TO        ✓
-            // If buy_or_sell = 'buy'   → total = amount / rate  → 1 FROM = (1/rate) TO
-            const oneUnitResult = buyOrSell === 'sell'
-                ? parseFloat(rawRate)
-                : parseFloat((1 / rawRate).toFixed(6));
-
-            setExchangeRate(rawRate);                         // keep raw for invoice storage
-            setDisplayRate(oneUnitResult);                    // shown in UI
-            setReceivedAmount(total);
-            setServiceFee(fee);
-
-            setData(prev => ({
-                ...prev,
-                exchange_rate:    rawRate,
-                exchange_rate_id: rid,
-                subtotal:         total,
-                service_fee:      fee,
-                final_amount:     total,
-            }));
-        } catch (e) {
-            console.error(e);
-        }
-        setLoadingRate(false);
-    };
-
-    useEffect(() => {
-        fetchRate(data.from_currency, data.to_currency, data.exchange_type, data.enter_amount);
-    }, [data.from_currency, data.to_currency, data.exchange_type, data.enter_amount]);
-
-    const handleSwap = () => {
-        setData(prev => ({ ...prev, from_currency: prev.to_currency, to_currency: prev.from_currency }));
-    };
+    const fromTimer = useRef(null);
+    const toTimer   = useRef(null);
 
     const closeAll = () => { setFromOpen(false); setToOpen(false); };
+
+    // ── Fetch when FROM amount typed ──
+    const fetchFromAmount = async (from_currency, to_currency, exchange_type, enter_amount) => {
+        if (!enter_amount || Number(enter_amount) <= 0) {
+            setToDisplayAmount("");
+            setDisplayRate(""); setServiceFee("");
+            setData(prev => ({ ...prev, subtotal: "", service_fee: "", final_amount: "", exchange_rate: "", exchange_rate_id: "" }));
+            return;
+        }
+        try {
+            const res       = await axios.post("/get-exchange-rate", { from_currency, to_currency, exchange_type, enter_amount });
+            const rawRate   = res.data.exchange_rate;
+            const buyOrSell = res.data.buy_or_sell;
+            const total     = parseFloat(res.data.total).toFixed(2);
+            const fee       = res.data.service_fee;
+            const rid       = res.data.exchange_rate_id ?? "";
+            const oneUnit   = buyOrSell === 'sell' ? parseFloat(rawRate) : parseFloat((1 / rawRate).toFixed(6));
+
+            setDisplayRate(oneUnit);
+            setToDisplayAmount(total);
+            setServiceFee(fee);
+            setData(prev => ({ ...prev, enter_amount: enter_amount, exchange_rate: rawRate, exchange_rate_id: rid, subtotal: total, service_fee: fee, final_amount: total }));
+        } catch (e) { console.error(e); }
+    };
+
+    // ── Fetch when TO amount typed (reverse calc) ──
+    const fetchToAmount = async (from_currency, to_currency, exchange_type, to_amount_val) => {
+        if (!to_amount_val || Number(to_amount_val) <= 0) {
+            setFromDisplayAmount("");
+            setDisplayRate(""); setServiceFee("");
+            setData(prev => ({ ...prev, enter_amount: "", subtotal: "", service_fee: "", final_amount: "", exchange_rate: "", exchange_rate_id: "" }));
+            return;
+        }
+        try {
+            const res       = await axios.post("/get-exchange-rate", { from_currency, to_currency, exchange_type, enter_amount: 1 });
+            const rawRate   = res.data.exchange_rate;
+            const buyOrSell = res.data.buy_or_sell;
+            const fee       = res.data.service_fee;
+            const rid       = res.data.exchange_rate_id ?? "";
+            const oneUnit   = buyOrSell === 'sell' ? parseFloat(rawRate) : parseFloat((1 / rawRate).toFixed(6));
+            const fromCalc  = (parseFloat(to_amount_val) / oneUnit).toFixed(2);
+
+            setDisplayRate(oneUnit);
+            setFromDisplayAmount(fromCalc);
+            setServiceFee(fee);
+            setData(prev => ({ ...prev, enter_amount: fromCalc, exchange_rate: rawRate, exchange_rate_id: rid, subtotal: to_amount_val, service_fee: fee, final_amount: to_amount_val }));
+        } catch (e) { console.error(e); }
+    };
+
+    // ── FROM input: update state immediately, debounce API call ──
+    const handleFromChange = (val) => {
+        setFromDisplayAmount(val);
+        clearTimeout(fromTimer.current);
+        fromTimer.current = setTimeout(() => {
+            fetchFromAmount(data.from_currency, data.to_currency, data.exchange_type, val);
+        }, 400);
+    };
+
+    // ── TO input: update state immediately, debounce API call ──
+    const handleToChange = (val) => {
+        setToDisplayAmount(val);
+        clearTimeout(toTimer.current);
+        toTimer.current = setTimeout(() => {
+            fetchToAmount(data.from_currency, data.to_currency, data.exchange_type, val);
+        }, 400);
+    };
+
+    // ── Swap currencies ──
+    const handleSwap = () => {
+        const prevFrom    = data.from_currency;
+        const prevTo      = data.to_currency;
+        const prevFromAmt = fromDisplayAmount;
+        const prevToAmt   = toDisplayAmount;
+        setData(prev => ({ ...prev, from_currency: prevTo, to_currency: prevFrom }));
+        setFromDisplayAmount(prevToAmt);
+        setToDisplayAmount(prevFromAmt);
+        setTimeout(() => fetchFromAmount(prevTo, prevFrom, data.exchange_type, prevToAmt), 0);
+    };
+
+    // ── Prevent same currency on both sides ──
+    const handleFromCurrencyChange = (newVal) => {
+        let newTo = data.to_currency;
+        if (newVal === data.to_currency) newTo = currencies.find(c => c.value !== newVal)?.value || "";
+        setFromOpen(false);
+        setData(prev => ({ ...prev, from_currency: newVal, to_currency: newTo }));
+        setTimeout(() => fetchFromAmount(newVal, newTo, data.exchange_type, fromDisplayAmount), 0);
+    };
+
+    const handleToCurrencyChange = (newVal) => {
+        let newFrom = data.from_currency;
+        if (newVal === data.from_currency) newFrom = currencies.find(c => c.value !== newVal)?.value || "";
+        setToOpen(false);
+        setData(prev => ({ ...prev, to_currency: newVal, from_currency: newFrom }));
+        setTimeout(() => fetchFromAmount(newFrom, newVal, data.exchange_type, fromDisplayAmount), 0);
+    };
 
     function submit(e) {
         e.preventDefault();
@@ -95,7 +147,7 @@ export default function ExchangeMoneyForm() {
 
     const fromCurrency = getCurrencyByValue(data.from_currency);
     const toCurrency   = getCurrencyByValue(data.to_currency);
-    const hasResult    = Number(data.enter_amount) > 0 && receivedAmount;
+    const hasResult    = Number(data.enter_amount) > 0 && toDisplayAmount;
 
     return (
         <>
@@ -104,7 +156,6 @@ export default function ExchangeMoneyForm() {
             <style>{`
                 .xform { font-family: 'Segoe UI', system-ui, sans-serif; }
 
-                /* ── Exchanger Card ── */
                 .xcard {
                     display: grid;
                     grid-template-columns: 1fr 52px 1fr;
@@ -127,38 +178,37 @@ export default function ExchangeMoneyForm() {
                 .xside-label {
                     font-size: 11px; font-weight: 700;
                     letter-spacing: .7px; text-transform: uppercase;
-                    color: #9aa8be; margin-bottom: 6px;
+                    color: #9aa8be; margin-top: 6px;
                 }
 
-                /* Amount */
-                .xamount-row { display: flex; align-items: baseline; gap: 4px; }
-                .xsymbol     { font-size: 24px; font-weight: 700; color: #1a1f36; line-height: 1; }
+                /* Both inputs are structurally identical */
+                .xamount-row { display: flex; align-items: baseline; gap: 4px; margin-top: 10px; }
+                .xsymbol     { font-size: 24px; font-weight: 700; color: #1a1f36; line-height: 1; flex-shrink: 0; }
                 .xsymbol-to  { color: #5B2D8E; }
                 .xamount-input {
                     border: none; outline: none;
                     font-size: 24px; font-weight: 700; color: #1a1f36;
                     width: 100%; background: transparent; min-width: 0;
+                    caret-color: #1a1f36;
                 }
-                .xamount-input::placeholder { color: #d0d8e8; }
+                .xamount-input-to  { color: #5B2D8E; caret-color: #5B2D8E; }
+                .xamount-input::placeholder { color: #d0d8e8; font-weight: 400; }
                 .xamount-input::-webkit-inner-spin-button,
                 .xamount-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-                .xconverted {
-                    font-size: 24px; font-weight: 700; color: #5B2D8E;
-                    min-height: 34px; display: flex; align-items: baseline; gap: 4px;
-                }
-                .xloading { color: #b0bdd0; font-size: 16px; letter-spacing: 3px; align-self: center; }
 
-                /* Currency trigger */
                 .xcur-trigger {
                     display: inline-flex; align-items: center; gap: 7px;
-                    margin-top: 10px; cursor: pointer; user-select: none; width: fit-content;
+                    cursor: pointer; user-select: none; width: fit-content;
+                    padding: 5px 10px 5px 6px;
+                    border: 1.5px solid #e8d5f5; border-radius: 999px;
+                    background: #faf5ff; transition: all .15s;
                 }
+                .xcur-trigger:hover { background: #f0e8f8; border-color: #c9a5e0; }
                 .xcur-trigger img { width: 24px; height: 16px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
                 .xcur-code { font-size: 14px; font-weight: 700; color: #1a1f36; }
-                .xcur-name { font-size: 13px; color: #888; font-weight: 400; }
-                .xcur-chevron { color: #aaa; font-size: 10px; }
+                .xcur-name { font-size: 12px; color: #888; }
+                .xcur-chevron { color: #aaa; font-size: 10px; margin-left: 2px; }
 
-                /* Swap column — sits between the two sides */
                 .xswap-col {
                     display: flex; align-items: center; justify-content: center;
                     border-right: 1.5px solid #d4b3e8;
@@ -172,7 +222,6 @@ export default function ExchangeMoneyForm() {
                 }
                 .xswap-btn:hover { background: #5B2D8E; color: #fff; border-color: #5B2D8E; }
 
-                /* Dropdown */
                 .xdropdown {
                     position: absolute; top: calc(100% + 6px); left: 0;
                     background: #fff; border: 1.5px solid #d4b3e8;
@@ -186,11 +235,12 @@ export default function ExchangeMoneyForm() {
                     transition: background .12s;
                 }
                 .xdrop-item:hover { background: #f0e8f8; }
+                .xdrop-item.xdrop-active { background: #ede0f5; }
                 .xdrop-item img { width: 24px; height: 16px; border-radius: 2px; object-fit: cover; }
                 .xdrop-code { font-weight: 700; color: #1a1f36; }
                 .xdrop-name { color: #999; font-size: 12px; margin-left: auto; }
+                .xdrop-check { color: #5B2D8E; font-size: 13px; margin-left: 4px; }
 
-                /* Rate line */
                 .xrate-line {
                     display: flex; align-items: center; flex-wrap: wrap;
                     gap: 8px; margin-top: 8px; padding: 0 2px;
@@ -202,30 +252,33 @@ export default function ExchangeMoneyForm() {
                     padding: 2px 9px; border-radius: 20px; font-weight: 600;
                 }
                 .xtrack-btn {
-                    margin-left: auto;
-                    font-size: 12px; font-weight: 600; color: #5B2D8E;
+                    margin-left: auto; font-size: 12px; font-weight: 600; color: #5B2D8E;
                     background: #f0e8f8; border: 1.5px solid #d4b3e8;
                     border-radius: 8px; padding: 4px 14px; cursor: pointer;
                     text-decoration: none; white-space: nowrap; transition: all .15s;
                 }
                 .xtrack-btn:hover { background: #5B2D8E; color: #fff; border-color: #5B2D8E; }
 
-                /* Summary */
                 .xsummary {
                     background: linear-gradient(135deg,#f5f0fa,#ede0f5);
-                    border: 1.5px solid #d4b3e8; border-radius: 12px;
-                    padding: 16px 20px;
+                    border: 1.5px solid #d4b3e8; border-radius: 12px; padding: 16px 20px;
                 }
                 .xsummary h6 { font-weight: 700; color: #1a1f36; margin-bottom: 12px; font-size: 15px; }
-                .xsum-row {
-                    display: flex; justify-content: space-between;
-                    font-size: 14px; color: #555; margin-bottom: 5px;
-                }
+                .xsum-row { display: flex; justify-content: space-between; font-size: 14px; color: #555; margin-bottom: 5px; }
                 .xsum-total {
                     font-weight: 700; font-size: 15px; color: #1a1f36;
                     border-top: 1px solid #d4b3e8; padding-top: 9px; margin-top: 5px;
                 }
                 .xerr { color: #e53e3e; font-size: 12px; margin-top: 3px; }
+
+                .xpopular { font-size: 11px; color: #aaa; margin-top: 6px; }
+                .xpopular span {
+                    display: inline-flex; align-items: center; gap: 3px;
+                    background: #f5f0fa; border: 1px solid #e8d5f5;
+                    border-radius: 6px; padding: 2px 8px; cursor: pointer;
+                    transition: all .12s; margin-right: 4px;
+                }
+                .xpopular span:hover { background: #ede0f5; }
 
                 @media (max-width: 540px) {
                     .xcard { grid-template-columns: 1fr; }
@@ -253,7 +306,6 @@ export default function ExchangeMoneyForm() {
                                 <form onSubmit={submit}>
                                     <div className="row g-3">
 
-                                        {/* Customer name */}
                                         <div className="col-md-6">
                                             <div className="form-floating">
                                                 <input type="text"
@@ -266,7 +318,6 @@ export default function ExchangeMoneyForm() {
                                             </div>
                                         </div>
 
-                                        {/* Phone */}
                                         <div className="col-md-6">
                                             <div className="form-floating">
                                                 <input type="text"
@@ -279,26 +330,12 @@ export default function ExchangeMoneyForm() {
                                             </div>
                                         </div>
 
-                                        {/* ── Unified Exchanger Card ── */}
+                                        {/* ── Exchanger Card ── */}
                                         <div className="col-12">
                                             <div className="xcard" onClick={e => e.stopPropagation()}>
 
                                                 {/* FROM side */}
                                                 <div className="xside xside-from">
-                                                    <div className="xside-label">{t('From')}</div>
-
-                                                    <div className="xamount-row">
-                                                        <span className="xsymbol">{getCurrencySymbol(data.from_currency)}</span>
-                                                        <input
-                                                            type="number"
-                                                            className="xamount-input"
-                                                            placeholder="1"
-                                                            value={data.enter_amount}
-                                                            onChange={e => setData('enter_amount', e.target.value)}
-                                                        />
-                                                    </div>
-                                                    {errors.enter_amount && <div className="xerr">{errors.enter_amount}</div>}
-
                                                     <div className="xcur-trigger"
                                                         onClick={() => { setFromOpen(v => !v); setToOpen(false); }}>
                                                         <img src={fromCurrency?.flag} alt={fromCurrency?.code} />
@@ -306,44 +343,41 @@ export default function ExchangeMoneyForm() {
                                                         <span className="xcur-name">- {fromCurrency?.label}</span>
                                                         <span className="xcur-chevron">▼</span>
                                                     </div>
-
                                                     {fromOpen && (
                                                         <div className="xdropdown">
                                                             {currencies.map(c => (
-                                                                <div key={c.value} className="xdrop-item"
-                                                                    onClick={() => {
-                                                                        setData("from_currency", c.value);
-                                                                        setFromOpen(false);
-                                                                        fetchRate(c.value, data.to_currency, data.exchange_type, data.enter_amount);
-                                                                    }}>
+                                                                <div key={c.value}
+                                                                    className={`xdrop-item ${c.value === data.from_currency ? 'xdrop-active' : ''}`}
+                                                                    onClick={() => handleFromCurrencyChange(c.value)}>
                                                                     <img src={c.flag} alt={c.code} />
                                                                     <span className="xdrop-code">{c.code}</span>
                                                                     <span className="xdrop-name">{c.label}</span>
+                                                                    {c.value === data.from_currency && <span className="xdrop-check">✓</span>}
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     )}
-                                                </div>
-
-                                                {/* SWAP column — centered between both sides */}
-                                                <div className="xswap-col">
-                                                    <button type="button" className="xswap-btn" onClick={handleSwap} title="Swap">
-                                                        ⇄
-                                                    </button>
-                                                </div>
-
-                                                {/* TO side */}
-                                                <div className="xside">
-                                                    <div className="xside-label">{t('To')}</div>
-
-                                                    <div className="xconverted">
-                                                        <span className="xsymbol xsymbol-to">{getCurrencySymbol(data.to_currency)}</span>
-                                                        {loadingRate
-                                                            ? <span className="xloading">···</span>
-                                                            : <span>{receivedAmount || <span style={{ color: '#d0d8e8', fontWeight: 400, fontSize: 18 }}>0.00</span>}</span>
-                                                        }
+                                                    <div className="xamount-row">
+                                                        <span className="xsymbol">{getCurrencySymbol(data.from_currency)}</span>
+                                                        <input
+                                                            type="number"
+                                                            className="xamount-input"
+                                                            placeholder="0"
+                                                            value={fromDisplayAmount}
+                                                            onChange={e => handleFromChange(e.target.value)}
+                                                        />
                                                     </div>
+                                                    {errors.enter_amount && <div className="xerr">{errors.enter_amount}</div>}
+                                                    <div className="xside-label">{t('From')}</div>
+                                                </div>
 
+                                                {/* SWAP */}
+                                                <div className="xswap-col">
+                                                    <button type="button" className="xswap-btn" onClick={handleSwap} title="Swap">⇄</button>
+                                                </div>
+
+                                                {/* TO side — identical structure to FROM */}
+                                                <div className="xside">
                                                     <div className="xcur-trigger"
                                                         onClick={() => { setToOpen(v => !v); setFromOpen(false); }}>
                                                         <img src={toCurrency?.flag} alt={toCurrency?.code} />
@@ -351,27 +385,35 @@ export default function ExchangeMoneyForm() {
                                                         <span className="xcur-name">- {toCurrency?.label}</span>
                                                         <span className="xcur-chevron">▼</span>
                                                     </div>
-
                                                     {toOpen && (
                                                         <div className="xdropdown xdropdown-right">
                                                             {currencies.map(c => (
-                                                                <div key={c.value} className="xdrop-item"
-                                                                    onClick={() => {
-                                                                        setData("to_currency", c.value);
-                                                                        setToOpen(false);
-                                                                        fetchRate(data.from_currency, c.value, data.exchange_type, data.enter_amount);
-                                                                    }}>
+                                                                <div key={c.value}
+                                                                    className={`xdrop-item ${c.value === data.to_currency ? 'xdrop-active' : ''}`}
+                                                                    onClick={() => handleToCurrencyChange(c.value)}>
                                                                     <img src={c.flag} alt={c.code} />
                                                                     <span className="xdrop-code">{c.code}</span>
                                                                     <span className="xdrop-name">{c.label}</span>
+                                                                    {c.value === data.to_currency && <span className="xdrop-check">✓</span>}
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     )}
+                                                    <div className="xamount-row">
+                                                        <span className="xsymbol xsymbol-to">{getCurrencySymbol(data.to_currency)}</span>
+                                                        <input
+                                                            type="number"
+                                                            className="xamount-input xamount-input-to"
+                                                            placeholder="0"
+                                                            value={toDisplayAmount}
+                                                            onChange={e => handleToChange(e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div className="xside-label">{t('To')}</div>
                                                 </div>
                                             </div>
 
-                                            {/* Rate line + Track Exchange Rates button */}
+                                            {/* Rate line */}
                                             {displayRate && (
                                                 <div className="xrate-line">
                                                     <b>1.00 {fromCurrency?.code} = {displayRate} {toCurrency?.code}</b>
@@ -379,6 +421,7 @@ export default function ExchangeMoneyForm() {
                                                     <a href={route('showExchangeRate')} target="_blank" className="xtrack-btn">{t('Track exchange rates')}</a>
                                                 </div>
                                             )}
+
                                         </div>
 
                                         {/* Exchange Summary */}
@@ -400,19 +443,19 @@ export default function ExchangeMoneyForm() {
                                                     </div>
                                                     <div className="xsum-row xsum-total">
                                                         <span>{t('Total Receive amount')}</span>
-                                                        <span>{getCurrencySymbol(data.to_currency)}{receivedAmount} {toCurrency?.code}</span>
+                                                        <span>{getCurrencySymbol(data.to_currency)}{toDisplayAmount} {toCurrency?.code}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
 
-                                        {/* Exchange Type | Where to send | Receive Type */}
-                                        <div className="col-md-4">
+                                        {/* Exchange Type */}
+                                        <div className="col-12">
                                             <div className="form-floating">
                                                 <select className="form-control" value={data.exchange_type}
                                                     onChange={e => {
                                                         setData("exchange_type", e.target.value);
-                                                        fetchRate(data.from_currency, data.to_currency, e.target.value, data.enter_amount);
+                                                        fetchFromAmount(data.from_currency, data.to_currency, e.target.value, fromDisplayAmount);
                                                     }}>
                                                     <option value="Normal">{t('Normal')}</option>
                                                     <option value="Standard">{t('Standard')}</option>
@@ -421,31 +464,7 @@ export default function ExchangeMoneyForm() {
                                             </div>
                                         </div>
 
-                                        <div className="col-md-4">
-                                            <div className="form-floating">
-                                                <select className="form-control" value={data.where_to_send}
-                                                    onChange={e => setData('where_to_send', e.target.value)}>
-                                                    <option value="TRF-OUT">{t('TRF-OUT')}</option>
-                                                    <option value="TRF-IN">{t('TRF-IN')}</option>
-                                                </select>
-                                                <label>{t('Where to send')}</label>
-                                            </div>
-                                        </div>
-
-                                        <div className="col-md-4">
-                                            <div className="form-floating">
-                                                <select className="form-control" value={data.receive_type}
-                                                    onChange={e => setData('receive_type', e.target.value)}>
-                                                    <option value="Cash to Cash">{t('Cash to Cash')}</option>
-                                                    <option value="Cash to Bank">{t('Cash to Bank')}</option>
-                                                    <option value="Bank to Cash">{t('Bank to Cash')}</option>
-                                                    <option value="Bank to Bank">{t('Bank to Bank')}</option>
-                                                </select>
-                                                <label>{t('Receive Type')}</label>
-                                            </div>
-                                        </div>
-
-                                        {/* Submit — sends ALL invoice fields via Inertia useForm */}
+                                        {/* Submit */}
                                         <div className="col-12">
                                             <button
                                                 className="btn btn-primary w-100 py-3 fw-bold"

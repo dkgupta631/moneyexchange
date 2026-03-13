@@ -19,11 +19,34 @@ const C = {
     white:      '#FFFFFF',
 };
 
-// ─── Utility ───────────────────────────────────────────────────────────────
+// ─── Money formatter — adds thousand separators (for amounts only) ─────────
 const fmt = (n, d = 2) =>
     Number(n ?? 0).toFixed(d).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-// ─── Print CSS  (80 mm thermal) ────────────────────────────────────────────
+// ─── Rate formatter — NO thousand separator on decimals ───────────────────
+// Prevents "31.1,400" or "4,020.0,000" bugs.
+// Keeps up to 4 significant decimal digits, strips trailing zeros.
+const fmtRate = (n) => {
+    const num = Number(n ?? 0);
+    if (num === 0) return '0';
+
+    if (num >= 1) {
+        // e.g. 31.06, 4020, 31.1400 → never apply toFixed then fmt together
+        // Show integer part with thousand separator, decimal part as-is
+        const [intPart, decPart] = num.toFixed(4).split('.');
+        const intFormatted = Number(intPart).toLocaleString('en-US'); // "4,020" or "31"
+        const decTrimmed = decPart.replace(/0+$/, '');                 // "06" or "" or "14"
+        return decTrimmed ? `${intFormatted}.${decTrimmed}` : intFormatted;
+    }
+    // Small rates like 0.000248 → "0.000248"
+    return num.toPrecision(4).replace(/\.?0+$/, '');
+};
+
+// ─── Currency symbol ───────────────────────────────────────────────────────
+const sym = (c) =>
+    ({ Dollar:'$', USD:'$', Baht:'฿', THB:'฿', KHR:'៛', Riel:'៛' })[c] ?? c;
+
+// ─── Print CSS (80 mm thermal) ─────────────────────────────────────────────
 const PRINT_STYLE = `
 @media print {
   @page { size: 80mm auto; margin: 0; }
@@ -42,11 +65,10 @@ const PRINT_STYLE = `
 `;
 
 // ═══════════════════════════════════════════════════════════════════════════
-export default function ShowMoneyExchangeInvoices({ records }) {
-    const { translations } = usePage().props;
-    const t = (key) => translations[key] ?? key;
+export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
+    const { translations, flash } = usePage().props;
+    const t = (key) => translations?.[key] ?? key;
 
-    const { flash } = usePage().props;
     const [flashMsg, setFlashMsg] = useState(flash?.greet ?? null);
     const receiptRef = useRef(null);
     if (flashMsg) setTimeout(() => setFlashMsg(null), 5000);
@@ -55,14 +77,44 @@ export default function ShowMoneyExchangeInvoices({ records }) {
     const [selectedIdx, setSelectedIdx] = useState(0);
     const inv = invoices[selectedIdx] ?? {};
 
-    const subtotal      = parseFloat(inv.subtotal      ?? inv.final_amount ?? 0);
-    const serviceFee    = parseFloat(inv.service_fee   ?? 0);
-    const finalAmount   = parseFloat(inv.final_amount  ?? subtotal);
+    // ── Raw values ────────────────────────────────────────────────────────
     const enteredAmount = parseFloat(inv.entered_amount ?? 0);
     const exchangeRate  = parseFloat(inv.exchange_rate  ?? 0);
+    const serviceFee    = parseFloat(inv.service_fee    ?? 0);
     const fromCurrency  = inv.from_currency ?? 'USD';
     const toCurrency    = inv.to_currency   ?? 'THB';
     const invoiceNo     = inv.invoice_number ?? inv.id ?? '—';
+
+    // ── buy_or_sell: use the passed exchangerate prop (most reliable source)
+    // Fallback to inv.buy_or_sell if prop not available
+    const buyOrSell = exchangerate?.buy_or_sell ?? inv.buy_or_sell ?? 'sell';
+
+    // ── Subtotal: mirrors PHP exactly ─────────────────────────────────────
+    // sell → subtotal = entered_amount * rate   e.g. $100 * 31.06 = ฿3,106
+    // buy  → subtotal = entered_amount / rate   e.g. ฿100 / 31.06 = $3.22
+    const subtotal = buyOrSell === 'sell'
+        ? enteredAmount * exchangeRate
+        : enteredAmount / exchangeRate;
+
+    // ── Total: prefer server's saved value, else recalculate ──────────────
+    const computedTotal = inv.final_amount
+        ? parseFloat(inv.final_amount)
+        : subtotal + serviceFee;
+
+    // ── Rate label: direction follows buy_or_sell ─────────────────────────
+    //
+    //   PHP sell logic: subtotal = entered * rate
+    //   → means: 1 unit of FROM buys `rate` units of TO
+    //   → label: "1 $ = 31.06 ฿"
+    //
+    //   PHP buy logic:  subtotal = entered / rate
+    //   → means: 1 unit of TO costs `rate` units of FROM
+    //   → label: "1 ฿ = 31.06 $"
+    //
+    const rateLabel = buyOrSell === 'sell'
+        ? `1 ${sym(fromCurrency)} = ${fmtRate(exchangeRate)} ${sym(toCurrency)}`
+        : `1 ${sym(toCurrency)} = ${fmtRate(exchangeRate)} ${sym(fromCurrency)}`;
+
     const dateStr = inv.created_at
         ? new Date(inv.created_at).toLocaleDateString('en-GB',
               { day:'2-digit', month:'2-digit', year:'numeric' }).replace(/\//g,'-')
@@ -71,9 +123,6 @@ export default function ShowMoneyExchangeInvoices({ records }) {
         ? new Date(inv.created_at).toLocaleTimeString('en-US',
               { hour:'2-digit', minute:'2-digit', hour12:true })
         : '';
-
-    const sym = (c) =>
-        ({ Dollar:'$', USD:'$', Baht:'฿', THB:'฿', KHR:'៛', Riel:'៛' }[c] ?? c);
 
     const handlePrint = () => window.print();
 
@@ -96,8 +145,7 @@ export default function ShowMoneyExchangeInvoices({ records }) {
         <>
             <style>{PRINT_STYLE}</style>
             <br/><br/>
-           
-            {/* ── Page shell ── */}
+
             <div className="container-fluid py-5" style={{
                 minHeight: '100vh',
                 background: `linear-gradient(160deg, ${C.darker} 0%, ${C.dark} 55%, #2D1060 100%)`,
@@ -140,7 +188,7 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                         <select value={selectedIdx} onChange={e => setSelectedIdx(+e.target.value)}
                             style={{ background:C.cardBg, border:`1px solid ${C.border}`,
                                 borderRadius:8, padding:'7px 10px', color:C.accent, fontSize:12 }}>
-                            {invoices.map((iv,i) => (
+                            {invoices.map((iv, i) => (
                                 <option key={i} value={i} style={{ background:C.dark }}>
                                     {iv.invoice_number ?? `#${iv.id}`}
                                 </option>
@@ -164,14 +212,14 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                 </div>
 
                 {/* ════════════  DESKTOP INVOICE CARD  ════════════ */}
+                {serviceFee > 0 && (
                 <div className="no-print" style={{
                     maxWidth:660, margin:'0 auto 32px',
-                    background:C.cardBg,
-                    border:`1px solid ${C.border}`,
+                    background:C.cardBg, border:`1px solid ${C.border}`,
                     borderRadius:16, overflow:'hidden',
                     boxShadow:`0 24px 64px rgba(0,0,0,0.55)`,
                 }}>
-                    {/* Header */}
+                    {/* Header bar */}
                     <div style={{
                         background:`linear-gradient(100deg, ${C.primary} 0%, ${C.secondary} 100%)`,
                         padding:'22px 28px',
@@ -179,7 +227,7 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                     }}>
                         <div>
                             <div style={{ color:'rgba(255,255,255,0.65)', fontSize:10.5, letterSpacing:2, textTransform:'uppercase', marginBottom:4 }}>
-                                40 Poipet Resort CO, Ltd · ({t('Money Exchange')})
+                                G + Services · ({t('Money Exchange')})
                             </div>
                             <div style={{ color:'#fff', fontSize:22, fontWeight:700, letterSpacing:0.5 }}>
                                 ({t('Invoice')}) {invoiceNo}
@@ -191,37 +239,36 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                                 border:'1px solid rgba(255,255,255,0.3)',
                                 color:'#fff', padding:'3px 12px', borderRadius:20,
                                 fontSize:11, fontWeight:600,
-                            }}>({t(inv.exchange_type ?? 'Normal')}) </span>
+                            }}>({t(inv.exchange_type ?? 'Normal')})</span>
                             <div style={{ color:'rgba(255,255,255,0.65)', fontSize:11, marginTop:6 }}>
                                 {dateStr} &nbsp; {timeStr}
                             </div>
                         </div>
                     </div>
 
-                    {/* Divider shimmer */}
                     <div style={{ height:1, background:`linear-gradient(90deg, transparent, ${C.secondary}66, transparent)` }} />
 
                     <div style={{ padding:'24px 28px' }}>
                         {/* Info cards */}
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:22 }}>
                             <InfoCard title={t('Customer')} icon="👤">
-                                <InfoLine k={t('Name')}  v={inv.customer_name || '—'} />
+                                <InfoLine k={t('Name')}         v={inv.customer_name || '—'} />
                                 <InfoLine k={t('Phone Number')} v={inv.phone || '—'} />
                             </InfoCard>
                             <InfoCard title={t('Exchange')} icon="💱">
                                 <InfoLine k={t('From')} v={`${t(fromCurrency)} (${sym(fromCurrency)})`} />
                                 <InfoLine k={t('To')}   v={`${t(toCurrency)} (${sym(toCurrency)})`} />
-                                <InfoLine k={t('Via')}  v={t(inv.receive_type) ?? 'Cash'} />
+                                {/* <InfoLine k={t('Via')}  v={t(inv.receive_type ?? 'Cash')} /> */}
                             </InfoCard>
                         </div>
 
                         {/* Line-item table */}
                         <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
                             <thead>
-                                <tr style={{ background:`rgba(91,45,142,0.35)` }}>
-                                    {[t('Description'), t('Amount'), t('Rate'), t('Total')].map((h,i) => (
-                                        <th key={h} style={{
-                                            padding:'10px 14px', textAlign:i===0?'left':'right',
+                                <tr style={{ background:'rgba(91,45,142,0.35)' }}>
+                                    {[t('Description'), t('Amount'), t('Rate'), t('Total')].map((h, i) => (
+                                        <th key={i} style={{
+                                            padding:'10px 14px', textAlign: i === 0 ? 'left' : 'right',
                                             color:C.textMuted, fontSize:10.5, fontWeight:700,
                                             letterSpacing:0.8, textTransform:'uppercase',
                                             borderBottom:`1px solid ${C.border}`,
@@ -233,18 +280,27 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                                 <tr style={{ background:'rgba(155,89,182,0.07)' }}>
                                     <td style={dTd('left')}>
                                         <div style={{ color:C.white, fontWeight:600 }}>{t('Currency Exchange')}</div>
-                                        <div style={{ color:C.textFaint, fontSize:11, marginTop:3 }}>
-                                            {t(inv.where_to_send)} · {t(inv.receive_type)}
-                                        </div>
+                                        {/* <div style={{ color:C.textFaint, fontSize:11, marginTop:3 }}>
+                                            {t(inv.where_to_send ?? '')} · {t(inv.receive_type ?? '')}
+                                        </div> */}
                                     </td>
+                                    {/* Amount entered — always fromCurrency */}
                                     <td style={dTd('right')}>
-                                        <span style={{ color:C.accent }}>{sym(fromCurrency)}{fmt(enteredAmount)}</span>
+                                        <span style={{ color:C.accent }}>
+                                            {sym(fromCurrency)}{fmt(enteredAmount)}
+                                        </span>
                                     </td>
+                                    {/* Rate — fmtRate prevents comma bug */}
                                     <td style={dTd('right')}>
-                                        <span style={{ color:C.textMuted }}>{fmt(exchangeRate,4)}</span>
+                                        <span style={{ color:C.textMuted }}>
+                                            {fmtRate(exchangeRate)}
+                                        </span>
                                     </td>
+                                    {/* Computed total — always toCurrency */}
                                     <td style={dTd('right')}>
-                                        <span style={{ color:C.green, fontWeight:700 }}>{sym(toCurrency)}{fmt(subtotal)}</span>
+                                        <span style={{ color:C.green, fontWeight:700 }}>
+                                            {sym(toCurrency)}{fmt(subtotal)}
+                                        </span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -252,28 +308,27 @@ export default function ShowMoneyExchangeInvoices({ records }) {
 
                         {/* Summary */}
                         <div style={{ marginTop:16, paddingTop:16, borderTop:`1px solid ${C.borderSoft}` }}>
-                            <SRow label={t('Subtotal')}    val={`${sym(toCurrency)} ${fmt(subtotal)}`} />
-                            {serviceFee > 0 && (
-                                <SRow label={t('Service Fee')} val={`${sym(toCurrency)} ${fmt(serviceFee)}`} accent={C.amber} />
-                            )}
-                            <SRow label={t('Total Payable')} val={`${sym(toCurrency)} ${fmt(finalAmount)}`} isTotal />
+                            <SRow label={t('Subtotal')} val={`${sym(toCurrency)} ${fmt(subtotal)}`} />
+                            <SRow label={t('Service Fee')} val={`${sym(toCurrency)} ${fmt(serviceFee)}`} accent={C.amber} />
+                            <SRow label={t('Total Payable')} val={`${sym(toCurrency)} ${fmt(computedTotal)}`} isTotal />
                         </div>
 
-                        {/* Rate pill */}
+                        {/* Rate pill — correct direction + no comma bug */}
                         <div style={{
                             marginTop:18, padding:'10px 14px',
-                            background:`rgba(91,45,142,0.22)`,
+                            background:'rgba(91,45,142,0.22)',
                             border:`1px solid ${C.borderSoft}`,
                             borderRadius:8, color:C.textMuted, fontSize:12,
                             display:'flex', justifyContent:'space-between',
                         }}>
                             <span>{t('Exchange Rate')}</span>
                             <span style={{ color:C.accent, fontWeight:600 }}>
-                                1 {sym(fromCurrency)} = {fmt(exchangeRate,4)} {sym(toCurrency)}
+                                {rateLabel}
                             </span>
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* ════════════  THERMAL RECEIPT  ════════════ */}
                 <div id="receipt-root" ref={receiptRef} style={{
@@ -293,14 +348,13 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                     {/* Store header */}
                     <div style={{ textAlign:'center', marginTop:10, marginBottom:10 }}>
                         <div style={{ fontSize:15, fontWeight:700, letterSpacing:2, color:C.primary }}>
-                            40 Poipet Resort co Ltd
+                            G + Services
                         </div>
                         <div style={{ fontSize:9, color:'#666', lineHeight:1.55, marginTop:3 }}>
                             {t('Money Exchange')}<br />
-                            Akia Thmey, beer city, PoiPet<br />
+                            Akia Thmey, PoiPet<br />
                             Banteay Meanchey Province<br />
-                            {t('Tel')}: 012 50048 / 099 996000<br />
-                            {t('VAT')}: 1011600036622
+                            {/* {t('Tel')}: 012 50048 / 099 996000<br /> */}
                         </div>
                     </div>
 
@@ -311,18 +365,17 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                         ─── {t('BILL OF EXCHANGE')} ───
                     </div>
 
-                    <RRow label={t('Invoice')} value={invoiceNo} bold />
-                    <RRow label={t('Date')}     value={dateStr} />
-                    <RRow label={t('Time')}     value={timeStr} />
-                    <RRow label={t('Type')}     value={t(inv.exchange_type) ?? 'Normal'} />
-                    <RRow label={t('Direction')} value={t(inv.where_to_send) ?? '—'} />
+                    <RRow label={t('Invoice')}   value={invoiceNo} bold />
+                    <RRow label={t('Date')}      value={dateStr} />
+                    <RRow label={t('Time')}      value={timeStr} />
+                    <RRow label={t('Type')}      value={t(inv.exchange_type ?? 'Normal')} />
 
                     <RDiv />
 
                     <div style={{ fontWeight:700, fontSize:9.5, color:C.primary, marginBottom:4, letterSpacing:1 }}>
                         {t('Customer Information')}
                     </div>
-                    <RRow label={t('Name')}  value={inv.customer_name || '—'} />
+                    <RRow label={t('Name')}         value={inv.customer_name || '—'} />
                     <RRow label={t('Phone Number')} value={inv.phone || '—'} />
 
                     <RDiv dashed />
@@ -331,19 +384,25 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                         <thead>
                             <tr>
                                 <th style={rTh('left')}>{t('Description')}</th>
-                                <th style={rTh('right')}>{t(fromCurrency)}</th>
+                                {/* Column headers show currency symbols for clarity */}
+                                <th style={rTh('right')}>{fromCurrency}</th>
                                 <th style={rTh('right')}>{t('Rate')}</th>
-                                <th style={rTh('right')}>{t(toCurrency)}</th>
+                                <th style={rTh('right')}>{toCurrency}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td style={rTd('left')}>
                                     {t('Exchange')}<br />
-                                    <span style={{ fontSize:8.5, color:'#888' }}>{t(fromCurrency)}→{t(toCurrency)}</span>
+                                    <span style={{ fontSize:8.5, color:'#888' }}>
+                                        {fromCurrency} → {toCurrency}
+                                    </span>
                                 </td>
+                                {/* entered amount */}
                                 <td style={rTd('right')}>{fmt(enteredAmount)}</td>
-                                <td style={rTd('right')}>{fmt(exchangeRate,3)}</td>
+                                {/* rate — no comma bug */}
+                                <td style={rTd('right')}>{fmtRate(exchangeRate)}</td>
+                                {/* computed subtotal */}
                                 <td style={rTd('right')}>{fmt(subtotal)}</td>
                             </tr>
                         </tbody>
@@ -352,27 +411,26 @@ export default function ShowMoneyExchangeInvoices({ records }) {
                     <RDiv />
 
                     <RRow label={t('Subtotal')} value={`${sym(toCurrency)} ${fmt(subtotal)}`} />
-                    {serviceFee > 0 && (
-                        <RRow label={t('Service Fee')} value={`${sym(toCurrency)} ${fmt(serviceFee)}`} />
-                    )}
+                    <RRow label={t('Service Fee')} value={`${sym(toCurrency)} ${fmt(serviceFee)}`} />
+                    
 
-                    {/* Grand total block */}
+                    {/* Grand total */}
                     <div style={{
                         display:'flex', justifyContent:'space-between',
                         fontWeight:700, fontSize:13,
                         marginTop:6, padding:'6px 8px',
-                        background:C.light,
-                        borderLeft:`3px solid ${C.primary}`,
+                        background:C.light, borderLeft:`3px solid ${C.primary}`,
                         borderRadius:2, color:C.primary,
                     }}>
                         <span>{t('TOTAL')}</span>
-                        <span>{sym(toCurrency)} {fmt(finalAmount)}</span>
+                        <span>{sym(toCurrency)} {fmt(computedTotal)}</span>
                     </div>
 
-                    <RDiv />
+                    {/* <RDiv /> */}
 
-                    <RRow label={t('Payment')}  value={t(inv.receive_type) ?? 'Cash'} />
-                    <RRow label={t('Ex. Rate')} value={`1${sym(fromCurrency)}=${fmt(exchangeRate,3)}${sym(toCurrency)}`} />
+                    {/* <RRow label={t('Payment')}  value={t(inv.receive_type ?? 'Cash')} /> */}
+                    {/* Rate row — same rateLabel used in desktop, correct direction + no comma bug */}
+                    {/* <RRow label={t('Ex. Rate')} value={rateLabel} /> */}
 
                     <RDiv dashed />
 

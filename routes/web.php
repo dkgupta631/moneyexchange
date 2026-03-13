@@ -4,6 +4,7 @@ use Inertia\inertia;
 
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\MoneyExchangeController;
+use App\Http\Controllers\Web\MoneyTransferController;
 
 // Route::get('/', function () {
 //     return inertia('Home');
@@ -12,11 +13,11 @@ use App\Http\Controllers\Web\MoneyExchangeController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/ExchangeRate', [HomeController::class, 'ShowExchangeRate'])->name('showExchangeRate');
 Route::get('/moneyexchange', [MoneyExchangeController::class, 'openForm'])->name('open.moneyexchange.form');
-// Route::post('/calculateMoney', [MoneyExchangeController::class, 'SaveCalculatedMoney']);
 Route::get('/moneyexchange-invoices/{invoice_number}', [MoneyExchangeController::class, 'showMoneyExchangeInvoices'])->name('MoneyExchangeInvoices.show');
-
 Route::post('/get-exchange-rate', [MoneyExchangeController::class, 'getRate']);
 Route::post('/calculateMoney', [MoneyExchangeController::class, 'SaveCalculatedMoney']);
+
+Route::get('/moneytransfer/IN', [MoneyTransferController::class, 'moneyTransferINForm'])->name('moneytransfer.in.form');
 
 
 Route::get('/lang/{locale}', function ($locale) {
