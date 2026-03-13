@@ -12,10 +12,10 @@ class MoneyExchangeController extends Controller
 {
     public function openForm()
     {
-        $records = ExchangeRate::select('*')->orderBy('id', 'asc')->get();
+        // $records = ExchangeRate::select('*')->orderBy('id', 'asc')->get();
         //  dd($recommendedstors);
         return Inertia::render('ExchangeMoneyForm', [
-            'records' => $records,
+            // 'records' => $records,
         ]);
 
     }
@@ -30,15 +30,15 @@ class MoneyExchangeController extends Controller
     //    dd($request);
 
         $now = now()->setTimezone('Asia/Bangkok');
-        $invoiceNumber = '#E' . $now->format('dmYHis');
+        $invoiceNumber = '#E' . $now->format('dmyHis');
        MoneyExchangeInvoice::create([
         'invoice_number' => $invoiceNumber,
         'customer_name' => $request->customer_name,
         'phone' => $request->phone,
 
         'exchange_rate_id' => $request->exchange_rate_id,
-        'from_currency' => $request->from_currency,
-        'to_currency' => $request->to_currency,
+        'from_currency' => $request->from_currency == 'Dollar' ? 'US $ ' : $request->from_currency,
+        'to_currency' => $request->to_currency == 'Dollar' ? 'US $ ' : $request->to_currency,
         'exchange_type' => $request->exchange_type,
         'exchange_rate' => $request->exchange_rate,
 
@@ -87,7 +87,7 @@ class MoneyExchangeController extends Controller
             'buy_or_sell'=>$rate->buy_or_sell,
             'exchange_rate'=>$exchangeRate,
             'subtotal'=>$subtotal,
-            'service_fee'=> '0.1',
+            'service_fee'=> '0.00',
             'total'=>$subtotal,
             
         ]);
@@ -96,9 +96,18 @@ class MoneyExchangeController extends Controller
     public function showMoneyExchangeInvoices($invoice_number)
     {
        $records = MoneyExchangeInvoice::where('invoice_number', base64_decode($invoice_number))->first();
-        // dd($records);
+       $exchangerate = ExchangeRate::where('id', $records->exchange_rate_id)->first();
+        // dd($exchangerate->buy_or_sell);
+
+                // if($exchangerate->buy_or_sell == 'sell'){
+                //      $subtotal  = $request->enter_amount*$exchangeRate;
+                // }else{
+                //     $subtotal  = $request->enter_amount/$exchangeRate;
+                // }
+
         return Inertia::render('ShowMoneyExchangeInvoices', [
             'records' => $records,
+            'exchangerate' => $exchangerate,
         ]);
 
     }

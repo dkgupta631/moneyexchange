@@ -34,43 +34,39 @@ export default function Home() {
                         </div>
                     </div>
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.3s">
-                        
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
-                            <Link href={route('open.moneyexchange.form')}>
+                            <Link href={route('moneytransfer.in.form')}>
                             <div className="service-icon flex-shrink-0">
-                                <img src={`${appUrl}/website/assets/img/money-transfer2.jpg`} className='home-card-img'/>
+                                <img src={`${appUrl}/website/assets/img/money-transfer-in.png`} className='home-card-img'/>
                             </div>
-                            <h5 className="mb-3">{t('Money Transfer')}</h5></Link>
+                            <h5 className="mb-3">{t('Money Transfer')} - IN</h5></Link>
                             <p>{t('Money can be transferred to different countries and currencies easily. This helps people send money to family, friends, or businesses internationally')}.</p>
-                            <Link href={route('open.moneyexchange.form')} className="btn px-3 mt-auto mx-auto">{t('View')}</Link>
+                            <Link href={route('moneytransfer.in.form')} className="btn px-3 mt-auto mx-auto">{t('View')}</Link>
                         </div>
-                        
                     </div>
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
                             <div className="service-icon flex-shrink-0">
-                                <img src={`${appUrl}/website/assets/img/cash-transfer.jpg`} className='home-card-img'/>
+                                <img src={`${appUrl}/website/assets/img/money-transfer-out.png`} className='home-card-img'/>
                             </div>
-                            <h5 className="mb-3">{t('Cash Transfer')}</h5>
+                            <h5 className="mb-3">{t('Money Transfer')} - OUT</h5>
                             <p>{t('Customers only need basic details like the receiver’s name and phone number. This makes sending money simple and convenient')}.</p>
                             <a className="btn px-3 mt-auto mx-auto" href="">{t('View')}</a>
                         </div>
                     </div>
-                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.1s">
+                     {/* <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.1s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
                             <div className="service-icon flex-shrink-0">
-                                {/* <i className="fa fa-envelope-open-text fa-2x"></i> */}
                                 <img src={`${appUrl}/website/assets/img/withdraw-money2.jpg`} className='home-card-img'/>
                             </div>
                             <h5 className="mb-3">{t('Withdraw Money')}</h5>
                             <p>{t('Withdrawing money allows customers to quickly access their funds whenever they need it for daily expenses, shopping, or emergencies')}.</p>
                             <a className="btn px-3 mt-auto mx-auto" href="">{t('View')}</a>
                         </div>
-                    </div>
+                    </div> 
                     <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.3s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
                             <div className="service-icon flex-shrink-0">
-                                {/* <i className="fa fa-mouse-pointer fa-2x"></i> */}
                                 <img src={`${appUrl}/website/assets/img/money-deposit.png`} className='home-card-img'/>
                             </div>
                             <h5 className="mb-3">{t('Deposit service')}</h5>
@@ -87,7 +83,7 @@ export default function Home() {
                             <p>{t('E-Pay (Electronic Payment) is fast, convenient, and secure, making it one of the best ways to handle modern financial transactions')}.</p>
                             <a className="btn px-3 mt-auto mx-auto" href="">{t('View')}</a>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
