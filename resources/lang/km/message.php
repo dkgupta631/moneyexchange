@@ -858,6 +858,22 @@ return [
     "Global Payments" => "ការទូទាត់ជាសកល",
     "Fast Transactions" => "ប្រតិបត្តិការរហ័ស",
     "Invoice Generated Successfully!" => "បង្កើតវិក្កយបត្រដោយជោគជ័យ!",
+    "Transfer" => "ផ្ទេរប្រាក់",
+    "Bank Name" => "ឈ្មោះធនាគារ",
+    "Select Bank" => "ជ្រើសរើសធនាគារ",
+    "Search bank…" => "ស្វែងរកធនាគារ…",
+    "No bank found" => "រកមិនឃើញធនាគារ",
+    "Account Name" => "ឈ្មោះគណនី",
+    "Enter bank account name" => "បញ្ចូលឈ្មោះគណនីធនាគារ",
+    "Account Number" => "លេខគណនី",
+    "Enter bank account number" => "បញ្ចូលលេខគណនីធនាគារ",
+    "Transfer Summary" => "សង្ខេបការផ្ទេរប្រាក់",
+    "Entered Amount" => "ចំនួនប្រាក់ដែលបានបញ្ចូល",
+    "Transfer Fee" => "កម្រៃផ្ទេរប្រាក់",
+    "Service Charge" => "ថ្លៃសេវាកម្ម",
+    "Net Receive Amount" => "ចំនួនប្រាក់ទទួលសរុប",
+
+
     
 
 

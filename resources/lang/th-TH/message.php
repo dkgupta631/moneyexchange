@@ -859,6 +859,20 @@ return [
     "Global Payments" => "การชำระเงินทั่วโลก",
     "Fast Transactions" => "การทำธุรกรรมที่รวดเร็ว",
     "Invoice Generated Successfully!" => "ออกใบแจ้งหนี้สำเร็จแล้ว!",
+    "Transfer" => "โอนย้าย",
+    "Bank Name" => "ชื่อธนาคาร",
+    "Select Bank" => "เลือกธนาคาร",
+    "Search bank…" => "ค้นหาธนาคาร...",
+    "No bank found" => "ไม่พบธนาคาร",
+    "Account Name" => "ชื่อบัญชี",
+    "Enter bank account name" => "กรอกชื่อบัญชีธนาคาร",
+    "Account Number" => "หมายเลขบัญชี",
+    "Enter bank account number" => "กรอกหมายเลขบัญชีธนาคาร",
+    "Transfer Summary" => "สรุปยอดโอน",
+    "Entered Amount" => "จำนวนเงินที่ป้อน",
+    "Transfer Fee" => "ค่าธรรมเนียมการโอน",
+    "Service Charge" => "ค่าบริการ",
+    "Net Receive Amount" => "จำนวนเงินที่ได้รับสุทธิ",
     
     
     
