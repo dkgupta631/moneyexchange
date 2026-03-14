@@ -167,7 +167,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                             <path d="M2 12l10 5 10-5"/>
                         </svg>
                     </div>
-                    <h1 style={S.hTitle}>POIPET RESORT</h1>
+                    <h1 style={S.hTitle}>G+ Services</h1>
                     <p style={S.hSub}>{t('Money Transfer')} - IN</p>
                     <span style={S.hBadge}>⬆ {t('Transfer')}-IN</span>
                 </div>

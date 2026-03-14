@@ -212,7 +212,7 @@ export default function MoneyTransferInvoice({ invoice }) {
                         </svg>
                     </div>
                     <div style={{ textAlign: "center", marginBottom: 10 }}>
-                        <div style={S.logoText}>POIPET RESORT</div>
+                        <div style={S.logoText}>G+ Services</div>
                         <div style={S.subText}>{t("Money Transfer Service")}</div>
                         <div style={S.subText}>Aria Thmey, PoiPet</div>
                         <div style={S.subText}>Banteay Meanchey Province</div>
