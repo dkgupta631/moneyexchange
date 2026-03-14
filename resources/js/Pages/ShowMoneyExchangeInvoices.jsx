@@ -348,7 +348,7 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
                     {/* Store header */}
                     <div style={{ textAlign:'center', marginTop:10, marginBottom:10 }}>
                         <div style={{ fontSize:15, fontWeight:700, letterSpacing:2, color:C.primary }}>
-                            G + Services
+                            G+ Services
                         </div>
                         <div style={{ fontSize:9, color:'#666', lineHeight:1.55, marginTop:3 }}>
                             {t('Money Exchange')}<br />
