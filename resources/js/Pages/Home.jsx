@@ -6,8 +6,6 @@ export default function Home() {
     const appUrl = window.location.origin;
     const t = (key) => translations[key] ?? key;
 
-    
-
   return (
     <>
     <Head title={t('Home')}>
@@ -44,14 +42,15 @@ export default function Home() {
                             <Link href={route('moneytransfer.in.form')} className="btn px-3 mt-auto mx-auto">{t('View')}</Link>
                         </div>
                     </div>
-                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">
+                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">moneytransfer.out.form
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
+                            <Link href={route('moneytransfer.out.form')}>
                             <div className="service-icon flex-shrink-0">
                                 <img src={`${appUrl}/website/assets/img/money-transfer-out.png`} className='home-card-img'/>
                             </div>
-                            <h5 className="mb-3">{t('Money Transfer')} - OUT</h5>
+                            <h5 className="mb-3">{t('Money Transfer')} - OUT</h5></Link>
                             <p>{t('Customers only need basic details like the receiver’s name and phone number. This makes sending money simple and convenient')}.</p>
-                            <a className="btn px-3 mt-auto mx-auto" href="">{t('View')}</a>
+                            <Link href={route('moneytransfer.out.form')} className="btn px-3 mt-auto mx-auto">{t('View')}</Link>
                         </div>
                     </div>
                      {/* <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.1s">

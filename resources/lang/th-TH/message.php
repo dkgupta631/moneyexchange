@@ -873,6 +873,23 @@ return [
     "Transfer Fee" => "ค่าธรรมเนียมการโอน",
     "Service Charge" => "ค่าบริการ",
     "Net Receive Amount" => "จำนวนเงินที่ได้รับสุทธิ",
+    "TRANSFER-IN RECEIPT" => "ใบรับโอนเงิน",
+    "Transfer-IN" => "โอนเข้า",
+    "Fee" => "ค่าธรรมเนียม",
+    "Net" => "สุทธิ",
+    "NET AMOUNT" => "จำนวนเงินสุทธิ",
+    "Signature & Name of Staff" => "ลายเซ็นและชื่อเจ้าหน้าที่",
+    "Secure" => "ปลอดภัย",
+    "Sender Information" => "ข้อมูลผู้ส่ง",
+    "Transfer Amount" => "จำนวนเงินโอน",
+    "Bank Details" => "รายละเอียดธนาคาร",
+    "Letters only" => "ตัวอักษรเท่านั้น",
+    "Numbers only" => "ตัวเลขเท่านั้น",
+    "Full name" => "ชื่อเต็ม",
+    "Account name must contain letters only" => "ชื่อบัญชีต้องประกอบด้วยตัวอักษรเท่านั้น",
+    "Account number must contain digits only" => "หมายเลขบัญชีต้องประกอบด้วยตัวเลขเท่านั้น",
+    "Minimum amount is ฿500 THB" => "จำนวนเงินขั้นต่ำคือ ฿500 บาท",
+    "Maximum amount is ฿100,000 THB" => "วงเงินสูงสุดคือ ฿100,000 THB",
     
     
     
