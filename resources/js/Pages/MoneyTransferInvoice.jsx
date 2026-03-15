@@ -213,7 +213,7 @@ export default function MoneyTransferInvoice({ invoice }) {
                     </div>
                     <div style={{ textAlign: "center", marginBottom: 10 }}>
                         <div style={S.logoText}>G+ Services</div>
-                        <div style={S.subText}>{t("Money Transfer Service")}</div>
+                        {/* <div style={S.subText}>{t("Money Transfer Service")}</div> */}
                         <div style={S.subText}>Aria Thmey, PoiPet</div>
                         <div style={S.subText}>Banteay Meanchey Province</div>
                     </div>
@@ -242,8 +242,8 @@ export default function MoneyTransferInvoice({ invoice }) {
                     <div style={S.dashed} />
 
                     {/* Bank info */}
-                    <div style={S.sectionTitle}>{t("Bank Details")}</div>
-                    <Row label={t("Bank")}           value={inv.bank_name || "—"} />
+                    <div style={S.sectionTitle}>{t("From")}</div>
+                    <Row label={t("Bank Name")}           value={inv.bank_name || "—"} />
                     <Row label={t("Account Name")}   value={inv.acc_name  || "—"} />
                     <Row label={t("Account Number")} value={inv.acc_number || "—"} />
 
@@ -255,7 +255,7 @@ export default function MoneyTransferInvoice({ invoice }) {
                             <tr>
                                 <th style={S.th}>{t("Description")}</th>
                                 <th style={{ ...S.th, textAlign: "right" }}>{t("Amount")}</th>
-                                <th style={{ ...S.th, textAlign: "right" }}>{t("Fee %")}</th>
+                                <th style={{ ...S.th, textAlign: "right" }}>{t("Fee")}%</th>
                                 <th style={{ ...S.th, textAlign: "right" }}>{t("Net")}</th>
                             </tr>
                         </thead>
@@ -293,9 +293,9 @@ export default function MoneyTransferInvoice({ invoice }) {
                     {/* Footer */}
                     <div style={S.footerSig}>{t("Signature & Name of Staff")}</div>
                     <div style={S.sigLine} />
-                    <div style={S.thankYou}>{t("Thank you!")}</div>
+                    <div style={S.thankYou}>{t("Thank you")}!</div>
                     <div style={S.keepReceipt}>
-                        {t("Please keep this receipt for your records.")}
+                        {t("Please keep this receipt for your records")}
                     </div>
 
                 </div>

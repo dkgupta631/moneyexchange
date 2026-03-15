@@ -872,6 +872,23 @@ return [
     "Transfer Fee" => "កម្រៃផ្ទេរប្រាក់",
     "Service Charge" => "ថ្លៃសេវាកម្ម",
     "Net Receive Amount" => "ចំនួនប្រាក់ទទួលសរុប",
+    "TRANSFER-IN RECEIPT" => "បង្កាន់ដៃទទួលប្រាក់",
+    "Transfer-IN" => "ទទួលប្រាក់ផ្ទេរ",
+    "Fee" => "កម្រៃ",
+    "Net" => "សុទ្ធ",
+    "NET AMOUNT" => "ចំនួនប្រាក់សុទ្ធ",
+    "Signature & Name of Staff" => "ហត្ថលេខា និង ឈ្មោះបុគ្គលិក",
+    "Secure" => "មានសុវត្ថិភាព",
+    "Sender Information" => "ព័ត៌មានអ្នកផ្ញើ",
+    "Transfer Amount" => "ចំនួនប្រាក់ផ្ទេរ",
+    "Bank Details" => "ព័ត៌មានធនាគារ",
+    "Letters only" => "តែអក្សរប៉ុណ្ណោះ",
+    "Numbers only" => "តែលេខប៉ុណ្ណោះ",
+    "Full name" => "ឈ្មោះពេញ",
+    "Account name must contain letters only" => "ឈ្មោះគណនីត្រូវតែមានតែអក្សរប៉ុណ្ណោះ",
+    "Account number must contain digits only" => "លេខគណនីត្រូវតែមានតែលេខប៉ុណ្ណោះ",
+    "Minimum amount is ฿500 THB" => "ចំនួនអប្បបរមាគឺ ฿500 THB",
+    "Maximum amount is ฿100,000 THB" => "ចំនួនអតិបរមាគឺ ฿100,000 THB",
 
 
     

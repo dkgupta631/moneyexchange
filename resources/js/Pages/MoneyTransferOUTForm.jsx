@@ -32,12 +32,11 @@ const AMOUNT_SUGGESTIONS = [
 /* Real bank image — falls back to a coloured initial circle if the image fails */
 function BankImg({ bank, size = 34, appUrl }) {
     const [errored, setErrored] = useState(false);
-
     if (errored) {
         return (
             <div style={{
                 width: size, height: size, borderRadius: "50%",
-                background: "linear-gradient(135deg, #1a6b3c, #27ae60)",
+                background: "linear-gradient(135deg, #4a2280, #9B59B6)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
                 fontSize: Math.max(8, size * 0.28) + "px",
@@ -47,7 +46,6 @@ function BankImg({ bank, size = 34, appUrl }) {
             </div>
         );
     }
-
     return (
         <img
             src={`${appUrl}/website/assets/bank-images/${bank.file}`}
@@ -58,14 +56,14 @@ function BankImg({ bank, size = 34, appUrl }) {
                 borderRadius: "50%",
                 objectFit: "cover",
                 flexShrink: 0,
-                border: "2px solid rgba(39,174,96,0.15)",
-                background: "#f0faf4",
+                border: "2px solid rgba(91,45,142,0.15)",
+                background: "#f8f5ff",
             }}
         />
     );
 }
 
-export default function MoneyTransferINForm({ gettransferchanges }) {
+export default function MoneyTransferOUTForm({ gettransferchanges }) {
     const { appUrl, translations } = usePage().props;
     const t = (key) => translations?.[key] ?? key;
 
@@ -79,7 +77,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
         acc_name:              "",
         acc_number:            "",
         entered_amount:        "",
-        transfer_type:         "Transfer-IN",
+        transfer_type:         "Transfer-OUT",
         currency:              "THB",
         trf_fee_in_persentage: feePercentage,
         trf_fee:               "",
@@ -133,6 +131,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
 
     /* Account Name: letters, spaces, dots, hyphens only */
     const handleAccNameChange = (val) => {
+        // Allow only text (no digits)
         const cleaned = val.replace(/[^a-zA-ZÀ-ÿก-๙\s.\-']/g, "");
         setData("acc_name", cleaned);
         if (val !== cleaned) {
@@ -170,7 +169,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post("/money-transfer-in/store");
+        post("/money-transfer-OUT/store");
     };
 
     const fmt = (v) =>
@@ -207,12 +206,12 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                         </div>
                     </div>
                     <h1 style={S.hTitle}>G+ Services</h1>
-                    <p style={S.hSub}>{t('Money Transfer')} — IN</p>
+                    <p style={S.hSub}>{t('Money Transfer')} — OUT</p>
                     <span style={S.hBadge}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+                            <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
                         </svg>
-                        {t('Transfer')}-IN
+                        {t('Transfer')}-OUT
                     </span>
                 </div>
 
@@ -220,11 +219,11 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
 
                     {/* ── Sender Row ── */}
                     <div style={S.sectionLabel}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a7a47" strokeWidth="2.2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c5cbf" strokeWidth="2.2">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                             <circle cx="12" cy="7" r="4"/>
                         </svg>
-                        <span>{t('Receiver Information')}</span>
+                        <span>{t('Sender Information')}</span>
                     </div>
 
                     <div style={S.row}>
@@ -249,12 +248,12 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                         </Field>
                     </div>
 
-                    {/* ══ FROM SECTION — Professional Bank Card ══ */}
-                    <div style={S.fromSection}>
+                    {/* ══ TO SECTION — Professional Bank Card ══ */}
+                    <div style={S.toSection}>
                         {/* Section header */}
-                        <div style={S.fromHeader}>
-                            <div style={S.fromHeaderLeft}>
-                                <div style={S.fromIconBox}>
+                        <div style={S.toHeader}>
+                            <div style={S.toHeaderLeft}>
+                                <div style={S.toIconBox}>
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                                         <circle cx="9" cy="7" r="4"/>
@@ -263,11 +262,11 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                     </svg>
                                 </div>
                                 <div>
-                                    <span style={S.fromTitle}>{t('Transfer From')}</span>
-                                    <span style={S.fromSubTitle}>{t('Sender Details')}</span>
+                                    <span style={S.toTitle}>{t('Transfer To')}</span>
+                                    <span style={S.toSubTitle}>{t('Recipient Details')}</span>
                                 </div>
                             </div>
-                            <div style={S.fromSecureBadge}>
+                            <div style={S.toSecureBadge}>
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                                     <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -276,10 +275,10 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                             </div>
                         </div>
 
-                        <div style={S.fromBody}>
+                        <div style={S.toBody}>
                             {/* ── Bank Name dropdown ── */}
-                            <div style={S.fromFieldGroup} ref={dropRef}>
-                                <label style={S.fromLabel}>
+                            <div style={S.toFieldGroup} ref={dropRef}>
+                                <label style={S.toLabel}>
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                                         <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
                                     </svg>
@@ -307,7 +306,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                         ) : (
                                             <>
                                                 <div style={S.dummyCircle}>
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9b7ec8" strokeWidth="2">
                                                         <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
                                                     </svg>
                                                 </div>
@@ -316,7 +315,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                         )}
                                     </div>
                                     <span style={{ ...S.chevron, transform: dropOpen ? "rotate(180deg)" : "rotate(0)" }}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a7a47" strokeWidth="2.5">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c5cbf" strokeWidth="2.5">
                                             <polyline points="6 9 12 15 18 9"/>
                                         </svg>
                                     </span>
@@ -326,7 +325,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                 {dropOpen && (
                                     <div style={S.dropPanel}>
                                         <div style={S.searchRow}>
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2.5">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9B59B6" strokeWidth="2.5">
                                                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                                             </svg>
                                             <input
@@ -349,7 +348,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                         <div style={S.dropScroll}>
                                             {filteredBanks.length === 0 ? (
                                                 <div style={S.noResult}>
-                                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a8d5b5" strokeWidth="1.5">
+                                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c4b3d9" strokeWidth="1.5">
                                                         <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                                                     </svg>
                                                     <span>{t('No bank found')}</span>
@@ -385,20 +384,20 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                             </div>
 
                             {/* ── Divider with icon ── */}
-                            <div style={S.fromDivider}>
-                                <div style={S.fromDivLine} />
-                                <div style={S.fromDivIcon}>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#27ae60" strokeWidth="2.2">
+                            <div style={S.toDivider}>
+                                <div style={S.toDivLine} />
+                                <div style={S.toDivIcon}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9b7ec8" strokeWidth="2.2">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                         <circle cx="12" cy="7" r="4"/>
                                     </svg>
                                 </div>
-                                <div style={S.fromDivLine} />
+                                <div style={S.toDivLine} />
                             </div>
 
                             {/* ── Account Name — text only ── */}
-                            <div style={S.fromFieldGroup}>
-                                <label style={S.fromLabel}>
+                            <div style={S.toFieldGroup}>
+                                <label style={S.toLabel}>
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                         <circle cx="12" cy="7" r="4"/>
@@ -407,8 +406,8 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                     <span style={S.fieldHint}>{t('Letters only')}</span>
                                 </label>
                                 <div style={{ position: "relative" }}>
-                                    <div style={S.inputIconLeft}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accNameFocus ? "#1a7a47" : "#a8d5b5"} strokeWidth="2">
+                                    <div style={{ ...S.inputIconLeft }}>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accNameFocus ? "#5B2D8E" : "#b8a8ce"} strokeWidth="2">
                                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                                             <circle cx="12" cy="7" r="4"/>
                                         </svg>
@@ -421,10 +420,10 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                         onChange={e => handleAccNameChange(e.target.value)}
                                         placeholder={t('e.g. Somchai Jaidee')}
                                         style={{
-                                            ...S.fromInput,
+                                            ...S.toInput,
                                             ...S.inputWithIcon,
-                                            ...(accNameFocus ? S.fromInputFocus : {}),
-                                            ...(errors.acc_name || accNameError ? S.fromInputErr : {}),
+                                            ...(accNameFocus ? S.toInputFocus : {}),
+                                            ...(errors.acc_name || accNameError ? S.toInputErr : {}),
                                         }}
                                         autoComplete="off"
                                         inputMode="text"
@@ -438,7 +437,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                     )}
                                 </div>
                                 {(errors.acc_name || accNameError) && (
-                                    <span style={S.fromErr}>
+                                    <span style={S.toErr}>
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                                         </svg>
@@ -448,8 +447,8 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                             </div>
 
                             {/* ── Account Number — digits only ── */}
-                            <div style={S.fromFieldGroup}>
-                                <label style={S.fromLabel}>
+                            <div style={S.toFieldGroup}>
+                                <label style={S.toLabel}>
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
                                         <rect x="2" y="5" width="20" height="14" rx="2"/>
                                         <line x1="2" y1="10" x2="22" y2="10"/>
@@ -459,7 +458,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                 </label>
                                 <div style={{ position: "relative" }}>
                                     <div style={S.inputIconLeft}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accNumFocus ? "#1a7a47" : "#a8d5b5"} strokeWidth="2">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accNumFocus ? "#5B2D8E" : "#b8a8ce"} strokeWidth="2">
                                             <rect x="2" y="5" width="20" height="14" rx="2"/>
                                             <line x1="2" y1="10" x2="22" y2="10"/>
                                         </svg>
@@ -473,11 +472,11 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                         placeholder="XXXX-XXXXX-X"
                                         maxLength={12}
                                         style={{
-                                            ...S.fromInput,
+                                            ...S.toInput,
                                             ...S.inputWithIcon,
                                             ...S.accNumFont,
-                                            ...(accNumFocus ? S.fromInputFocus : {}),
-                                            ...(errors.acc_number || accNumError ? S.fromInputErr : {}),
+                                            ...(accNumFocus ? S.toInputFocus : {}),
+                                            ...(errors.acc_number || accNumError ? S.toInputErr : {}),
                                         }}
                                         inputMode="numeric"
                                         autoComplete="off"
@@ -491,7 +490,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                     )}
                                 </div>
                                 {(errors.acc_number || accNumError) && (
-                                    <span style={S.fromErr}>
+                                    <span style={S.toErr}>
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                                         </svg>
@@ -500,19 +499,19 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                 )}
                             </div>
 
-                            {/* Sender preview card — shows when all "From" fields filled */}
+                            {/* Recipient preview card — shows when all "To" fields filled */}
                             {selectedBank && data.acc_name && data.acc_number && !accNameError && !accNumError && (
-                                <div style={S.senderCard}>
-                                    <div style={S.senderCardGlow} />
-                                    <div style={S.senderLeft}>
+                                <div style={S.recipientCard}>
+                                    <div style={S.recipientCardGlow} />
+                                    <div style={S.recipientLeft}>
                                         <BankImg bank={selectedBank} size={44} appUrl={appUrl} />
                                     </div>
-                                    <div style={S.senderInfo}>
-                                        <span style={S.senderName}>{data.acc_name}</span>
-                                        <span style={S.senderBank}>{selectedBank.name}</span>
-                                        <span style={S.senderNum}>{formatAccNumber(data.acc_number)}</span>
+                                    <div style={S.recipientInfo}>
+                                        <span style={S.recipientName}>{data.acc_name}</span>
+                                        <span style={S.recipientBank}>{selectedBank.name}</span>
+                                        <span style={S.recipientNum}>{formatAccNumber(data.acc_number)}</span>
                                     </div>
-                                    <div style={S.senderCheck}>
+                                    <div style={S.recipientCheck}>
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5">
                                             <polyline points="20 6 9 17 4 12"/>
                                         </svg>
@@ -524,7 +523,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
 
                     {/* ── Amount ── */}
                     <div style={S.sectionLabel}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a7a47" strokeWidth="2.2">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7c5cbf" strokeWidth="2.2">
                             <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                         </svg>
                         <span>{t('Transfer Amount')}</span>
@@ -574,7 +573,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                     {summary && !amountError && (
                         <div style={S.summary}>
                             <div style={S.sumHead}>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a47" strokeWidth="2.5">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B2D8E" strokeWidth="2.5">
                                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                                 </svg>
                                 <span style={S.sumTitle}>{t('Transfer Summary')}</span>
@@ -618,11 +617,13 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                 input[type=number]::-webkit-inner-spin-button,
                 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
                 input:focus { outline: none; }
-                input::placeholder { color: #a8d5b5; }
-                .bank-row:hover { background: #edfaf3 !important; }
+                input::placeholder { color: #c4b3d9; }
+                .bank-row:hover { background: #f3ecfc !important; }
                 @keyframes fadeUp  { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes popDown { from { opacity:0; transform:scaleY(.92) translateY(-6px); } to { opacity:1; transform:scaleY(1) translateY(0); } }
                 @keyframes spin    { to { transform:rotate(360deg); } }
+                @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+                @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.6} }
                 @keyframes cardIn  { from{opacity:0;transform:scale(.96) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
             `}</style>
         </div>
@@ -657,28 +658,28 @@ function SR({ label, val, red }) {
 const S = {
     page: {
         minHeight: "100vh",
-        background: "linear-gradient(160deg, #eaf5ee 0%, #dff0e6 40%, #e8f5ec 100%)",
+        background: "linear-gradient(160deg, #f0ebf8 0%, #e8dff5 40%, #ede5f5 100%)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: "40px 16px",
         fontFamily: "'DM Sans', 'Nunito', sans-serif",
         position: "relative", overflow: "hidden",
     },
-    orb1: { position: "fixed", top: "-180px", right: "-120px", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(39,174,96,.12) 0%, transparent 70%)", pointerEvents: "none" },
-    orb2: { position: "fixed", bottom: "-150px", left: "-100px", width: "440px", height: "440px", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,122,71,.10) 0%, transparent 70%)", pointerEvents: "none" },
-    orb3: { position: "fixed", top: "40%", left: "60%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(34,197,94,.07) 0%, transparent 70%)", pointerEvents: "none" },
+    orb1: { position: "fixed", top: "-180px", right: "-120px", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(91,45,142,.14) 0%, transparent 70%)", pointerEvents: "none" },
+    orb2: { position: "fixed", bottom: "-150px", left: "-100px", width: "440px", height: "440px", borderRadius: "50%", background: "radial-gradient(circle, rgba(155,89,182,.10) 0%, transparent 70%)", pointerEvents: "none" },
+    orb3: { position: "fixed", top: "40%", left: "60%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(120,60,200,.07) 0%, transparent 70%)", pointerEvents: "none" },
 
     card: {
         background: "#fff",
         borderRadius: "28px",
-        boxShadow: "0 20px 60px rgba(26,122,71,.14), 0 4px 16px rgba(0,0,0,.06)",
+        boxShadow: "0 20px 60px rgba(91,45,142,.16), 0 4px 16px rgba(0,0,0,.06)",
         width: "100%", maxWidth: "560px",
         animation: "fadeUp .5s cubic-bezier(.22,.68,0,1.2) both",
-        border: "1.5px solid rgba(39,174,96,.10)",
+        border: "1.5px solid rgba(91,45,142,.08)",
         marginTop: "80px",
         overflow: "hidden",
     },
     header: {
-        background: "linear-gradient(140deg, #0d4a26 0%, #1a7a47 40%, #27ae60 80%, #2ecc71 100%)",
+        background: "linear-gradient(140deg, #2d1060 0%, #4a2280 40%, #7B3FBE 80%, #9B59B6 100%)",
         padding: "32px 36px 28px",
         textAlign: "center",
         position: "relative",
@@ -686,7 +687,7 @@ const S = {
     },
     headerGlow: {
         position: "absolute", inset: 0,
-        background: "radial-gradient(ellipse at 50% 0%, rgba(150,255,180,.20) 0%, transparent 60%)",
+        background: "radial-gradient(ellipse at 50% 0%, rgba(200,150,255,.25) 0%, transparent 60%)",
         pointerEvents: "none",
     },
     hIconWrap: { position: "relative", zIndex: 1, marginBottom: "12px" },
@@ -696,10 +697,10 @@ const S = {
         display: "flex", alignItems: "center", justifyContent: "center",
         margin: "0 auto",
         border: "1.5px solid rgba(255,255,255,.25)",
-        boxShadow: "0 4px 20px rgba(0,0,0,.12)",
+        boxShadow: "0 4px 20px rgba(0,0,0,.15)",
     },
     hTitle: { fontFamily: "'DM Sans', sans-serif", fontSize: "24px", fontWeight: "700", color: "#fff", letterSpacing: "2.5px", marginBottom: "4px", position: "relative", zIndex: 1 },
-    hSub: { color: "rgba(255,255,255,.75)", fontSize: "12.5px", letterSpacing: ".5px", marginBottom: "12px", position: "relative", zIndex: 1 },
+    hSub: { color: "rgba(255,255,255,.7)", fontSize: "12.5px", letterSpacing: ".5px", marginBottom: "12px", position: "relative", zIndex: 1 },
     hBadge: {
         display: "inline-flex", alignItems: "center", gap: "5px",
         background: "rgba(255,255,255,.18)", color: "#fff",
@@ -712,18 +713,18 @@ const S = {
     form: { padding: "24px 26px 32px", display: "flex", flexDirection: "column", gap: "16px" },
     row: { display: "flex", gap: "12px" },
     fieldGroup: { display: "flex", flexDirection: "column", gap: "5px", position: "relative" },
-    label: { fontSize: "12px", fontWeight: "700", color: "#0d4a26", letterSpacing: ".3px", display: "flex", alignItems: "center", gap: "5px" },
-    req: { color: "#27ae60" },
-    opt: { color: "#a8d5b5", fontWeight: "600", fontSize: "11px" },
+    label: { fontSize: "12px", fontWeight: "700", color: "#2d1a4e", letterSpacing: ".3px", display: "flex", alignItems: "center", gap: "5px" },
+    req: { color: "#9B59B6" },
+    opt: { color: "#b8a8ce", fontWeight: "600", fontSize: "11px" },
     input: {
-        borderTopWidth: "1.5px",    borderTopStyle: "solid",    borderTopColor: "#c8e6d0",
-        borderRightWidth: "1.5px",  borderRightStyle: "solid",  borderRightColor: "#c8e6d0",
-        borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#c8e6d0",
-        borderLeftWidth: "1.5px",   borderLeftStyle: "solid",   borderLeftColor: "#c8e6d0",
+        borderTopWidth: "1.5px",    borderTopStyle: "solid",    borderTopColor: "#E0D4EF",
+        borderRightWidth: "1.5px",  borderRightStyle: "solid",  borderRightColor: "#E0D4EF",
+        borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#E0D4EF",
+        borderLeftWidth: "1.5px",   borderLeftStyle: "solid",   borderLeftColor: "#E0D4EF",
         borderTopLeftRadius: "11px",    borderTopRightRadius: "11px",
         borderBottomLeftRadius: "11px", borderBottomRightRadius: "11px",
-        padding: "11px 14px", fontSize: "13.5px", color: "#0d2e18",
-        background: "#f8fdf9", transition: "border-top-color .2s, border-right-color .2s, border-bottom-color .2s, border-left-color .2s, box-shadow .2s",
+        padding: "11px 14px", fontSize: "13.5px", color: "#1A0A2E",
+        background: "#FDFBFF", transition: "border-top-color .2s, border-right-color .2s, border-bottom-color .2s, border-left-color .2s, box-shadow .2s",
         width: "100%", fontFamily: "'DM Sans', sans-serif",
     },
     inputErr: {
@@ -736,69 +737,69 @@ const S = {
     /* ── Section Label ── */
     sectionLabel: {
         display: "flex", alignItems: "center", gap: "7px",
-        fontSize: "11.5px", fontWeight: "700", color: "#1a7a47",
+        fontSize: "11.5px", fontWeight: "700", color: "#7c5cbf",
         letterSpacing: ".4px", textTransform: "uppercase",
         marginBottom: "-4px",
     },
 
-    /* ══ FROM SECTION ══ */
-    fromSection: {
-        background: "linear-gradient(145deg, #f4fbf6 0%, #ebf7ee 100%)",
+    /* ══ TO SECTION ══ */
+    toSection: {
+        background: "linear-gradient(145deg, #faf7ff 0%, #f5f0fc 100%)",
         borderRadius: "18px",
-        border: "1.5px solid rgba(39,174,96,.16)",
+        border: "1.5px solid rgba(91,45,142,.14)",
         overflow: "hidden",
-        boxShadow: "0 4px 20px rgba(26,122,71,.08), inset 0 1px 0 rgba(255,255,255,.8)",
+        boxShadow: "0 4px 20px rgba(91,45,142,.08), inset 0 1px 0 rgba(255,255,255,.8)",
     },
-    fromHeader: {
-        background: "linear-gradient(135deg, rgba(26,122,71,.06) 0%, rgba(39,174,96,.06) 100%)",
+    toHeader: {
+        background: "linear-gradient(135deg, rgba(74,34,128,.06) 0%, rgba(155,89,182,.06) 100%)",
         padding: "14px 18px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        borderBottom: "1px solid rgba(39,174,96,.12)",
+        borderBottom: "1px solid rgba(91,45,142,.10)",
     },
-    fromHeaderLeft: { display: "flex", alignItems: "center", gap: "10px" },
-    fromIconBox: {
+    toHeaderLeft: { display: "flex", alignItems: "center", gap: "10px" },
+    toIconBox: {
         width: "32px", height: "32px", borderRadius: "10px",
-        background: "linear-gradient(135deg, #1a7a47, #27ae60)",
+        background: "linear-gradient(135deg, #4a2280, #9B59B6)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        boxShadow: "0 3px 10px rgba(26,122,71,.30)",
+        boxShadow: "0 3px 10px rgba(91,45,142,.30)",
     },
-    fromTitle: { display: "block", fontSize: "13.5px", fontWeight: "700", color: "#0d4a26" },
-    fromSubTitle: { display: "block", fontSize: "10.5px", color: "#27ae60", marginTop: "1px" },
-    fromSecureBadge: {
+    toTitle: { display: "block", fontSize: "13.5px", fontWeight: "700", color: "#2d1a4e" },
+    toSubTitle: { display: "block", fontSize: "10.5px", color: "#9b7ec8", marginTop: "1px" },
+    toSecureBadge: {
         display: "flex", alignItems: "center", gap: "4px",
         fontSize: "10px", fontWeight: "700", color: "#22c55e",
         background: "rgba(34,197,94,.08)", padding: "3px 9px",
         borderRadius: "999px", border: "1px solid rgba(34,197,94,.2)",
         letterSpacing: ".4px",
     },
-    fromBody: { padding: "16px 18px", display: "flex", flexDirection: "column", gap: "13px" },
+    toBody: { padding: "16px 18px", display: "flex", flexDirection: "column", gap: "13px" },
 
-    fromFieldGroup: { display: "flex", flexDirection: "column", gap: "5px", position: "relative" },
-    fromLabel: {
-        fontSize: "11.5px", fontWeight: "700", color: "#1a7a47",
+    toFieldGroup: { display: "flex", flexDirection: "column", gap: "5px", position: "relative" },
+    toLabel: {
+        fontSize: "11.5px", fontWeight: "700", color: "#4a2280",
         display: "flex", alignItems: "center", gap: "5px", letterSpacing: ".2px",
     },
     fieldHint: {
-        marginLeft: "auto", fontSize: "10px", color: "#a8d5b5",
+        marginLeft: "auto", fontSize: "10px", color: "#b8a8ce",
         fontWeight: "600", letterSpacing: ".2px",
     },
-    fromInput: {
-        borderTopWidth: "1.5px",    borderTopStyle: "solid",    borderTopColor: "#c8e6d0",
-        borderRightWidth: "1.5px",  borderRightStyle: "solid",  borderRightColor: "#c8e6d0",
-        borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#c8e6d0",
-        borderLeftWidth: "1.5px",   borderLeftStyle: "solid",   borderLeftColor: "#c8e6d0",
+    toInput: {
+        borderTopWidth: "1.5px",    borderTopStyle: "solid",    borderTopColor: "#ddd5ef",
+        borderRightWidth: "1.5px",  borderRightStyle: "solid",  borderRightColor: "#ddd5ef",
+        borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#ddd5ef",
+        borderLeftWidth: "1.5px",   borderLeftStyle: "solid",   borderLeftColor: "#ddd5ef",
         borderTopLeftRadius: "11px",    borderTopRightRadius: "11px",
         borderBottomLeftRadius: "11px", borderBottomRightRadius: "11px",
-        padding: "11px 14px", fontSize: "13.5px", color: "#0d2e18",
+        padding: "11px 14px", fontSize: "13.5px", color: "#1A0A2E",
         background: "#fff", transition: "border-top-color .2s, border-right-color .2s, border-bottom-color .2s, border-left-color .2s, box-shadow .2s",
         width: "100%", fontFamily: "'DM Sans', sans-serif",
     },
-    fromInputFocus: {
-        borderTopColor: "#1a7a47",    borderRightColor: "#1a7a47",
-        borderBottomColor: "#1a7a47", borderLeftColor: "#1a7a47",
-        boxShadow: "0 0 0 3px rgba(26,122,71,.12)",
+    toInputFocus: {
+        borderTopColor: "#5B2D8E",    borderRightColor: "#5B2D8E",
+        borderBottomColor: "#5B2D8E", borderLeftColor: "#5B2D8E",
+        boxShadow: "0 0 0 3px rgba(91,45,142,.12)",
     },
-    fromInputErr: {
+    toInputErr: {
         borderTopColor: "#ef4444",    borderRightColor: "#ef4444",
         borderBottomColor: "#ef4444", borderLeftColor: "#ef4444",
         background: "#fef2f2",
@@ -813,53 +814,53 @@ const S = {
         position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
         display: "flex", alignItems: "center", zIndex: 1,
     },
-    fromErr: {
+    toErr: {
         fontSize: "11.5px", color: "#ef4444", fontWeight: "700",
         display: "flex", alignItems: "center", gap: "4px",
     },
 
     /* Divider */
-    fromDivider: { display: "flex", alignItems: "center", gap: "10px", padding: "0 4px" },
-    fromDivLine: { flex: 1, height: "1px", background: "rgba(39,174,96,.15)" },
-    fromDivIcon: {
+    toDivider: { display: "flex", alignItems: "center", gap: "10px", padding: "0 4px" },
+    toDivLine: { flex: 1, height: "1px", background: "rgba(91,45,142,.12)" },
+    toDivIcon: {
         width: "24px", height: "24px", borderRadius: "50%",
-        background: "rgba(39,174,96,.10)", display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(91,45,142,.08)", display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0,
     },
 
-    /* Sender Preview Card */
-    senderCard: {
+    /* Recipient Preview Card */
+    recipientCard: {
         display: "flex", alignItems: "center", gap: "12px",
-        background: "linear-gradient(135deg, #1a7a47 0%, #27ae60 100%)",
+        background: "linear-gradient(135deg, #4a2280 0%, #7B3FBE 100%)",
         borderRadius: "14px", padding: "14px 16px",
         position: "relative", overflow: "hidden",
         animation: "cardIn .3s cubic-bezier(.22,.68,0,1.2) both",
-        boxShadow: "0 6px 24px rgba(26,122,71,.30)",
+        boxShadow: "0 6px 24px rgba(74,34,128,.30)",
     },
-    senderCardGlow: {
+    recipientCardGlow: {
         position: "absolute", top: "-30px", right: "-30px",
         width: "100px", height: "100px", borderRadius: "50%",
         background: "radial-gradient(circle, rgba(255,255,255,.12) 0%, transparent 70%)",
         pointerEvents: "none",
     },
-    senderLeft: { flexShrink: 0 },
-    senderInfo: { flex: 1, display: "flex", flexDirection: "column", gap: "2px" },
-    senderName: { fontSize: "14px", fontWeight: "700", color: "#fff" },
-    senderBank: { fontSize: "11px", color: "rgba(255,255,255,.65)" },
-    senderNum: { fontSize: "12px", color: "rgba(255,255,255,.85)", fontFamily: "'IBM Plex Mono', monospace", letterSpacing: ".8px", marginTop: "2px" },
-    senderCheck: {
+    recipientLeft: { flexShrink: 0 },
+    recipientInfo: { flex: 1, display: "flex", flexDirection: "column", gap: "2px" },
+    recipientName: { fontSize: "14px", fontWeight: "700", color: "#fff" },
+    recipientBank: { fontSize: "11px", color: "rgba(255,255,255,.65)" },
+    recipientNum: { fontSize: "12px", color: "rgba(255,255,255,.85)", fontFamily: "'IBM Plex Mono', monospace", letterSpacing: ".8px", marginTop: "2px" },
+    recipientCheck: {
         width: "28px", height: "28px", borderRadius: "50%",
         background: "rgba(255,255,255,.15)", display: "flex", alignItems: "center", justifyContent: "center",
-        border: "1.5px solid rgba(255,255,255,.4)",
+        border: "1.5px solid rgba(34,197,94,.5)",
         flexShrink: 0,
     },
 
     /* Dropdown */
     dropTrigger: {
-        borderTopWidth: "1.5px",    borderTopStyle: "solid",    borderTopColor: "#c8e6d0",
-        borderRightWidth: "1.5px",  borderRightStyle: "solid",  borderRightColor: "#c8e6d0",
-        borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#c8e6d0",
-        borderLeftWidth: "1.5px",   borderLeftStyle: "solid",   borderLeftColor: "#c8e6d0",
+        borderTopWidth: "1.5px",    borderTopStyle: "solid",    borderTopColor: "#ddd5ef",
+        borderRightWidth: "1.5px",  borderRightStyle: "solid",  borderRightColor: "#ddd5ef",
+        borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#ddd5ef",
+        borderLeftWidth: "1.5px",   borderLeftStyle: "solid",   borderLeftColor: "#ddd5ef",
         borderTopLeftRadius: "11px",    borderTopRightRadius: "11px",
         borderBottomLeftRadius: "11px", borderBottomRightRadius: "11px",
         padding: "8px 12px",
@@ -869,64 +870,64 @@ const S = {
         userSelect: "none", minHeight: "50px",
     },
     dropTriggerOpen: {
-        borderTopColor: "#1a7a47",    borderRightColor: "#1a7a47",
-        borderBottomColor: "#1a7a47", borderLeftColor: "#1a7a47",
-        boxShadow: "0 0 0 3px rgba(26,122,71,.12)",
+        borderTopColor: "#5B2D8E",    borderRightColor: "#5B2D8E",
+        borderBottomColor: "#5B2D8E", borderLeftColor: "#5B2D8E",
+        boxShadow: "0 0 0 3px rgba(91,45,142,.12)",
         borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
     },
     dropInner: { display: "flex", alignItems: "center", gap: "10px", flex: 1 },
-    dropSelText: { fontSize: "13.5px", fontWeight: "700", color: "#0d2e18", flex: 1 },
-    dropSelCode: { fontSize: "10.5px", color: "#27ae60", marginTop: "1px" },
-    dropPlh: { color: "#a8d5b5", fontSize: "13px" },
-    dropBadge: { fontSize: "10px", color: "#1a7a47", fontWeight: "700", background: "#d4f0de", padding: "2px 8px", borderRadius: "999px" },
-    dummyCircle: { width: "36px", height: "36px", borderRadius: "50%", background: "#e8f8ee", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-    chevron: { color: "#27ae60", display: "flex", transition: "transform .2s ease" },
+    dropSelText: { fontSize: "13.5px", fontWeight: "700", color: "#1A0A2E", flex: 1 },
+    dropSelCode: { fontSize: "10.5px", color: "#9B59B6", marginTop: "1px" },
+    dropPlh: { color: "#c4b3d9", fontSize: "13px" },
+    dropBadge: { fontSize: "10px", color: "#9B59B6", fontWeight: "700", background: "#F0E8FA", padding: "2px 8px", borderRadius: "999px" },
+    dummyCircle: { width: "36px", height: "36px", borderRadius: "50%", background: "#f0e8fa", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+    chevron: { color: "#9B59B6", display: "flex", transition: "transform .2s ease" },
     dropPanel: {
         position: "absolute", top: "100%", left: 0, right: 0,
         background: "#fff",
-        border: "1.5px solid #1a7a47", borderTop: "none",
+        border: "1.5px solid #5B2D8E", borderTop: "none",
         borderRadius: "0 0 14px 14px",
-        boxShadow: "0 20px 50px rgba(26,122,71,.18)",
+        boxShadow: "0 20px 50px rgba(91,45,142,.22)",
         zIndex: 999, animation: "popDown .18s ease both", overflow: "hidden",
     },
-    searchRow: { display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderBottom: "1px solid #e8f8ee", background: "#f4fbf6" },
-    searchInput: { border: "none", outline: "none", background: "transparent", fontSize: "13px", color: "#0d2e18", flex: 1, fontFamily: "'DM Sans', sans-serif" },
-    searchClear: { border: "none", background: "none", color: "#a8d5b5", cursor: "pointer", fontSize: "12px", padding: "0 2px", lineHeight: 1 },
+    searchRow: { display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderBottom: "1px solid #f0e8fa", background: "#faf7fd" },
+    searchInput: { border: "none", outline: "none", background: "transparent", fontSize: "13px", color: "#1A0A2E", flex: 1, fontFamily: "'DM Sans', sans-serif" },
+    searchClear: { border: "none", background: "none", color: "#b8a8ce", cursor: "pointer", fontSize: "12px", padding: "0 2px", lineHeight: 1 },
     dropScroll: { maxHeight: "260px", overflowY: "auto" },
-    dropItem: { display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", cursor: "pointer", transition: "background .12s", borderBottom: "1px solid #f2fbf5" },
-    dropItemActive: { background: "#edf8f1" },
+    dropItem: { display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", cursor: "pointer", transition: "background .12s", borderBottom: "1px solid #f8f4fd" },
+    dropItemActive: { background: "#f5f0fa" },
     bankMeta: { display: "flex", flexDirection: "column", flex: 1 },
-    bankNm: { fontSize: "13px", fontWeight: "700", color: "#0d2e18" },
-    bankCd: { fontSize: "10.5px", color: "#27ae60", marginTop: "1px" },
-    tickCircle: { width: "22px", height: "22px", borderRadius: "50%", background: "linear-gradient(135deg,#1a7a47,#27ae60)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-    noResult: { padding: "24px 16px", textAlign: "center", color: "#a8d5b5", fontSize: "13px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" },
+    bankNm: { fontSize: "13px", fontWeight: "700", color: "#1A0A2E" },
+    bankCd: { fontSize: "10.5px", color: "#9B59B6", marginTop: "1px" },
+    tickCircle: { width: "22px", height: "22px", borderRadius: "50%", background: "linear-gradient(135deg,#4a2280,#9B59B6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+    noResult: { padding: "24px 16px", textAlign: "center", color: "#b8a8ce", fontSize: "13px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" },
 
     /* Amount */
     amtWrap: { position: "relative" },
-    amtPfx: { position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#1a7a47", fontWeight: "800", fontSize: "16px", zIndex: 1 },
+    amtPfx: { position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#5B2D8E", fontWeight: "800", fontSize: "16px", zIndex: 1 },
     amtInput: { paddingLeft: "30px" },
     pills: { display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" },
     pill: {
         padding: "5px 12px", borderRadius: "999px",
-        border: "1.5px solid #c8e6d0",
-        background: "#f8fdf9", color: "#1a7a47", fontSize: "11.5px", fontWeight: "700",
+        border: "1.5px solid #ddd5ef",
+        background: "#FDFBFF", color: "#5B2D8E", fontSize: "11.5px", fontWeight: "700",
         cursor: "pointer", transition: "all .15s", fontFamily: "'DM Sans', sans-serif",
     },
-    pillOn: { background: "#1a7a47", color: "#fff", borderColor: "#1a7a47" },
+    pillOn: { background: "#5B2D8E", color: "#fff", borderColor: "#5B2D8E" },
 
     /* Summary */
-    summary: { background: "linear-gradient(135deg, #f4fbf6 0%, #e2f5e9 100%)", borderTopLeftRadius:"14px", borderTopRightRadius:"14px", borderBottomLeftRadius:"14px", borderBottomRightRadius:"14px", padding: "16px 18px", borderTopWidth:"1.5px", borderTopStyle:"solid", borderTopColor:"rgba(39,174,96,.16)", borderRightWidth:"1.5px", borderRightStyle:"solid", borderRightColor:"rgba(39,174,96,.16)", borderBottomWidth:"1.5px", borderBottomStyle:"solid", borderBottomColor:"rgba(39,174,96,.16)", borderLeftWidth:"1.5px", borderLeftStyle:"solid", borderLeftColor:"rgba(39,174,96,.16)", animation: "fadeUp .3s ease both" },
+    summary: { background: "linear-gradient(135deg,#F8F4FD 0%,#EDE0F7 100%)", borderTopLeftRadius:"14px", borderTopRightRadius:"14px", borderBottomLeftRadius:"14px", borderBottomRightRadius:"14px", padding: "16px 18px", borderTopWidth:"1.5px", borderTopStyle:"solid", borderTopColor:"rgba(91,45,142,.14)", borderRightWidth:"1.5px", borderRightStyle:"solid", borderRightColor:"rgba(91,45,142,.14)", borderBottomWidth:"1.5px", borderBottomStyle:"solid", borderBottomColor:"rgba(91,45,142,.14)", borderLeftWidth:"1.5px", borderLeftStyle:"solid", borderLeftColor:"rgba(91,45,142,.14)", animation: "fadeUp .3s ease both" },
     sumHead: { display: "flex", alignItems: "center", gap: "7px", marginBottom: "9px" },
-    sumTitle: { fontWeight: "800", color: "#1a7a47", fontSize: "13px" },
-    div: { height: "1px", background: "rgba(39,174,96,.15)", margin: "7px 0" },
+    sumTitle: { fontWeight: "800", color: "#5B2D8E", fontSize: "13px" },
+    div: { height: "1px", background: "rgba(91,45,142,.13)", margin: "7px 0" },
     sRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "3px 0" },
-    sLbl: { fontSize: "12.5px", color: "#3a8a58" },
-    sVal: { fontSize: "12.5px", color: "#0d2e18", fontWeight: "600" },
-    sumTotalLbl: { fontSize: "13.5px", fontWeight: "800", color: "#0d2e18" },
-    sumTotal: { fontSize: "20px", fontWeight: "800", color: "#1a7a47", letterSpacing: "-.5px" },
+    sLbl: { fontSize: "12.5px", color: "#7a5a9a" },
+    sVal: { fontSize: "12.5px", color: "#1A0A2E", fontWeight: "600" },
+    sumTotalLbl: { fontSize: "13.5px", fontWeight: "800", color: "#1A0A2E" },
+    sumTotal: { fontSize: "20px", fontWeight: "800", color: "#5B2D8E", letterSpacing: "-.5px" },
 
     /* Submit */
-    btn: { marginTop: "4px", background: "linear-gradient(135deg, #0d4a26 0%, #1a7a47 50%, #27ae60 100%)", color: "#fff", border: "none", borderRadius: "14px", padding: "15px 24px", fontSize: "14.5px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "9px", letterSpacing: ".3px", boxShadow: "0 6px 24px rgba(26,122,71,.35)", transition: "opacity .2s, box-shadow .2s", fontFamily: "'DM Sans', sans-serif" },
+    btn: { marginTop: "4px", background: "linear-gradient(135deg,#3d1a72 0%,#5B2D8E 50%,#9B59B6 100%)", color: "#fff", border: "none", borderRadius: "14px", padding: "15px 24px", fontSize: "14.5px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "9px", letterSpacing: ".3px", boxShadow: "0 6px 24px rgba(91,45,142,.38)", transition: "opacity .2s, box-shadow .2s, transform .1s", fontFamily: "'DM Sans', sans-serif" },
     btnOff: { opacity: .4, cursor: "not-allowed", boxShadow: "none" },
     spin: { width: "16px", height: "16px", border: "2.5px solid rgba(255,255,255,.35)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin .7s linear infinite" },
 };
