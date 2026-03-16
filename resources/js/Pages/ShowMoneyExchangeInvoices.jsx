@@ -66,12 +66,10 @@ const PRINT_STYLE = `
 
 // ═══════════════════════════════════════════════════════════════════════════
 export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
-    const { translations, flash } = usePage().props;
+    const { translations } = usePage().props;
     const t = (key) => translations?.[key] ?? key;
 
-    const [flashMsg, setFlashMsg] = useState(flash?.greet ?? null);
     const receiptRef = useRef(null);
-    if (flashMsg) setTimeout(() => setFlashMsg(null), 5000);
 
     const invoices = Array.isArray(records) ? records : records ? [records] : [];
     const [selectedIdx, setSelectedIdx] = useState(0);
@@ -152,15 +150,6 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
                 fontFamily: "'Segoe UI', sans-serif",
                 padding: '28px 16px 60px',
             }}><br/>
-
-                {/* Flash */}
-                {flashMsg && (
-                    <div style={{
-                        maxWidth:660, margin:'0 auto 16px',
-                        background:'rgba(126,236,196,0.10)', border:`1px solid ${C.green}`,
-                        borderRadius:8, padding:'10px 16px', color:C.green, fontSize:13,
-                    }}>✓ {flashMsg}</div>
-                )}
 
                 {/* ── Top bar ── */}
                 <div className="no-print" style={{

@@ -889,6 +889,12 @@ return [
     "Account number must contain digits only" => "លេខគណនីត្រូវតែមានតែលេខប៉ុណ្ណោះ",
     "Minimum amount is ฿500 THB" => "ចំនួនអប្បបរមាគឺ ฿500 THB",
     "Maximum amount is ฿100,000 THB" => "ចំនួនអតិបរមាគឺ ฿100,000 THB",
+    "TRANSFER-OUT RECEIPT" => "បង្កាន់ដៃផ្ទេរចេញ",
+    "Transfer-OUT" => "ផ្ទេរចេញ",
+    "invalid credentials" => "ព័ត៌មានចូលមិនត្រឹមត្រូវ",
+    "Registration successful! Please log in." => "ការចុះឈ្មោះបានជោគជ័យ! សូមចូលប្រើប្រាស់",
+    "Staff Portal" => "ផតថលបុគ្គលិក",
+    "Secure Sign In" => "ការចូលប្រើប្រាស់មានសុវត្ថិភាព",
 
 
     

@@ -125,14 +125,14 @@ class MoneyTransferController extends Controller
 
         // Generate invoice number
         $now           = now()->setTimezone('Asia/Bangkok');
-        $invoiceNumber = '#TI' . $now->format('dmyHis');
+        $invoiceNumber = '#TO' . $now->format('dmyHis');
 
         // Persist
         MoneyTransferInvoice::create([
             'invoice_number'        => $invoiceNumber,
             'customer_name'         => $validated['customer_name'],
             'phone'                 => $validated['phone'] ?? null,
-            'transfer_type'         => 'Transfer-IN',
+            'transfer_type'         => 'Transfer-OUT',
             'bank_name'             => $validated['bank_name'],
             'acc_name'              => $validated['acc_name'],
             'acc_number'            => $validated['acc_number'],
