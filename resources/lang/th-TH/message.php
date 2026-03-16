@@ -890,6 +890,12 @@ return [
     "Account number must contain digits only" => "หมายเลขบัญชีต้องประกอบด้วยตัวเลขเท่านั้น",
     "Minimum amount is ฿500 THB" => "จำนวนเงินขั้นต่ำคือ ฿500 บาท",
     "Maximum amount is ฿100,000 THB" => "วงเงินสูงสุดคือ ฿100,000 THB",
+    "TRANSFER-OUT RECEIPT" => "ใบเสร็จรับเงินโอนออก",
+    "Transfer-OUT" => "โอนออก",
+    "invalid credentials" => "ข้อมูลประจำตัวไม่ถูกต้อง",
+    "Registration successful! Please log in." => "ลงทะเบียนสำเร็จแล้ว! โปรดเข้าสู่ระบบ",
+    "Staff Portal" => "พอร์ทัลพนักงาน",
+    "Secure Sign In" => "ลงชื่อเข้าใช้อย่างปลอดภัย",
     
     
     

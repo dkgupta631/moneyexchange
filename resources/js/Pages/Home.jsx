@@ -42,7 +42,7 @@ export default function Home() {
                             <Link href={route('moneytransfer.in.form')} className="btn px-3 mt-auto mx-auto">{t('View')}</Link>
                         </div>
                     </div>
-                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">moneytransfer.out.form
+                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">
                         <div className="service-item d-flex flex-column justify-content-center text-center rounded">
                             <Link href={route('moneytransfer.out.form')}>
                             <div className="service-icon flex-shrink-0">

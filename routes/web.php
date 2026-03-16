@@ -5,10 +5,20 @@ use Inertia\inertia;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\MoneyExchangeController;
 use App\Http\Controllers\Web\MoneyTransferController;
+use App\Http\Controllers\Web\Auth\RegisterController;
+use App\Http\Controllers\Web\Auth\LoginController;
 
 // Route::get('/', function () {
 //     return inertia('Home');
 // });
+
+Route::get('/lang/{locale}', function ($locale) {
+    if (! in_array($locale, ['en','th-TH','km'])) {
+        abort(400);
+    }
+    session(['locale' => $locale]);
+    return back();
+});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/ExchangeRate', [HomeController::class, 'ShowExchangeRate'])->name('showExchangeRate');
@@ -26,10 +36,14 @@ Route::post('/money-transfer-OUT/store', [MoneyTransferController::class, 'store
 
 
 
-Route::get('/lang/{locale}', function ($locale) {
-    if (! in_array($locale, ['en','th-TH','km'])) {
-        abort(400);
-    }
-    session(['locale' => $locale]);
-    return back();
-});
+// Registration
+Route::get('/register', [RegisterController::class, 'create'])->name('register')->middleware('guest');
+Route::post('/register', [RegisterController::class, 'store'])->middleware('guest');
+ 
+// Login / Logout
+Route::get('/login', [LoginController::class, 'create'])->name('staff.login')->middleware('guest');
+Route::post('/login', [LoginController::class, 'store'])->name('login')->middleware('guest');
+Route::post('/logout', [LoginController::class, 'destroy'])->name('logout')->middleware('auth');
+
+
+

@@ -221,7 +221,7 @@ export default function MoneyTransferInvoice({ invoice }) {
                     <div style={S.dashed} />
 
                     <div className="center" style={S.billTitle}>
-                        — {t("TRANSFER-IN RECEIPT")} —
+                        — {inv.transfer_type=='Transfer-IN' ?  t("TRANSFER-IN RECEIPT") : t("TRANSFER-OUT RECEIPT") }  —
                     </div>
 
                     {/* Invoice meta */}
@@ -229,7 +229,7 @@ export default function MoneyTransferInvoice({ invoice }) {
                         <Row label={t("Invoice")}  value={inv.invoice_number ?? "—"} bold />
                         <Row label={t("Date")}      value={fmtDate(inv.created_at)} />
                         <Row label={t("Time")}      value={fmtTime(inv.created_at)} />
-                        <Row label={t("Type")}      value={t("Transfer-IN")} />
+                        <Row label={t("Type")}      value={t(inv.transfer_type ?? "—")} />
                     </div>
 
                     <div style={S.dashed} />
@@ -247,10 +247,10 @@ export default function MoneyTransferInvoice({ invoice }) {
                     <Row label={t("Account Name")}   value={inv.acc_name  || "—"} />
                     <Row label={t("Account Number")} value={inv.acc_number || "—"} />
 
-                    <div style={S.dashed} />
+                    {/* <div style={S.dashed} /> */}
 
                     {/* Amount table */}
-                    <table style={S.table}>
+                    {/* <table style={S.table}>
                         <thead>
                             <tr>
                                 <th style={S.th}>{t("Description")}</th>
@@ -270,9 +270,9 @@ export default function MoneyTransferInvoice({ invoice }) {
                                 <td style={{ ...S.td, textAlign: "right" }}>฿{fmt(inv.net_amount)}</td>
                             </tr>
                         </tbody>
-                    </table>
+                    </table> */}
 
-                    <div style={S.dashed} />
+                    {/* <div style={S.dashed} /> */}
 
                     {/* Totals */}
                     <Row label={t("Entered Amount")} value={`฿ ${fmt(inv.entered_amount)}`} />
@@ -281,7 +281,7 @@ export default function MoneyTransferInvoice({ invoice }) {
                         value={`− ฿ ${fmt(inv.trf_fee)}`}
                         valueStyle={{ color: "#dc2626" }}
                     />
-                    <Row label={t("Service Fee")} value="฿ 0.00" />
+                    {/* <Row label={t("Service Fee")} value="฿ 0.00" /> */}
 
                     <div style={S.totalRow}>
                         <span style={S.totalLabel}>{t("NET AMOUNT")}</span>
