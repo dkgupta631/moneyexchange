@@ -37,10 +37,11 @@ const css = `
     border:1px solid var(--border);border-radius:24px;padding:2.5rem 2.25rem;
     box-shadow:var(--glow),0 8px 60px rgba(0,0,0,0.5);position:relative;z-index:1;
     animation:slideUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+    margin-top: 100px;
   }
   @keyframes slideUp { from{opacity:0;transform:translateY(32px)} to{opacity:1;transform:translateY(0)} }
   .card::before { content:'';position:absolute;top:0;left:10%;right:10%;height:2px;background:linear-gradient(90deg,transparent,var(--secondary),transparent);border-radius:2px; }
-  .brand { text-align:center; margin-bottom:1.8rem; }
+  .brand { text-align:center; }
   .brand-icon { width:56px;height:56px;margin:0 auto 0.75rem;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 4px 20px rgba(91,45,142,0.5); }
   .brand h1 { font-family:'Cinzel',serif;font-size:1.5rem;color:#fff;letter-spacing:0.04em; }
   .brand p  { font-size:0.82rem;color:rgba(255,255,255,0.45);margin-top:0.3rem;font-weight:300;letter-spacing:0.08em;text-transform:uppercase; }
@@ -218,13 +219,13 @@ export default function Register() {
                         {/* Email */}
                         <div className="form-group">
                             <label className="form-label">
-                                {t('Email Address')} <span className="req">*</span>
+                                {t('Email')} <span className="req">*</span>
                             </label>
                             <div className="input-wrap">
                                 <span className="input-icon">✉️</span>
                                 <input type="email"
                                     className={`form-input ${getErr('email') ? 'has-error' : ''} ${isOk('email') ? 'is-valid' : ''}`}
-                                    placeholder={t('you@example.com')}
+                                    placeholder={'you@example.com'}
                                     value={data.email}
                                     onChange={e => setData('email', e.target.value)}
                                     onBlur={() => touch('email')}

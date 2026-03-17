@@ -48,6 +48,11 @@ export default function WebLayout({ children }) {
     };
     const currentLang = languages[locale] ?? languages['en'];
 
+    const capitalizeFirst = (text) => {
+    if (!text) return ''
+        return text.charAt(0).toUpperCase() + text.slice(1)
+    }
+
     return (
         <>
             <Head>
@@ -77,7 +82,7 @@ export default function WebLayout({ children }) {
                                     {/* Logged-in: show username badge + Logout */}
                                     <span className="nav-item nav-link d-flex align-items-center gap-2 pe-0">
                                         <span className="badge bg-light text-primary fw-semibold">
-                                            👤 {user.name}
+                                            👤 { capitalizeFirst(user.name) }
                                         </span>
                                         <span className="badge bg-secondary text-white text-uppercase" style={{ fontSize: '0.62rem', lineHeight: '13px' }}>
                                             {user.role}

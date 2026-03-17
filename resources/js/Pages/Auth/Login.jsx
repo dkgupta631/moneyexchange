@@ -144,7 +144,7 @@ export default function Login() {
                                 <span className="input-icon">👤</span>
                                 <input type="text"
                                     className={`form-input ${getErr('name') ? 'has-error' : ''}`}
-                                    placeholder={t('Enter your username')}
+                                    placeholder={t('Enter Username')}
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}
                                     onBlur={() => touch('name')}
@@ -163,7 +163,7 @@ export default function Login() {
                                 <span className="input-icon">🔒</span>
                                 <input type={showPw ? 'text' : 'password'}
                                     className={`form-input ${getErr('password') ? 'has-error' : ''}`}
-                                    placeholder={t('Enter your password')}
+                                    placeholder={t('Enter password')}
                                     value={data.password}
                                     onChange={e => setData('password', e.target.value)}
                                     onBlur={() => touch('password')}
@@ -194,7 +194,7 @@ export default function Login() {
 
                     <p className="footer-link">
                         {t('No account yet?')}{' '}
-                        <Link href={route('register')}>{t('Create one')}</Link>
+                        <Link href={route('register')}>{t('Register')}</Link>
                     </p>
                     <div className="security-badge">
                         🛡 {t('Protected by rate-limiting · Sessions encrypted')}
