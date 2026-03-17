@@ -37,13 +37,13 @@ Route::post('/money-transfer-OUT/store', [MoneyTransferController::class, 'store
 
 
 // Registration
-Route::get('/register', [RegisterController::class, 'create'])->name('register')->middleware('guest');
-Route::post('/register', [RegisterController::class, 'store'])->middleware('guest');
+Route::get('/register', [RegisterController::class, 'create'])->name('register');
+Route::post('/register', [RegisterController::class, 'store']);
  
 // Login / Logout
-Route::get('/login', [LoginController::class, 'create'])->name('staff.login')->middleware('guest');
-Route::post('/login', [LoginController::class, 'store'])->name('login')->middleware('guest');
-Route::post('/logout', [LoginController::class, 'destroy'])->name('logout')->middleware('auth');
+Route::get('/login', [LoginController::class, 'create'])->name('staff.login');
+Route::post('/login', [LoginController::class, 'store'])->name('login');
+Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
 
 

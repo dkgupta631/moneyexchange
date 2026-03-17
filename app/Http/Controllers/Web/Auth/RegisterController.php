@@ -43,6 +43,6 @@ class RegisterController extends Controller
         // dd($data);
         User::create($data);
 
-        return redirect()->route('staff.login')->with('success', __('message.Registration successful! Please log in.'));
+        return redirect()->route('staff.login')->with('greet', __('message.Registration successful! Please log in.'));
     }
 }
