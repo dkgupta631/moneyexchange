@@ -290,7 +290,7 @@ export default function ExchangeMoneyForm() {
 
             <div className="container-fluid py-5 xform" onClick={closeAll}>
                 <br /><br /><br />
-                <div className="container px-lg-5">
+                 <div className=" px-lg-5">    {/*  container */} 
                     <div className="row justify-content-center">
                         <div className="col-lg-7">
 
@@ -471,7 +471,13 @@ export default function ExchangeMoneyForm() {
                                                 type="submit"
                                                 disabled={processing || !hasResult}
                                             >
-                                                {processing ? t('Generating...') : t('Generate invoice')} →
+                                                 {processing ? (
+                                                                    <> {t('Processing')}…</>
+                                                                ) : (
+                                                                    <>
+                                                                        {t('Confirm')} / {t('Print')} ⟶
+                                                                    </>
+                                                                )}
                                             </button>
                                         </div>
 

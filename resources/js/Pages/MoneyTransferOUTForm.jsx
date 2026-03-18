@@ -69,6 +69,10 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
 
     const feePercentage = gettransferchanges.trf_fee_in_persentage ?? 0;
 
+    // "with-fee" = use fetched percentage | "no-fee" = 0%
+    const [feeMode, setFeeMode] = useState("with-fee");
+
+
     const { data, setData, post, processing, errors } = useForm({
         customer_name:         "",
         phone:                 "",
@@ -107,19 +111,32 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
         return () => document.removeEventListener("mousedown", fn);
     }, []);
 
-    /* Recalculate summary when amount changes */
+    /* Recalculate whenever amount OR fee mode changes — single source of truth */
     useEffect(() => {
         const amount = parseFloat(data.entered_amount);
+        // Always keep trf_fee_in_persentage in sync with the radio selection
+        const currentFee = feeMode === "with-fee" ? feePercentage : 0;
+
         if (!isNaN(amount) && amount > 0) {
-            const fee = (amount * feePercentage) / 100;
-            const net = amount - fee;
-            setSummary({ entered: amount, fee, net, feePercentage });
-            setData(prev => ({ ...prev, trf_fee: fee.toFixed(2), net_amount: net.toFixed(2) }));
+            const fee    = parseFloat(((amount * currentFee) / 100).toFixed(2));
+            const net    = parseFloat((amount - fee).toFixed(2));
+            setSummary({ entered: amount, fee, net, feePercentage: currentFee });
+            setData(prev => ({
+                ...prev,
+                trf_fee_in_persentage: currentFee,
+                trf_fee:               fee.toFixed(2),   // e.g. "40.00" or "0.00"
+                net_amount:            net.toFixed(2),   // e.g. "1960.00"
+            }));
         } else {
             setSummary(null);
-            setData(prev => ({ ...prev, trf_fee: "", net_amount: "" }));
+            setData(prev => ({
+                ...prev,
+                trf_fee_in_persentage: currentFee,
+                trf_fee:               "0.00",
+                net_amount:            "",
+            }));
         }
-    }, [data.entered_amount]);
+    }, [data.entered_amount, feeMode]);
 
     const validateAmount = (val) => {
         const num = parseFloat(val);
@@ -131,7 +148,6 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
 
     /* Account Name: letters, spaces, dots, hyphens only */
     const handleAccNameChange = (val) => {
-        // Allow only text (no digits)
         const cleaned = val.replace(/[^a-zA-ZÀ-ÿก-๙\s.\-']/g, "");
         setData("acc_name", cleaned);
         if (val !== cleaned) {
@@ -248,7 +264,7 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                         </Field>
                     </div>
 
-                    {/* ══ TO SECTION — Professional Bank Card ══ */}
+                    {/* ══ TO SECTION ══ */}
                     <div style={S.toSection}>
                         {/* Section header */}
                         <div style={S.toHeader}>
@@ -395,7 +411,7 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                                 <div style={S.toDivLine} />
                             </div>
 
-                            {/* ── Account Name — text only ── */}
+                            {/* ── Account Name ── */}
                             <div style={S.toFieldGroup}>
                                 <label style={S.toLabel}>
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -446,7 +462,7 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                                 )}
                             </div>
 
-                            {/* ── Account Number — digits only ── */}
+                            {/* ── Account Number ── */}
                             <div style={S.toFieldGroup}>
                                 <label style={S.toLabel}>
                                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -499,7 +515,7 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                                 )}
                             </div>
 
-                            {/* Recipient preview card — shows when all "To" fields filled */}
+                            {/* Recipient preview card */}
                             {selectedBank && data.acc_name && data.acc_number && !accNameError && !accNumError && (
                                 <div style={S.recipientCard}>
                                     <div style={S.recipientCardGlow} />
@@ -521,11 +537,106 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                         </div>
                     </div>
 
-                    {/* ── Amount ── */}
+                    {/* ── Transfer Amount Section ── */}
                     <div style={S.sectionLabel}>
                         <span>{t('Transfer Amount')}</span>
                     </div>
 
+                    {/* ══ TRANSFER CHARGE TOGGLE ══ */}
+                    <div style={S.feeToggleBox}>
+                        <div style={S.feeToggleHeader}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B2D8E" strokeWidth="2.2">
+                                <line x1="12" y1="1" x2="12" y2="23"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                            <span style={S.feeToggleTitle}>{t('Transfer Charge')}</span>
+                        </div>
+                        <div style={S.feeRadioRow}>
+                            {/* Option 1: Apply fee */}
+                            <label
+                                style={{
+                                    ...S.feeRadioLabel,
+                                    ...(feeMode === "with-fee" ? S.feeRadioLabelActive : {}),
+                                }}
+                            >
+                                <input
+                                    type="radio"
+                                    name="feeMode"
+                                    value="with-fee"
+                                    checked={feeMode === "with-fee"}
+                                    onChange={() => setFeeMode("with-fee")}
+                                    style={S.radioHidden}
+                                />
+                                <div style={{
+                                    ...S.radioCircle,
+                                    ...(feeMode === "with-fee" ? S.radioCircleActive : {}),
+                                }}>
+                                    {feeMode === "with-fee" && <div style={S.radioDot} />}
+                                </div>
+                                <div style={S.feeRadioText}>
+                                    <span style={S.feeRadioMain}>{t('Apply Transfer Fee')}</span>
+                                    <span style={{
+                                        ...S.feeRadioSub,
+                                        color: feeMode === "with-fee" ? "#9B59B6" : "#b8a8ce",
+                                    }}>
+                                        {feePercentage}% {t('deducted')}
+                                    </span>
+                                </div>
+                                <span style={{
+                                    ...S.feeBadge,
+                                    background: feeMode === "with-fee" ? "rgba(91,45,142,.12)" : "#f5f0fc",
+                                    color: feeMode === "with-fee" ? "#5B2D8E" : "#b8a8ce",
+                                    borderColor: feeMode === "with-fee" ? "rgba(91,45,142,.3)" : "transparent",
+                                }}>
+                                    {feePercentage}%
+                                </span>
+                            </label>
+
+                            <div style={S.feeRadioDivider} />
+
+                            {/* Option 2: No fee */}
+                            <label
+                                style={{
+                                    ...S.feeRadioLabel,
+                                    ...(feeMode === "no-fee" ? S.feeRadioLabelNoFeeActive : {}),
+                                }}
+                            >
+                                <input
+                                    type="radio"
+                                    name="feeMode"
+                                    value="no-fee"
+                                    checked={feeMode === "no-fee"}
+                                    onChange={() => setFeeMode("no-fee")}
+                                    style={S.radioHidden}
+                                />
+                                <div style={{
+                                    ...S.radioCircle,
+                                    ...(feeMode === "no-fee" ? S.radioCircleNoFeeActive : {}),
+                                }}>
+                                    {feeMode === "no-fee" && <div style={S.radioDotGreen} />}
+                                </div>
+                                <div style={S.feeRadioText}>
+                                    <span style={S.feeRadioMain}>{t('No Transfer Fee')}</span>
+                                    <span style={{
+                                        ...S.feeRadioSub,
+                                        color: feeMode === "no-fee" ? "#16a34a" : "#b8a8ce",
+                                    }}>
+                                        0% — {t('full amount received')}
+                                    </span>
+                                </div>
+                                <span style={{
+                                    ...S.feeBadge,
+                                    background: feeMode === "no-fee" ? "rgba(22,163,74,.10)" : "#f5f0fc",
+                                    color: feeMode === "no-fee" ? "#16a34a" : "#b8a8ce",
+                                    borderColor: feeMode === "no-fee" ? "rgba(22,163,74,.3)" : "transparent",
+                                }}>
+                                    0%
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* ── Amount Input ── */}
                     <div style={S.fieldGroup}>
                         <label style={S.label}>{t('Amount')} (THB) <span style={S.req}>*</span></label>
                         <div style={S.amtWrap}>
@@ -574,11 +685,26 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
                                 </svg>
                                 <span style={S.sumTitle}>{t('Transfer Summary')}</span>
+                                {/* Active fee mode badge inside summary */}
+                                <span style={{
+                                    marginLeft: "auto",
+                                    fontSize: "10px", fontWeight: "700",
+                                    padding: "2px 9px", borderRadius: "999px",
+                                    background: feeMode === "no-fee" ? "rgba(22,163,74,.10)" : "rgba(91,45,142,.10)",
+                                    color: feeMode === "no-fee" ? "#16a34a" : "#5B2D8E",
+                                    border: `1px solid ${feeMode === "no-fee" ? "rgba(22,163,74,.25)" : "rgba(91,45,142,.20)"}`,
+                                }}>
+                                    {feeMode === "no-fee" ? t("No Fee Applied") : `${feePercentage}% ${t("Fee Applied")}`}
+                                </span>
                             </div>
                             <div style={S.div} />
-                            <SR label={t('Entered Amount')}                                val={`฿${fmt(summary.entered)} THB`} />
-                            <SR label={`${t('Transfer Fee')} (${summary.feePercentage}%)`} val={`− ฿${fmt(summary.fee)} THB`} red />
-                            <SR label={t('Service Charge')}                                val="฿0.00 THB" />
+                            <SR label={t('Entered Amount')} val={`฿${fmt(summary.entered)} THB`} />
+                            <SR
+                                label={`${t('Transfer Fee')} (${summary.feePercentage}%)`}
+                                val={summary.feePercentage === 0 ? `฿0.00 THB` : `− ฿${fmt(summary.fee)} THB`}
+                                red={summary.feePercentage > 0}
+                                green={summary.feePercentage === 0}
+                            />
                             <div style={S.div} />
                             <div style={{ ...S.sRow, paddingTop: 5 }}>
                                 <span style={S.sumTotalLbl}>{t('Net Receive Amount')}</span>
@@ -616,6 +742,7 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                 input:focus { outline: none; }
                 input::placeholder { color: #c4b3d9; }
                 .bank-row:hover { background: #f3ecfc !important; }
+                .fee-radio-label:hover { background: #f8f4fd !important; }
                 @keyframes fadeUp  { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
                 @keyframes popDown { from { opacity:0; transform:scaleY(.92) translateY(-6px); } to { opacity:1; transform:scaleY(1) translateY(0); } }
                 @keyframes spin    { to { transform:rotate(360deg); } }
@@ -642,11 +769,15 @@ function Field({ label, required, optional, t, error, children, style }) {
     );
 }
 
-function SR({ label, val, red }) {
+function SR({ label, val, red, green }) {
     return (
         <div style={S.sRow}>
             <span style={S.sLbl}>{label}</span>
-            <span style={{ ...S.sVal, ...(red ? { color: "#dc2626", fontWeight: 700 } : {}) }}>{val}</span>
+            <span style={{
+                ...S.sVal,
+                ...(red   ? { color: "#dc2626", fontWeight: 700 } : {}),
+                ...(green ? { color: "#16a34a", fontWeight: 700 } : {}),
+            }}>{val}</span>
         </div>
     );
 }
@@ -669,7 +800,7 @@ const S = {
         background: "#fff",
         borderRadius: "28px",
         boxShadow: "0 20px 60px rgba(91,45,142,.16), 0 4px 16px rgba(0,0,0,.06)",
-        width: "100%", maxWidth: "560px",
+        width: "100%", maxWidth: "660px",
         animation: "fadeUp .5s cubic-bezier(.22,.68,0,1.2) both",
         border: "1.5px solid rgba(91,45,142,.08)",
         marginTop: "80px",
@@ -731,7 +862,6 @@ const S = {
     },
     err: { fontSize: "11.5px", color: "#ef4444", fontWeight: "700", display: "flex", alignItems: "center", gap: "4px" },
 
-    /* ── Section Label ── */
     sectionLabel: {
         display: "flex", alignItems: "center", gap: "7px",
         fontSize: "11.5px", fontWeight: "700", color: "#7c5cbf",
@@ -770,7 +900,6 @@ const S = {
         letterSpacing: ".4px",
     },
     toBody: { padding: "16px 18px", display: "flex", flexDirection: "column", gap: "13px" },
-
     toFieldGroup: { display: "flex", flexDirection: "column", gap: "5px", position: "relative" },
     toLabel: {
         fontSize: "11.5px", fontWeight: "700", color: "#4a2280",
@@ -815,8 +944,6 @@ const S = {
         fontSize: "11.5px", color: "#ef4444", fontWeight: "700",
         display: "flex", alignItems: "center", gap: "4px",
     },
-
-    /* Divider */
     toDivider: { display: "flex", alignItems: "center", gap: "10px", padding: "0 4px" },
     toDivLine: { flex: 1, height: "1px", background: "rgba(91,45,142,.12)" },
     toDivIcon: {
@@ -824,8 +951,6 @@ const S = {
         background: "rgba(91,45,142,.08)", display: "flex", alignItems: "center", justifyContent: "center",
         flexShrink: 0,
     },
-
-    /* Recipient Preview Card */
     recipientCard: {
         display: "flex", alignItems: "center", gap: "12px",
         background: "linear-gradient(135deg, #4a2280 0%, #7B3FBE 100%)",
@@ -898,6 +1023,89 @@ const S = {
     bankCd: { fontSize: "10.5px", color: "#9B59B6", marginTop: "1px" },
     tickCircle: { width: "22px", height: "22px", borderRadius: "50%", background: "linear-gradient(135deg,#4a2280,#9B59B6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
     noResult: { padding: "24px 16px", textAlign: "center", color: "#b8a8ce", fontSize: "13px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" },
+
+    /* ══ FEE TOGGLE ══ */
+    feeToggleBox: {
+        background: "linear-gradient(145deg, #faf7ff 0%, #f5f0fc 100%)",
+        borderRadius: "16px",
+        border: "1.5px solid rgba(91,45,142,.14)",
+        overflow: "hidden",
+        boxShadow: "0 2px 12px rgba(91,45,142,.07)",
+    },
+    feeToggleHeader: {
+        display: "flex", alignItems: "center", gap: "7px",
+        padding: "11px 16px 10px",
+        borderBottom: "1px solid rgba(91,45,142,.10)",
+        background: "linear-gradient(135deg, rgba(74,34,128,.05) 0%, rgba(155,89,182,.05) 100%)",
+    },
+    feeToggleTitle: {
+        fontSize: "11.5px", fontWeight: "700", color: "#4a2280",
+        letterSpacing: ".3px", textTransform: "uppercase",
+    },
+    feeRadioRow: {
+        display: "flex", flexDirection: "column",
+    },
+    feeRadioDivider: {
+        height: "1px",
+        background: "rgba(91,45,142,.08)",
+        margin: "0 16px",
+    },
+    feeRadioLabel: {
+        display: "flex", alignItems: "center", gap: "12px",
+        padding: "12px 16px",
+        cursor: "pointer",
+        transition: "background .15s",
+        userSelect: "none",
+    },
+    feeRadioLabelActive: {
+        background: "rgba(91,45,142,.05)",
+    },
+    feeRadioLabelNoFeeActive: {
+        background: "rgba(22,163,74,.04)",
+    },
+    radioHidden: {
+        position: "absolute", opacity: 0, width: 0, height: 0, pointerEvents: "none",
+    },
+    radioCircle: {
+        width: "18px", height: "18px", borderRadius: "50%", flexShrink: 0,
+        border: "2px solid #ddd5ef",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: "#fff",
+        transition: "border-color .15s",
+    },
+    radioCircleActive: {
+        borderColor: "#5B2D8E",
+        background: "#fff",
+    },
+    radioCircleNoFeeActive: {
+        borderColor: "#16a34a",
+        background: "#fff",
+    },
+    radioDot: {
+        width: "8px", height: "8px", borderRadius: "50%",
+        background: "#5B2D8E",
+    },
+    radioDotGreen: {
+        width: "8px", height: "8px", borderRadius: "50%",
+        background: "#16a34a",
+    },
+    feeRadioText: {
+        display: "flex", flexDirection: "column", gap: "1px", flex: 1,
+    },
+    feeRadioMain: {
+        fontSize: "13px", fontWeight: "700", color: "#1A0A2E",
+    },
+    feeRadioSub: {
+        fontSize: "11px", fontWeight: "500",
+        transition: "color .15s",
+    },
+    feeBadge: {
+        fontSize: "11px", fontWeight: "700",
+        padding: "3px 10px", borderRadius: "999px",
+        border: "1px solid transparent",
+        transition: "all .15s",
+        flexShrink: 0,
+    },
 
     /* Amount */
     amtWrap: { position: "relative" },

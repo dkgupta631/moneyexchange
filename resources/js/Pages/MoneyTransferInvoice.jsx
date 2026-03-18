@@ -1,10 +1,35 @@
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { usePage, Link } from "@inertiajs/react";
 
+// ─── Same thermal print CSS pattern as ShowMoneyExchangeInvoices ───────────
+const PRINT_STYLE = `
+@media print {
+  @page { size: 80mm auto; margin: 0; }
+  body * { visibility: hidden !important; }
+  #transfer-receipt-root, #transfer-receipt-root * { visibility: visible !important; }
+  #transfer-receipt-root {
+    position: fixed !important; inset: 0 !important;
+    width: 80mm !important; margin: 0 auto !important;
+    padding: 0 !important; background: #fff !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 11px !important; color: #000 !important;
+    box-shadow: none !important; border-radius: 0 !important;
+    transform: none !important;
+  }
+  .no-print { display: none !important; }
+}
+`;
+
 export default function MoneyTransferInvoice({ invoice }) {
-    const { translations, appUrl } = usePage().props;
+    const { translations } = usePage().props;
     const t = (key) => translations?.[key] ?? key;
     const receiptRef = useRef(null);
+
+    // ── Zoom state ─────────────────────────────────────────────────────────
+    const [zoom, setZoom] = useState(2.2);
+    const zoomIn    = () => setZoom(z => Math.min(+(z + 0.1).toFixed(1), 3.0));
+    const zoomOut   = () => setZoom(z => Math.max(+(z - 0.1).toFixed(1), 0.5));
+    const zoomReset = () => setZoom(2.2);
 
     /* ── Helpers ── */
     const fmt = (v) =>
@@ -17,9 +42,7 @@ export default function MoneyTransferInvoice({ invoice }) {
         if (!dateStr) return "—";
         const d = new Date(dateStr);
         return d.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
+            day: "2-digit", month: "2-digit", year: "numeric",
         });
     };
 
@@ -27,474 +50,301 @@ export default function MoneyTransferInvoice({ invoice }) {
         if (!dateStr) return "—";
         const d = new Date(dateStr);
         return d.toLocaleTimeString("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
+            hour: "2-digit", minute: "2-digit", hour12: true,
         }).toUpperCase();
     };
 
-    /* ── Print (thermal-friendly: white bg, no nav, tight layout) ── */
-    const handlePrint = () => {
-        const printContent = receiptRef.current?.innerHTML;
-        if (!printContent) return;
-        const win = window.open("", "_blank", "width=900,height=800");
-        win.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Transfer-IN Invoice ${invoice?.invoice_number ?? ""}</title>
-                <style>
-                    @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+    // ── window.print() — CSS handles thermal layout, transform:none on print
+    const handlePrint = () => window.print();
 
-                    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-                    /* Screen: center the receipt on the white page */
-                    html, body {
-                        width: 100%;
-                        min-height: 100%;
-                        background: #f0f0f0;
-                        display: flex;
-                        justify-content: center;
-                        align-items: flex-start;
-                        padding: 30px 0;
-                        font-family: 'Courier Prime', 'Courier New', monospace;
-                        font-size: 12px;
-                        color: #000;
-                    }
-
-                    /* The receipt itself — fixed 80mm width, centered */
-                    .receipt-print-wrapper {
-                        width: 80mm;
-                        min-width: 80mm;
-                        max-width: 80mm;
-                        background: #fff;
-                        padding: 16px 16px 20px;
-                        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
-                        border-top: 4px solid #5B2D8E;
-                    }
-
-                    /* All inline styles from React come through — override for print clarity */
-                    div[style], span[style], table[style], td[style], th[style] {
-                        font-family: 'Courier Prime', 'Courier New', monospace !important;
-                    }
-
-                    /* Section title overrides */
-                    [style*="text-transform: uppercase"],
-                    [style*="textTransform"] {
-                        color: #5B2D8E !important;
-                        font-weight: 700 !important;
-                        font-size: 10px !important;
-                        text-transform: uppercase !important;
-                        letter-spacing: 0.8px !important;
-                        margin: 6px 0 3px !important;
-                    }
-
-                    /* Tables */
-                    table { width: 100% !important; border-collapse: collapse !important; font-size: 10px !important; }
-                    th { border-bottom: 1px solid #999 !important; padding: 3px 2px !important; }
-                    td { padding: 3px 2px !important; }
-
-                    /* Dashed dividers */
-                    [style*="dashed"] { border-top: 1px dashed #bbb !important; margin: 7px 0 !important; }
-
-                    /* Total row */
-                    [style*="border-left: 3px solid"] {
-                        background: #f5f0fa !important;
-                        border-left: 3px solid #5B2D8E !important;
-                        padding: 6px 8px !important;
-                    }
-
-                    /* Purple banner at top */
-                    [style*="gradient"] {
-                        background: linear-gradient(135deg,#3d1a72 0%,#5B2D8E 50%,#9B59B6 100%) !important;
-                        text-align: center !important;
-                        padding: 14px 0 10px !important;
-                        margin: -16px -16px 14px -16px !important;
-                    }
-
-                    /* SVG inside banner */
-                    [style*="gradient"] svg { display: block; margin: 0 auto; }
-
-                    @media print {
-                        @page {
-                            size: 80mm auto;
-                            margin: 0;
-                        }
-                        html, body {
-                            background: #fff !important;
-                            padding: 0 !important;
-                            display: block !important;
-                            width: 80mm !important;
-                        }
-                        .receipt-print-wrapper {
-                            box-shadow: none !important;
-                            border-top: 4px solid #5B2D8E !important;
-                            width: 80mm !important;
-                            max-width: 80mm !important;
-                            padding: 10px 12px 14px !important;
-                        }
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="receipt-print-wrapper">
-                    ${printContent}
-                </div>
-            </body>
-            </html>
-        `);
-        win.document.close();
-        win.focus();
-        setTimeout(() => { win.print(); }, 600);
-    };
-
-    /* ── Save as PNG using html2canvas (loaded from CDN) ── */
+    // ── PNG: temporarily clear zoom transform before capture ───────────────
     const handleSavePNG = async () => {
         if (!receiptRef.current) return;
-        const script = document.createElement("script");
-        script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-        script.onload = async () => {
-            const canvas = await window.html2canvas(receiptRef.current, {
-                backgroundColor: "#ffffff",
-                scale: 2,
-                useCORS: true,
-            });
-            const link = document.createElement("a");
-            link.download = `transfer-in-${invoice?.invoice_number ?? "invoice"}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        };
-        document.head.appendChild(script);
+        if (!window.html2canvas) {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+            document.head.appendChild(script);
+            await new Promise(r => (script.onload = r));
+        }
+        const el = receiptRef.current;
+        const prev = el.style.transform;
+        el.style.transform = "none";
+        const canvas = await window.html2canvas(el, {
+            backgroundColor: "#ffffff", scale: 2, useCORS: true,
+        });
+        el.style.transform = prev;
+        const link = document.createElement("a");
+        link.download = `transfer-${invoice?.invoice_number ?? "invoice"}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
     };
 
     const inv = invoice || {};
 
     return (
-        <div style={S.page}><br/><br/><br/><br/>
-            {/* ── Top action bar ── */}
-            <div style={S.topBar}>
-                <Link href="/money-transfer-in" style={S.backBtn}>
-                    ← {t("Back")}
-                </Link>
-                <span style={S.breadcrumb}>
-                    ({t("Money Transfer")}) · ({t("Invoice")})
-                </span>
-                <div style={S.actions}>
-                    <button style={S.savePngBtn} onClick={handleSavePNG}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        {t("Save PNG")}
-                    </button>
-                    <button style={S.printBtn} onClick={handlePrint}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                            <polyline points="6 9 6 2 18 2 18 9"/>
-                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                            <rect x="6" y="14" width="12" height="8"/>
-                        </svg>
-                        {t("Print")}
-                    </button>
+        <>
+            <style>{PRINT_STYLE}</style>
+
+            <div style={S.page}>
+                <br/><br/><br/><br/>
+
+                {/* ══ TOP BAR — hidden on print via .no-print ══ */}
+                <div className="no-print" style={S.topBar}>
+                    <Link href="/money-transfer-in" style={S.backBtn}>
+                        ← {t("Back")}
+                    </Link>
+                    <span style={S.breadcrumb}>
+                        ({t("Money Transfer")}) · ({t("Invoice")})
+                    </span>
+
+                    {/* Zoom controls */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <button
+                            onClick={zoomOut} disabled={zoom <= 0.5} title="Zoom Out"
+                            style={{
+                                background: "transparent",
+                                border: `1.5px solid ${zoom <= 0.5 ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.25)"}`,
+                                borderRadius: 8, padding: "5px 11px",
+                                color: zoom <= 0.5 ? "rgba(255,255,255,0.25)" : "#fff",
+                                cursor: zoom <= 0.5 ? "not-allowed" : "pointer",
+                                fontSize: 16, fontWeight: 700, lineHeight: 1, transition: "all .2s",
+                            }}
+                            onMouseOver={e => { if (zoom > 0.5) e.currentTarget.style.background = "rgba(91,45,142,0.5)"; }}
+                            onMouseOut={e =>  { e.currentTarget.style.background = "transparent"; }}
+                        >−</button>
+
+                        <button
+                            onClick={zoomReset} title="Reset zoom"
+                            style={{
+                                background: "rgba(91,45,142,0.3)",
+                                border: "1.5px solid rgba(255,255,255,0.25)",
+                                borderRadius: 8, padding: "5px 10px",
+                                color: "rgba(255,255,255,0.7)", cursor: "pointer",
+                                fontSize: 11, fontWeight: 700,
+                                minWidth: 52, textAlign: "center", transition: "all .2s",
+                            }}
+                            onMouseOver={e => { e.currentTarget.style.background = "#5B2D8E"; e.currentTarget.style.color = "#fff"; }}
+                            onMouseOut={e =>  { e.currentTarget.style.background = "rgba(91,45,142,0.3)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
+                        >{Math.round(zoom * 100)}%</button>
+
+                        <button
+                            onClick={zoomIn} disabled={zoom >= 3.0} title="Zoom In"
+                            style={{
+                                background: "transparent",
+                                border: `1.5px solid ${zoom >= 3.0 ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.25)"}`,
+                                borderRadius: 8, padding: "5px 11px",
+                                color: zoom >= 3.0 ? "rgba(255,255,255,0.25)" : "#fff",
+                                cursor: zoom >= 3.0 ? "not-allowed" : "pointer",
+                                fontSize: 16, fontWeight: 700, lineHeight: 1, transition: "all .2s",
+                            }}
+                            onMouseOver={e => { if (zoom < 3.0) e.currentTarget.style.background = "rgba(91,45,142,0.5)"; }}
+                            onMouseOut={e =>  { e.currentTarget.style.background = "transparent"; }}
+                        >+</button>
+                    </div>
+
+                    <div style={S.actions}>
+                        <button style={S.savePngBtn} onClick={handleSavePNG}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            {t('Download')}
+                        </button>
+                        <button style={S.printBtn} onClick={handlePrint}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                <polyline points="6 9 6 2 18 2 18 9"/>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                                <rect x="6" y="14" width="12" height="8"/>
+                            </svg>
+                            {t('Confirm')} / {t('Print')}
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            {/* ── Receipt card (this is what gets printed / saved) ── */}
-            <div style={S.receiptWrap}>
-                <div ref={receiptRef} style={S.receipt} className="receipt">
+                {/* ════════════  THERMAL RECEIPT + ZOOM  ════════════
+                    - No className on this wrapper → NOT hidden by .no-print
+                    - body * { visibility:hidden } hides it on print
+                    - #transfer-receipt-root { visibility:visible } overrides that
+                    - transform:none in print CSS = zoom never affects print
+                    - minHeight = natural height × zoom = footer never overlaps
+                ══════════════════════════════════════════════════════ */}
+                <div style={{
+                    minHeight: 620 * zoom,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "flex-start",
+                    overflow: "visible",
+                    transition: "min-height .2s",
+                }}>
+                    <div
+                        id="transfer-receipt-root"
+                        ref={receiptRef}
+                        style={{
+                            width: 300,
+                            background: "#fff",
+                            borderRadius: 4,
+                            padding: "18px 18px 22px",
+                            boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(91,45,142,0.27)",
+                            fontFamily: "'Courier New', Courier, monospace",
+                            fontSize: 11,
+                            color: "#111",
+                            position: "relative",
+                            transform: `scale(${zoom})`,
+                            transformOrigin: "top center",
+                            transition: "transform .15s ease",
+                            flexShrink: 0,
+                        }}
+                    >
+                        {/* Top purple strip */}
+                        <div style={{
+                            position: "absolute", top: 0, left: 0, right: 0, height: 4,
+                            background: "linear-gradient(90deg,#5B2D8E,#9B59B6)",
+                            borderRadius: "4px 4px 0 0",
+                        }} />
 
-                    {/* Header */}
-                    <div style={S.receiptHeaderBanner}>
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                            <path d="M2 17l10 5 10-5"/>
-                            <path d="M2 12l10 5 10-5"/>
-                        </svg>
+                        {/* Store header */}
+                        <div style={{ textAlign: "center", marginTop: 10, marginBottom: 10 }}>
+                            <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: 2, color: "#5B2D8E" }}>
+                                G+ Services
+                            </div>
+                            <div style={{ fontSize: 9, color: "#666", lineHeight: 1.55, marginTop: 3 }}>
+                                {t("Money Transfer")}<br />
+                                Aria Thmey, PoiPet<br />
+                                Banteay Meanchey Province
+                            </div>
+                        </div>
+
+                        <RDiv />
+
+                        <div style={{ textAlign: "center", fontWeight: 700, fontSize: 11.5,
+                            letterSpacing: 1.5, color: "#5B2D8E", marginBottom: 7 }}>
+                            ───{" "}
+                            {inv.transfer_type === "Transfer-IN"
+                                ? t("TRANSFER-IN RECEIPT")
+                                : t("TRANSFER-OUT RECEIPT")}
+                            {" "}───
+                        </div>
+
+                        <RRow label={t("Invoice")} value={inv.invoice_number ?? "—"} bold />
+                        <RRow label={t("Date")}    value={fmtDate(inv.created_at)} />
+                        <RRow label={t("Time")}    value={fmtTime(inv.created_at)} />
+                        <RRow label={t("Type")}    value={t(inv.transfer_type ?? "—")} />
+
+                        <RDiv />
+
+                        <div style={{ fontWeight: 700, fontSize: 9.5, color: "#5B2D8E", marginBottom: 4, letterSpacing: 1 }}>
+                            {t("Customer Information")}
+                        </div>
+                        <RRow label={t("Name")}         value={inv.customer_name || "—"} />
+                        <RRow label={t("Phone Number")} value={inv.phone || "—"} />
+
+                        <RDiv dashed />
+
+                        <div style={{ fontWeight: 700, fontSize: 9.5, color: "#5B2D8E", marginBottom: 4, letterSpacing: 1 }}>
+                            {t("From")}
+                        </div>
+                        <RRow label={t("Bank Name")}      value={inv.bank_name   || "—"} />
+                        <RRow label={t("Account Name")}   value={inv.acc_name    || "—"} />
+                        <RRow label={t("Account Number")} value={inv.acc_number  || "—"} />
+
+                        <RDiv />
+
+                        <RRow label={t("Entered Amount")} value={`฿ ${fmt(inv.entered_amount)}`} />
+                        <RRow
+                            label={`${t("Transfer Fee")} (${inv.trf_fee_in_persentage ?? 0}%)`}
+                            value={`− ฿ ${fmt(inv.trf_fee)}`}
+                            valueColor="#dc2626"
+                        />
+
+                        {/* Grand total */}
+                        <div style={{
+                            display: "flex", justifyContent: "space-between",
+                            fontWeight: 700, fontSize: 13,
+                            marginTop: 6, padding: "6px 8px",
+                            background: "#F5F0FA", borderLeft: "3px solid #5B2D8E",
+                            borderRadius: 2, color: "#5B2D8E",
+                        }}>
+                            <span>{t("NET AMOUNT")}</span>
+                            <span>฿ {fmt(inv.net_amount)}</span>
+                        </div>
+
+                        <RDiv dashed />
+
+                        <div style={{ textAlign: "center", fontSize: 9, color: "#888", lineHeight: 1.8, marginTop: 6 }}>
+                            {t("Signature")} &amp; {t("Name of Staff")}<br />
+                            <div style={{ borderTop: "1px solid #ccc", width: 100, margin: "5px auto 6px" }} />
+                            <span style={{ color: "#9B59B6", fontWeight: 700 }}>{t("Thank you")}!</span><br />
+                            {t("Please keep this receipt for your records")}.
+                        </div>
+
+                        {/* Bottom strip */}
+                        <div style={{
+                            position: "absolute", bottom: 0, left: 0, right: 0, height: 3,
+                            background: "linear-gradient(90deg,#9B59B6,#5B2D8E)",
+                            borderRadius: "0 0 4px 4px",
+                        }} />
                     </div>
-                    <div style={{ textAlign: "center", marginBottom: 10 }}>
-                        <div style={S.logoText}>G+ Services</div>
-                        {/* <div style={S.subText}>{t("Money Transfer Service")}</div> */}
-                        <div style={S.subText}>Aria Thmey, PoiPet</div>
-                        <div style={S.subText}>Banteay Meanchey Province</div>
-                    </div>
-
-                    <div style={S.dashed} />
-
-                    <div className="center" style={S.billTitle}>
-                        — {inv.transfer_type=='Transfer-IN' ?  t("TRANSFER-IN RECEIPT") : t("TRANSFER-OUT RECEIPT") }  —
-                    </div>
-
-                    {/* Invoice meta */}
-                    <div style={S.metaSection}>
-                        <Row label={t("Invoice")}  value={inv.invoice_number ?? "—"} bold />
-                        <Row label={t("Date")}      value={fmtDate(inv.created_at)} />
-                        <Row label={t("Time")}      value={fmtTime(inv.created_at)} />
-                        <Row label={t("Type")}      value={t(inv.transfer_type ?? "—")} />
-                    </div>
-
-                    <div style={S.dashed} />
-
-                    {/* Customer info */}
-                    <div style={S.sectionTitle}>{t("Customer Information")}</div>
-                    <Row label={t("Name")}         value={inv.customer_name || "—"} />
-                    <Row label={t("Phone Number")} value={inv.phone || "—"} />
-
-                    <div style={S.dashed} />
-
-                    {/* Bank info */}
-                    <div style={S.sectionTitle}>{t("From")}</div>
-                    <Row label={t("Bank Name")}           value={inv.bank_name || "—"} />
-                    <Row label={t("Account Name")}   value={inv.acc_name  || "—"} />
-                    <Row label={t("Account Number")} value={inv.acc_number || "—"} />
-
-                    {/* <div style={S.dashed} /> */}
-
-                    {/* Amount table */}
-                    {/* <table style={S.table}>
-                        <thead>
-                            <tr>
-                                <th style={S.th}>{t("Description")}</th>
-                                <th style={{ ...S.th, textAlign: "right" }}>{t("Amount")}</th>
-                                <th style={{ ...S.th, textAlign: "right" }}>{t("Fee")}%</th>
-                                <th style={{ ...S.th, textAlign: "right" }}>{t("Net")}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style={S.td}>
-                                    <strong>{t("Transfer")}</strong><br/>
-                                    <span style={S.subText2}>{t("Transfer-IN")} → THB</span>
-                                </td>
-                                <td style={{ ...S.td, textAlign: "right" }}>฿{fmt(inv.entered_amount)}</td>
-                                <td style={{ ...S.td, textAlign: "right" }}>{inv.trf_fee_in_persentage ?? 0}%</td>
-                                <td style={{ ...S.td, textAlign: "right" }}>฿{fmt(inv.net_amount)}</td>
-                            </tr>
-                        </tbody>
-                    </table> */}
-
-                    {/* <div style={S.dashed} /> */}
-
-                    {/* Totals */}
-                    <Row label={t("Entered Amount")} value={`฿ ${fmt(inv.entered_amount)}`} />
-                    <Row
-                        label={`${t("Transfer Fee")} (${inv.trf_fee_in_persentage ?? 0}%)`}
-                        value={`− ฿ ${fmt(inv.trf_fee)}`}
-                        valueStyle={{ color: "#dc2626" }}
-                    />
-                    {/* <Row label={t("Service Fee")} value="฿ 0.00" /> */}
-
-                    <div style={S.totalRow}>
-                        <span style={S.totalLabel}>{t("NET AMOUNT")}</span>
-                        <span style={S.totalValue}>฿ {fmt(inv.net_amount)}</span>
-                    </div>
-
-                    <div style={S.dashed} />
-
-                    {/* Footer */}
-                    <div style={S.footerSig}>{t("Signature & Name of Staff")}</div>
-                    <div style={S.sigLine} />
-                    <div style={S.thankYou}>{t("Thank you")}!</div>
-                    <div style={S.keepReceipt}>
-                        {t("Please keep this receipt for your records")}
-                    </div>
-
                 </div>
-            </div>
 
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Nunito:wght@600;700;800&display=swap');
-                * { box-sizing: border-box; }
-                @media print {
-                    body * { visibility: hidden; }
-                    .receipt, .receipt * { visibility: visible; }
-                    .receipt { position: absolute; left: 0; top: 0; width: 80mm; }
-                }
-            `}</style>
-        </div>
+                <div style={{ height: 40 }} />
+            </div>
+        </>
     );
 }
 
-/* ── Simple label/value row ── */
-function Row({ label, value, bold, valueStyle }) {
+/* ── Row helper — same structure as ShowMoneyExchangeInvoices RRow ── */
+function RDiv({ dashed }) {
+    return <div style={{ borderTop: dashed ? "1px dashed #ccc" : "1px solid #bbb", margin: "7px 0" }} />;
+}
+function RRow({ label, value, bold, valueColor }) {
     return (
-        <div style={SR.row}>
-            <span style={{ ...SR.label, ...(bold ? { fontWeight: 700 } : {}) }}>{label}:</span>
-            <span style={{ ...SR.value, ...valueStyle }}>{value}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, marginBottom: 2, fontWeight: bold ? 700 : 400 }}>
+            <span style={{ color: "#666" }}>{label}:</span>
+            <span style={{ maxWidth: "62%", textAlign: "right", wordBreak: "break-word", color: valueColor ?? "#111" }}>{value}</span>
         </div>
     );
 }
-const SR = {
-    row:   { display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "2px 0", gap: 8 },
-    label: { fontSize: "11px", color: "#555", fontFamily: "'Courier Prime', monospace", whiteSpace: "nowrap" },
-    value: { fontSize: "11px", color: "#111", fontFamily: "'Courier Prime', monospace", textAlign: "right", wordBreak: "break-all" },
-};
 
 /* ── Styles ── */
 const S = {
     page: {
         minHeight: "100vh",
-        background: "#1A0A2E",
-        fontFamily: "'Nunito', sans-serif",
-        padding: "24px 20px 48px",
+        background: "linear-gradient(160deg,#120720 0%,#1A0A2E 55%,#2D1060 100%)",
+        fontFamily: "'Segoe UI', sans-serif",
+        padding: "28px 16px 60px",
     },
     topBar: {
-        marginTop: "100px",
-        display: "flex", alignItems: "center", gap: 50, flexWrap: "wrap",
-        maxWidth: 680, margin: "0 auto 24px",
+        display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+        maxWidth: 660, margin: "0 auto 22px",
     },
     backBtn: {
         display: "inline-flex", alignItems: "center", gap: 6,
-        padding: "7px 16px",
-        borderRadius: 8,
-        border: "1.5px solid rgba(255,255,255,0.25)",
-        color: "#fff",
-        fontSize: 13, fontWeight: 700,
+        padding: "8px 16px", borderRadius: 8,
+        border: "1px solid rgba(155,89,182,0.28)",
+        color: "#D4A8F0", fontSize: 13, fontWeight: 500,
         textDecoration: "none",
-        background: "rgba(255,255,255,0.07)",
+        background: "transparent",
         transition: "background .15s",
     },
     breadcrumb: {
-        color: "rgba(255,255,255,0.45)",
+        color: "#8B6BAE",
         fontSize: 13,
         flex: 1,
     },
     actions: { display: "flex", gap: 10 },
     savePngBtn: {
         display: "inline-flex", alignItems: "center", gap: 7,
-        padding: "8px 16px", borderRadius: 9,
+        padding: "8px 16px", borderRadius: 8,
         background: "#5B2D8E", color: "#fff",
-        border: "none", fontSize: 13, fontWeight: 700,
+        border: "none", fontSize: 12, fontWeight: 600,
         cursor: "pointer",
-        boxShadow: "0 3px 12px rgba(91,45,142,0.45)",
     },
     printBtn: {
         display: "inline-flex", alignItems: "center", gap: 7,
-        padding: "8px 18px", borderRadius: 9,
-        background: "linear-gradient(135deg,#5B2D8E,#9B59B6)",
-        color: "#fff",
-        border: "none", fontSize: 13, fontWeight: 700,
+        padding: "8px 16px", borderRadius: 8,
+        background: "#6D28D9", color: "#fff",
+        border: "none", fontSize: 12, fontWeight: 600,
         cursor: "pointer",
-        boxShadow: "0 3px 14px rgba(91,45,142,0.5)",
-    },
-
-    /* receipt paper */
-    receiptWrap: {
-        maxWidth: 400,
-        margin: "0 auto",
-        background: "#fff",
-        borderRadius: 6,
-        boxShadow: "0 0 0 1.5px rgba(91,45,142,0.35), 0 16px 48px rgba(0,0,0,0.55)",
-        overflow: "hidden",
-        borderTop: "4px solid #5B2D8E",
-    },
-    receipt: {
-        padding: "20px 22px",
-        fontFamily: "'Courier Prime', 'Courier New', monospace",
-        fontSize: 11,
-        color: "#111",
-        background: "#fff",
-    },
-    receiptHeaderBanner: {
-        background: "linear-gradient(135deg,#3d1a72 0%,#5B2D8E 50%,#9B59B6 100%)",
-        margin: "-20px -22px 14px -22px",
-        padding: "18px 0 14px",
-        textAlign: "center",
-    },
-    logoText: {
-        fontFamily: "'Courier Prime', monospace",
-        fontSize: 18, fontWeight: 700,
-        color: "#5B2D8E", letterSpacing: 3,
-        marginBottom: 3,
-        textAlign: "center",
-        display: "block",
-    },
-    subText: {
-        fontSize: 10, color: "#666",
-        fontFamily: "'Courier Prime', monospace",
-        lineHeight: 1.6,
-        textAlign: "center",
-        display: "block",
-    },
-    dashed: {
-        borderTop: "1px dashed #bbb",
-        margin: "8px 0",
-    },
-    billTitle: {
-        fontSize: 12, fontWeight: 700,
-        color: "#5B2D8E", letterSpacing: 1.5,
-        marginBottom: 8, marginTop: 4,
-        fontFamily: "'Courier Prime', monospace",
-        textAlign: "center",
-    },
-    metaSection: { marginBottom: 4 },
-    sectionTitle: {
-        fontSize: 10, fontWeight: 700,
-        color: "#5B2D8E",
-        marginBottom: 4, marginTop: 2,
-        fontFamily: "'Courier Prime', monospace",
-        textTransform: "uppercase", letterSpacing: 0.8,
-    },
-    table: {
-        width: "100%", borderCollapse: "collapse",
-        margin: "4px 0",
-    },
-    th: {
-        borderBottom: "1px solid #999",
-        padding: "4px 2px",
-        fontSize: 10, fontWeight: 700,
-        color: "#333",
-        fontFamily: "'Courier Prime', monospace",
-        textAlign: "left",
-    },
-    td: {
-        padding: "4px 2px",
-        fontSize: 10,
-        fontFamily: "'Courier Prime', monospace",
-        verticalAlign: "top",
-        color: "#111",
-    },
-    subText2: {
-        fontSize: 9, color: "#888",
-    },
-    totalRow: {
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        background: "#f5f0fa",
-        borderLeft: "3px solid #5B2D8E",
-        padding: "7px 8px",
-        marginTop: 6, marginBottom: 2,
-    },
-    totalLabel: {
-        fontSize: 13, fontWeight: 700,
-        color: "#1A0A2E",
-        fontFamily: "'Courier Prime', monospace",
-        letterSpacing: 0.5,
-    },
-    totalValue: {
-        fontSize: 16, fontWeight: 700,
-        color: "#5B2D8E",
-        fontFamily: "'Courier Prime', monospace",
-    },
-    footerSig: {
-        textAlign: "center",
-        fontSize: 9, color: "#888",
-        marginTop: 12, marginBottom: 4,
-        fontFamily: "'Courier Prime', monospace",
-    },
-    sigLine: {
-        borderTop: "1px solid #ccc",
-        width: "60%", margin: "0 auto 8px",
-    },
-    thankYou: {
-        textAlign: "center",
-        fontSize: 11, fontWeight: 700,
-        color: "#5B2D8E",
-        fontFamily: "'Courier Prime', monospace",
-        marginBottom: 2,
-    },
-    keepReceipt: {
-        textAlign: "center",
-        fontSize: 9, color: "#888",
-        fontFamily: "'Courier Prime', monospace",
-        marginBottom: 4,
     },
 };
