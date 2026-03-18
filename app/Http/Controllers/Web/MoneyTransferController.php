@@ -58,11 +58,11 @@ class MoneyTransferController extends Controller
         ]);
 
         // Re-calculate server-side (never trust client values)
-        $charge        = MoneyTransferCharge::where('transfer_type', 'Transfer-IN')->first();
-        $feePercent    = $charge ? (float) $charge->trf_fee_in_persentage : 0;
+        // $charge        = MoneyTransferCharge::where('transfer_type', 'Transfer-IN')->first();
+        // $feePercent    = $charge ? (float) $charge->trf_fee_in_persentage : 0;
         $enteredAmount = (float) $validated['entered_amount'];
-        $trfFee        = round($enteredAmount * $feePercent / 100, 2);
-        $netAmount     = round($enteredAmount - $trfFee, 2);
+        // $trfFee        = round($enteredAmount * $feePercent / 100, 2);
+        // $netAmount     = round($enteredAmount - $trfFee, 2);
 
         // Generate invoice number
         $now           = now()->setTimezone('Asia/Bangkok');
@@ -79,9 +79,9 @@ class MoneyTransferController extends Controller
             'acc_number'            => $validated['acc_number'],
             'currency'              => $validated['currency'] ?? 'THB',
             'entered_amount'        => $enteredAmount,
-            'trf_fee_in_persentage' => $feePercent,
-            'trf_fee'               => $trfFee,
-            'net_amount'            => $netAmount,
+            'trf_fee_in_persentage' => $request->trf_fee_in_persentage,
+            'trf_fee'               => $request->trf_fee,
+            'net_amount'            => $request->net_amount,
         ]);
 
         $msg = __('message.Invoice Generated Successfully!');
@@ -94,6 +94,7 @@ class MoneyTransferController extends Controller
     public function storeTransferOUT(Request $request)
     {
         // Validation
+        // dd($request->all());
         $validated = $request->validate([
             'customer_name'       => 'nullable|string|max:255',
             'phone'               => 'nullable|string|max:13',
@@ -117,11 +118,11 @@ class MoneyTransferController extends Controller
         ]);
 
         // Re-calculate server-side (never trust client values)
-        $charge        = MoneyTransferCharge::where('transfer_type', 'Transfer-OUT')->first();
-        $feePercent    = $charge ? (float) $charge->trf_fee_in_persentage : 0;
+        // $charge        = MoneyTransferCharge::where('transfer_type', 'Transfer-OUT')->first();
+        // $feePercent    = $charge ? (float) $charge->trf_fee_in_persentage : 0;
         $enteredAmount = (float) $validated['entered_amount'];
-        $trfFee        = round($enteredAmount * $feePercent / 100, 2);
-        $netAmount     = round($enteredAmount - $trfFee, 2);
+        // $trfFee        = round($enteredAmount * $feePercent / 100, 2);
+        // $netAmount     = round($enteredAmount - $trfFee, 2);
 
         // Generate invoice number
         $now           = now()->setTimezone('Asia/Bangkok');
@@ -138,9 +139,9 @@ class MoneyTransferController extends Controller
             'acc_number'            => $validated['acc_number'],
             'currency'              => $validated['currency'] ?? 'THB',
             'entered_amount'        => $enteredAmount,
-            'trf_fee_in_persentage' => $feePercent,
-            'trf_fee'               => $trfFee,
-            'net_amount'            => $netAmount,
+            'trf_fee_in_persentage' => $request->trf_fee_in_persentage,
+            'trf_fee'               => $request->trf_fee,
+            'net_amount'            => $request->net_amount,
         ]);
 
         $msg = __('message.Invoice Generated Successfully!');

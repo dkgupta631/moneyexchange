@@ -59,6 +59,7 @@ const PRINT_STYLE = `
     font-family: 'Courier New', monospace !important;
     font-size: 11px !important; color: #000 !important;
     box-shadow: none !important; border-radius: 0 !important;
+    transform: none !important;
   }
   .no-print { display: none !important; }
 }
@@ -70,6 +71,13 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
     const t = (key) => translations?.[key] ?? key;
 
     const receiptRef = useRef(null);
+
+    // ── [ADDED] Zoom state — default 220% looks like A4 width ─────────────
+    const [zoom, setZoom] = useState(2.2);
+    const zoomIn    = () => setZoom(z => Math.min(+(z + 0.1).toFixed(1), 3.0));
+    const zoomOut   = () => setZoom(z => Math.max(+(z - 0.1).toFixed(1), 0.5));
+    const zoomReset = () => setZoom(2.2);
+    // ── [END ADDED] ────────────────────────────────────────────────────────
 
     const invoices = Array.isArray(records) ? records : records ? [records] : [];
     const [selectedIdx, setSelectedIdx] = useState(0);
@@ -88,8 +96,6 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
     const buyOrSell = exchangerate?.buy_or_sell ?? inv.buy_or_sell ?? 'sell';
 
     // ── Subtotal: mirrors PHP exactly ─────────────────────────────────────
-    // sell → subtotal = entered_amount * rate   e.g. $100 * 31.06 = ฿3,106
-    // buy  → subtotal = entered_amount / rate   e.g. ฿100 / 31.06 = $3.22
     const subtotal = buyOrSell === 'sell'
         ? enteredAmount * exchangeRate
         : enteredAmount / exchangeRate;
@@ -99,16 +105,6 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
         ? parseFloat(inv.final_amount)
         : subtotal + serviceFee;
 
-    // ── Rate label: direction follows buy_or_sell ─────────────────────────
-    //
-    //   PHP sell logic: subtotal = entered * rate
-    //   → means: 1 unit of FROM buys `rate` units of TO
-    //   → label: "1 $ = 31.06 ฿"
-    //
-    //   PHP buy logic:  subtotal = entered / rate
-    //   → means: 1 unit of TO costs `rate` units of FROM
-    //   → label: "1 ฿ = 31.06 $"
-    //
     const rateLabel = buyOrSell === 'sell'
         ? `1 ${sym(fromCurrency)} = ${fmtRate(exchangeRate)} ${sym(toCurrency)}`
         : `1 ${sym(toCurrency)} = ${fmtRate(exchangeRate)} ${sym(fromCurrency)}`;
@@ -122,8 +118,10 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
               { hour:'2-digit', minute:'2-digit', hour12:true })
         : '';
 
+    // ── UNCHANGED ─────────────────────────────────────────────────────────
     const handlePrint = () => window.print();
 
+    // ── [MODIFIED only to temporarily clear transform before capture] ──────
     const handleDownload = async () => {
         if (!window.html2canvas) {
             const s = document.createElement('script');
@@ -131,8 +129,12 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
             document.head.appendChild(s);
             await new Promise(r => (s.onload = r));
         }
-        const canvas = await window.html2canvas(receiptRef.current,
+        const el = receiptRef.current;
+        const prevTransform = el.style.transform; // save zoom
+        el.style.transform = 'none';              // reset so PNG is 1:1
+        const canvas = await window.html2canvas(el,
             { scale:3, backgroundColor:'#ffffff', useCORS:true });
+        el.style.transform = prevTransform;        // restore zoom
         const a = document.createElement('a');
         a.download = `invoice-${invoiceNo}.png`;
         a.href = canvas.toDataURL('image/png');
@@ -151,54 +153,7 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
                 padding: '28px 16px 60px',
             }}><br/>
 
-                {/* ── Top bar ── */}
-                <div className="no-print" style={{
-                    maxWidth:660, margin:'0 auto 22px',
-                    display:'flex', alignItems:'center', gap:10, flexWrap:'wrap',
-                }}>
-                    <button
-                        onClick={() => window.history.back()}
-                        style={{
-                            display:'flex', alignItems:'center', gap:6,
-                            background:'transparent', border:`1px solid ${C.border}`,
-                            borderRadius:8, padding:'8px 16px',
-                            color:C.accent, cursor:'pointer', fontSize:13, fontWeight:500,
-                            transition:'all .2s',
-                        }}
-                        onMouseOver={e => { e.currentTarget.style.background=C.primary; e.currentTarget.style.borderColor=C.primary; }}
-                        onMouseOut={e =>  { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor=C.border; }}
-                    >⟵ {t('Back')}</button>
-
-                    <span style={{ flex:1, color:C.textFaint, fontSize:13 }}>
-                        ({t('Money Exchange')}) · ({t('Invoice')})
-                    </span>
-
-                    {invoices.length > 1 && (
-                        <select value={selectedIdx} onChange={e => setSelectedIdx(+e.target.value)}
-                            style={{ background:C.cardBg, border:`1px solid ${C.border}`,
-                                borderRadius:8, padding:'7px 10px', color:C.accent, fontSize:12 }}>
-                            {invoices.map((iv, i) => (
-                                <option key={i} value={i} style={{ background:C.dark }}>
-                                    {iv.invoice_number ?? `#${iv.id}`}
-                                </option>
-                            ))}
-                        </select>
-                    )}
-
-                    <button onClick={handleDownload}
-                        style={{ background:C.primary, border:'none', borderRadius:8,
-                            padding:'8px 16px', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:600 }}
-                        onMouseOver={e => e.currentTarget.style.background=C.secondary}
-                        onMouseOut={e =>  e.currentTarget.style.background=C.primary}
-                    >⬇ {t('Save PNG')}</button>
-
-                    <button onClick={handlePrint}
-                        style={{ background:'#6D28D9', border:'none', borderRadius:8,
-                            padding:'8px 16px', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:600 }}
-                        onMouseOver={e => e.currentTarget.style.background='#7C3AED'}
-                        onMouseOut={e =>  e.currentTarget.style.background='#6D28D9'}
-                    >🖨 {t('Print')}</button>
-                </div>
+               
 
                 {/* ════════════  DESKTOP INVOICE CARD  ════════════ */}
                 {serviceFee > 0 && (
@@ -319,126 +274,253 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
                 </div>
                 )}
 
+                
+
                 {/* ════════════  THERMAL RECEIPT  ════════════ */}
-                <div id="receipt-root" ref={receiptRef} style={{
-                    width:300, maxWidth:'100%', margin:'0 auto',
-                    background:'#fff', borderRadius:4, padding:'18px 18px 22px',
-                    boxShadow:`0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px ${C.primary}44`,
-                    fontFamily:"'Courier New', Courier, monospace",
-                    fontSize:11, color:'#111', position:'relative',
+                {/*
+                    [ZOOM EXPLANATION]
+                    - The outer wrapper reserves vertical space so the page
+                      doesn't collapse when zoomed in. It has NO no-print class,
+                      so the #receipt-root inside is still visible to @media print.
+                    - transform: none !important in PRINT_STYLE ensures print is
+                      always 1:1 regardless of zoom state.
+                    - handleDownload resets transform temporarily before capture.
+                */}
+                <div style={{
+                    minHeight: 570 * zoom,           /* reserve space for zoomed height */
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'flex-start',
+                    overflow: 'visible',
+                    transition: 'min-height .2s',
                 }}>
-                    {/* Top purple strip */}
-                    <div style={{
-                        position:'absolute', top:0, left:0, right:0, height:4,
-                        background:`linear-gradient(90deg,${C.primary},${C.secondary})`,
-                        borderRadius:'4px 4px 0 0',
-                    }} />
-
-                    {/* Store header */}
-                    <div style={{ textAlign:'center', marginTop:10, marginBottom:10 }}>
-                        <div style={{ fontSize:15, fontWeight:700, letterSpacing:2, color:C.primary }}>
-                            G+ Services
-                        </div>
-                        <div style={{ fontSize:9, color:'#666', lineHeight:1.55, marginTop:3 }}>
-                            {t('Money Exchange')}<br />
-                            Akia Thmey, PoiPet<br />
-                            Banteay Meanchey Province<br />
-                            {/* {t('Tel')}: 012 50048 / 099 996000<br /> */}
-                        </div>
-                    </div>
-
-                    <RDiv />
-
-                    <div style={{ textAlign:'center', fontWeight:700, fontSize:11.5,
-                        letterSpacing:1.5, color:C.primary, marginBottom:7 }}>
-                        ─── {t('BILL OF EXCHANGE')} ───
-                    </div>
-
-                    <RRow label={t('Invoice')}   value={invoiceNo} bold />
-                    <RRow label={t('Date')}      value={dateStr} />
-                    <RRow label={t('Time')}      value={timeStr} />
-                    <RRow label={t('Type')}      value={t(inv.exchange_type ?? 'Normal')} />
-
-                    <RDiv />
-
-                    <div style={{ fontWeight:700, fontSize:9.5, color:C.primary, marginBottom:4, letterSpacing:1 }}>
-                        {t('Customer Information')}
-                    </div>
-                    <RRow label={t('Name')}         value={inv.customer_name || '—'} />
-                    <RRow label={t('Phone Number')} value={inv.phone || '—'} />
-
-                    <RDiv dashed />
-
-                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:10 }}>
-                        <thead>
-                            <tr>
-                                <th style={rTh('left')}>{t('Description')}</th>
-                                {/* Column headers show currency symbols for clarity */}
-                                <th style={rTh('right')}>{fromCurrency}</th>
-                                <th style={rTh('right')}>{t('Rate')}</th>
-                                <th style={rTh('right')}>{toCurrency}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style={rTd('left')}>
-                                    {t('Exchange')}<br />
-                                    <span style={{ fontSize:8.5, color:'#888' }}>
-                                        {fromCurrency} → {toCurrency}
-                                    </span>
-                                </td>
-                                {/* entered amount */}
-                                <td style={rTd('right')}>{fmt(enteredAmount)}</td>
-                                {/* rate — no comma bug */}
-                                <td style={rTd('right')}>{fmtRate(exchangeRate)}</td>
-                                {/* computed subtotal */}
-                                <td style={rTd('right')}>{fmt(subtotal)}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <RDiv />
-
-                    <RRow label={t('Subtotal')} value={`${sym(toCurrency)} ${fmt(subtotal)}`} />
-                    <RRow label={t('Service Fee')} value={`${sym(toCurrency)} ${fmt(serviceFee)}`} />
-                    
-
-                    {/* Grand total */}
-                    <div style={{
-                        display:'flex', justifyContent:'space-between',
-                        fontWeight:700, fontSize:13,
-                        marginTop:6, padding:'6px 8px',
-                        background:C.light, borderLeft:`3px solid ${C.primary}`,
-                        borderRadius:2, color:C.primary,
+                    <div id="receipt-root" ref={receiptRef} style={{
+                        width:300, maxWidth:'100%', margin:'0 auto',
+                        background:'#fff', borderRadius:4, padding:'18px 18px 22px',
+                        boxShadow:`0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px ${C.primary}44`,
+                        fontFamily:"'Courier New', Courier, monospace",
+                        fontSize:11, color:'#111', position:'relative',
+                        // [ADDED] zoom transform — reset to none in print CSS above
+                        transform: `scale(${zoom})`,
+                        transformOrigin: 'top center',
+                        transition: 'transform .15s ease',
+                        flexShrink: 0,
                     }}>
-                        <span>{t('TOTAL')}</span>
-                        <span>{sym(toCurrency)} {fmt(computedTotal)}</span>
+                        {/* Top purple strip */}
+                        <div style={{
+                            position:'absolute', top:0, left:0, right:0, height:4,
+                            background:`linear-gradient(90deg,${C.primary},${C.secondary})`,
+                            borderRadius:'4px 4px 0 0',
+                        }} />
+
+                        {/* Store header */}
+                        <div style={{ textAlign:'center', marginTop:10, marginBottom:10 }}>
+                            <div style={{ fontSize:15, fontWeight:700, letterSpacing:2, color:C.primary }}>
+                                G+ Services
+                            </div>
+                            <div style={{ fontSize:9, color:'#666', lineHeight:1.55, marginTop:3 }}>
+                                {t('Money Exchange')}<br />
+                                Akia Thmey, PoiPet<br />
+                                Banteay Meanchey Province<br />
+                                {/* {t('Tel')}: 012 50048 / 099 996000<br /> */}
+                            </div>
+                        </div>
+
+                        <RDiv />
+
+                        <div style={{ textAlign:'center', fontWeight:700, fontSize:11.5,
+                            letterSpacing:1.5, color:C.primary, marginBottom:7 }}>
+                            ─── {t('BILL OF EXCHANGE')} ───
+                        </div>
+
+                        <RRow label={t('Invoice')}   value={invoiceNo} bold />
+                        <RRow label={t('Date')}      value={dateStr} />
+                        <RRow label={t('Time')}      value={timeStr} />
+                        <RRow label={t('Type')}      value={t(inv.exchange_type ?? 'Normal')} />
+
+                        <RDiv />
+
+                        <div style={{ fontWeight:700, fontSize:9.5, color:C.primary, marginBottom:4, letterSpacing:1 }}>
+                            {t('Customer Information')}
+                        </div>
+                        <RRow label={t('Name')}         value={inv.customer_name || '—'} />
+                        <RRow label={t('Phone Number')} value={inv.phone || '—'} />
+
+                        <RDiv dashed />
+
+                        <table style={{ width:'100%', borderCollapse:'collapse', fontSize:10 }}>
+                            <thead>
+                                <tr>
+                                    <th style={rTh('left')}>{t('Description')}</th>
+                                    {/* Column headers show currency symbols for clarity */}
+                                    <th style={rTh('right')}>{fromCurrency}</th>
+                                    <th style={rTh('right')}>{t('Rate')}</th>
+                                    <th style={rTh('right')}>{toCurrency}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style={rTd('left')}>
+                                        {t('Exchange')}<br />
+                                        <span style={{ fontSize:8.5, color:'#888' }}>
+                                            {fromCurrency} → {toCurrency}
+                                        </span>
+                                    </td>
+                                    {/* entered amount */}
+                                    <td style={rTd('right')}>{fmt(enteredAmount)}</td>
+                                    {/* rate — no comma bug */}
+                                    <td style={rTd('right')}>{fmtRate(exchangeRate)}</td>
+                                    {/* computed subtotal */}
+                                    <td style={rTd('right')}>{fmt(subtotal)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <RDiv />
+
+                        <RRow label={t('Subtotal')} value={`${sym(toCurrency)} ${fmt(subtotal)}`} />
+                        <RRow label={t('Service Fee')} value={`${sym(toCurrency)} ${fmt(serviceFee)}`} />
+
+                        {/* Grand total */}
+                        <div style={{
+                            display:'flex', justifyContent:'space-between',
+                            fontWeight:700, fontSize:13,
+                            marginTop:6, padding:'6px 8px',
+                            background:C.light, borderLeft:`3px solid ${C.primary}`,
+                            borderRadius:2, color:C.primary,
+                        }}>
+                            <span>{t('TOTAL')}</span>
+                            <span>{sym(toCurrency)} {fmt(computedTotal)}</span>
+                        </div>
+
+                        {/* <RDiv /> */}
+
+                        {/* <RRow label={t('Payment')}  value={t(inv.receive_type ?? 'Cash')} /> */}
+                        {/* Rate row — same rateLabel used in desktop, correct direction + no comma bug */}
+                        {/* <RRow label={t('Ex. Rate')} value={rateLabel} /> */}
+
+                        <RDiv dashed />
+
+                        <div style={{ textAlign:'center', fontSize:9, color:'#888', lineHeight:1.8, marginTop:6 }}>
+                            {t('Signature')} &amp; {t('Name of Seller')}<br />
+                            <div style={{ borderTop:'1px solid #ccc', width:100, margin:'5px auto 6px' }} />
+                            <span style={{ color:C.secondary, fontWeight:700 }}>{t('Thank you')}!</span><br />
+                            {t('Please keep this receipt for your records')}.
+                        </div>
+
+                        {/* Bottom strip */}
+                        <div style={{
+                            position:'absolute', bottom:0, left:0, right:0, height:3,
+                            background:`linear-gradient(90deg,${C.secondary},${C.primary})`,
+                            borderRadius:'0 0 4px 4px',
+                        }} />
                     </div>
-
-                    {/* <RDiv /> */}
-
-                    {/* <RRow label={t('Payment')}  value={t(inv.receive_type ?? 'Cash')} /> */}
-                    {/* Rate row — same rateLabel used in desktop, correct direction + no comma bug */}
-                    {/* <RRow label={t('Ex. Rate')} value={rateLabel} /> */}
-
-                    <RDiv dashed />
-
-                    <div style={{ textAlign:'center', fontSize:9, color:'#888', lineHeight:1.8, marginTop:6 }}>
-                        {t('Signature')} &amp; {t('Name of Seller')}<br />
-                        <div style={{ borderTop:'1px solid #ccc', width:100, margin:'5px auto 6px' }} />
-                        <span style={{ color:C.secondary, fontWeight:700 }}>{t('Thank you')}!</span><br />
-                        {t('Please keep this receipt for your records')}.
-                    </div>
-
-                    {/* Bottom strip */}
-                    <div style={{
-                        position:'absolute', bottom:0, left:0, right:0, height:3,
-                        background:`linear-gradient(90deg,${C.secondary},${C.primary})`,
-                        borderRadius:'0 0 4px 4px',
-                    }} />
                 </div>
 
-                <div style={{ height:40 }} />
+                 {/* ── Top bar ── */}
+                <div className="no-print" style={{
+                    maxWidth:660, margin:'0 auto 22px',
+                    display:'flex', alignItems:'center', gap:10, flexWrap:'wrap',
+                }}>
+                    <button
+                        onClick={() => window.history.back()}
+                        style={{
+                            display:'flex', alignItems:'center', gap:6,
+                            background:'transparent', border:`1px solid ${C.border}`,
+                            borderRadius:8, padding:'8px 16px',
+                            color:C.accent, cursor:'pointer', fontSize:13, fontWeight:500,
+                            transition:'all .2s',
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.background=C.primary; e.currentTarget.style.borderColor=C.primary; }}
+                        onMouseOut={e =>  { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor=C.border; }}
+                    >⟵ {t('Back')}</button>
+
+                    <span style={{ flex:1, color:C.textFaint, fontSize:13 }}>
+                        ({t('Money Exchange')}) · ({t('Invoice')})
+                    </span>
+
+                    {/* ── [ADDED] Zoom controls ─────────────────────────────────────── */}
+                    <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+                        <button
+                            onClick={zoomOut}
+                            disabled={zoom <= 0.5}
+                            title="Zoom Out"
+                            style={{
+                                background:'transparent',
+                                border:`1px solid ${zoom <= 0.5 ? C.borderSoft : C.border}`,
+                                borderRadius:8, padding:'6px 12px',
+                                color: zoom <= 0.5 ? C.textFaint : C.accent,
+                                cursor: zoom <= 0.5 ? 'not-allowed' : 'pointer',
+                                fontSize:16, fontWeight:700, lineHeight:1,
+                                transition:'all .2s',
+                            }}
+                            onMouseOver={e => { if(zoom > 0.5) e.currentTarget.style.background=C.primary; }}
+                            onMouseOut={e =>  { e.currentTarget.style.background='transparent'; }}
+                        >−</button>
+
+                        <button
+                            onClick={zoomReset}
+                            title="Reset zoom"
+                            style={{
+                                background:'rgba(91,45,142,0.3)',
+                                border:`1px solid ${C.border}`,
+                                borderRadius:8, padding:'6px 10px',
+                                color:C.textMuted, cursor:'pointer',
+                                fontSize:11, fontWeight:600,
+                                minWidth:52, textAlign:'center',
+                                transition:'all .2s',
+                            }}
+                            onMouseOver={e => { e.currentTarget.style.background=C.primary; e.currentTarget.style.color='#fff'; }}
+                            onMouseOut={e =>  { e.currentTarget.style.background='rgba(91,45,142,0.3)'; e.currentTarget.style.color=C.textMuted; }}
+                        >{Math.round(zoom * 100)}%</button>
+
+                        <button
+                            onClick={zoomIn}
+                            disabled={zoom >= 3.0}
+                            title="Zoom In"
+                            style={{
+                                background:'transparent',
+                                border:`1px solid ${zoom >= 3.0 ? C.borderSoft : C.border}`,
+                                borderRadius:8, padding:'6px 12px',
+                                color: zoom >= 3.0 ? C.textFaint : C.accent,
+                                cursor: zoom >= 3.0 ? 'not-allowed' : 'pointer',
+                                fontSize:16, fontWeight:700, lineHeight:1,
+                                transition:'all .2s',
+                            }}
+                            onMouseOver={e => { if(zoom < 3.0) e.currentTarget.style.background=C.primary; }}
+                            onMouseOut={e =>  { e.currentTarget.style.background='transparent'; }}
+                        >+</button>
+                    </div>
+                    {/* ── [END ADDED] ───────────────────────────────────────────────── */}
+
+                    {invoices.length > 1 && (
+                        <select value={selectedIdx} onChange={e => setSelectedIdx(+e.target.value)}
+                            style={{ background:C.cardBg, border:`1px solid ${C.border}`,
+                                borderRadius:8, padding:'7px 10px', color:C.accent, fontSize:12 }}>
+                            {invoices.map((iv, i) => (
+                                <option key={i} value={i} style={{ background:C.dark }}>
+                                    {iv.invoice_number ?? `#${iv.id}`}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+
+                    <button onClick={handleDownload}
+                        style={{ background:C.primary, border:'none', borderRadius:8,
+                            padding:'8px 16px', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:600 }}
+                        onMouseOver={e => e.currentTarget.style.background=C.secondary}
+                        onMouseOut={e =>  e.currentTarget.style.background=C.primary}
+                    >⬇ {t('Download')}</button>
+
+                    <button onClick={handlePrint}
+                        style={{ background:'#6D28D9', border:'none', borderRadius:8,
+                            padding:'8px 16px', color:'#fff', cursor:'pointer', fontSize:12, fontWeight:600 }}
+                        onMouseOver={e => e.currentTarget.style.background='#7C3AED'}
+                        onMouseOut={e =>  e.currentTarget.style.background='#6D28D9'}
+                    >🖨 {t('Confirm')} / {t('Print')}</button>
+                </div>
+
+                {/* <div style={{ height:40 }} /> */}
             </div>
         </>
     );

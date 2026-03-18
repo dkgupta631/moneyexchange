@@ -39,12 +39,13 @@ class ExchangeRateResource extends Resource
                                 'sell' => 'Sell',
                                 'buy' => 'Buy',
                             ])
-                            ->prefixIcon('heroicon-m-document-currency-dollar')
+                    ->prefixIcon('heroicon-m-document-currency-dollar')
+                    ->columnSpan('full')
                     ->required(),
                 Forms\Components\Select::make('from_currency')
                      ->options([
                                 'Dollar' => 'Dollar',
-                                'Bhat' => 'Bhat',
+                                'Baht' => 'Baht',
                                 'Riel' => 'Riel',
                             ])
                     ->prefixIcon('heroicon-m-document-currency-dollar')
@@ -52,7 +53,7 @@ class ExchangeRateResource extends Resource
                 Forms\Components\Select::make('to_currency')
                      ->options([
                                 'Dollar' => 'Dollar',
-                                'Bhat' => 'Bhat',
+                                'Baht' => 'Baht',
                                 'Riel' => 'Riel',
                             ])
                     ->prefixIcon('heroicon-m-document-currency-dollar')
@@ -71,9 +72,9 @@ class ExchangeRateResource extends Resource
                     ->prefixIcon('heroicon-m-calendar')
                     ->native(false)
                     ->displayFormat('d-m-Y'),
-                Forms\Components\TextInput::make('ordering')
-                    ->maxLength(255)
-                    ->default(null),
+                // Forms\Components\TextInput::make('ordering')
+                //     ->maxLength(255)
+                //     ->default(null),
             ]);
     }
 

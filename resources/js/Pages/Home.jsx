@@ -1,95 +1,121 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-   
 
 export default function Home() {
-    const { translations, locale, ziggy } = usePage().props;
+    const { translations, locale, ziggy, auth } = usePage().props;
     const appUrl = window.location.origin;
     const t = (key) => translations[key] ?? key;
 
-  return (
-    <>
-    <Head title={t('Home')}>
-        <meta head-key="description" name="description" content={t('Exchange currency rates help customers convert money correctly, make secure payments, and ensure transparency and trust in international transactions')}/>
-        <link rel="icon" type="image/svg+xml" href={`${appUrl}/website/assets/logo/logo.png`}/>
-    </Head>
-    {/* <!-- Service Start --> */}
-        <div className="container-fluid py-10 mb-5 bg-primary hero-header">
-            <div className="container px-lg-5 py-10"><br/><br/><br/><br/>
-                <div className=" position-relative text-center mb-5 pb-2 wow fadeInUp" data-wow-delay="0.1s">
-                    {/* <h6 className="position-relative d-inline text-primary ps-4">Our Services</h6>
-                    <h2 className="mt-2">What Solutions We Provide</h2> */}
-                </div>
-                <div className="row g-4">
-                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.1s">
-                        <div className="service-item d-flex flex-column justify-content-center text-center rounded">
-                            <Link href={route('open.moneyexchange.form')}>
-                            <div className="service-icon flex-shrink-0">
-                                <img src={`${appUrl}/website/assets/img/money-exchange3.jpg`} className='home-card-img'/>
-                            </div>
-                            <h5 className="mb-3">{t('Money Exchange')}</h5></Link>
-                            <p>{t('Money exchange services provide real-time exchange rates between currencies like USD, THB, KHR etc')}.</p>
-                            <Link href={route('open.moneyexchange.form')} className="btn px-3 mt-auto mx-auto">{t('View')}</Link>
-                        </div>
+    // ── Auth user ─────────────────────
+    const user = auth?.user ?? null;
+
+    // ── Disabled click handler ─────────────────────
+    const handleDisabledClick = (e) => {
+        if (!user) {
+            e.preventDefault();
+        }
+    };
+
+    return (
+        <>
+            <Head title={t('Home')}>
+                <meta head-key="description" name="description" content={t('Exchange currency rates help customers convert money correctly, make secure payments, and ensure transparency and trust in international transactions')}/>
+                <link rel="icon" type="image/svg+xml" href={`${appUrl}/website/assets/logo/logo.png`}/>
+            </Head>
+
+            {/* <!-- Service Start --> */}
+            <div className="container-fluid py-10 mb-5 bg-primary hero-header">
+                <div className="px-lg-5 py-10"><br/><br/><br/><br/>
+                    <div className="position-relative text-center mb-5 pb-2 wow fadeInUp" data-wow-delay="0.1s"><br/><br/>
+                        <h6 className="position-relative d-inline text-white ps-4">G+ {t('Services')}</h6>
                     </div>
-                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.3s">
-                        <div className="service-item d-flex flex-column justify-content-center text-center rounded">
-                            <Link href={route('moneytransfer.in.form')}>
-                            <div className="service-icon flex-shrink-0">
-                                <img src={`${appUrl}/website/assets/img/money-transfer-in.png`} className='home-card-img'/>
+                    <div className="row g-4">
+
+                        {/* Money Exchange */}
+                        <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.1s">
+                            <div className={`service-item d-flex flex-column justify-content-center text-center rounded ${!user ? 'opacity-75' : ''}`}>
+                                <Link
+                                    href={user ? route('open.moneyexchange.form') : '#'}
+                                    onClick={handleDisabledClick}
+                                    style={!user ? { cursor: 'not-allowed', pointerEvents: 'auto' } : {}}
+                                >
+                                    <div className="service-icon flex-shrink-0">
+                                        <img src={`${appUrl}/website/assets/img/money-exchange3.jpg`} className='home-card-img'/>
+                                    </div>
+                                    <h5 className="mb-3">{t('Money Exchange')}</h5>
+                                </Link>
+                                <p>{t('Money exchange services provide real-time exchange rates between currencies like USD, THB, KHR etc')}.</p>
+                                <Link
+                                    href={user ? route('open.moneyexchange.form') : '#'}
+                                    onClick={handleDisabledClick}
+                                    className={`btn px-3 mt-auto mx-auto ${!user ? 'disabled' : ''}`}
+                                    aria-disabled={!user}
+                                    title={!user ? t('Please log in to use this service') : ''}
+                                >
+                                    {!user ? `🔒 ${t('Login Required')}` : t('Click')}
+                                </Link>
                             </div>
-                            <h5 className="mb-3">{t('Money Transfer')} - IN</h5></Link>
-                            <p>{t('Money can be transferred to different countries and currencies easily. This helps people send money to family, friends, or businesses internationally')}.</p>
-                            <Link href={route('moneytransfer.in.form')} className="btn px-3 mt-auto mx-auto">{t('View')}</Link>
                         </div>
+
+                        {/* Money Transfer IN */}
+                        <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.3s">
+                            <div className={`service-item d-flex flex-column justify-content-center text-center rounded ${!user ? 'opacity-75' : ''}`}>
+                                <Link
+                                    href={user ? route('moneytransfer.in.form') : '#'}
+                                    onClick={handleDisabledClick}
+                                    style={!user ? { cursor: 'not-allowed', pointerEvents: 'auto' } : {}}
+                                >
+                                    <div className="service-icon flex-shrink-0">
+                                        <img src={`${appUrl}/website/assets/img/money-transfer-in.png`} className='home-card-img'/>
+                                    </div>
+                                    <h5 className="mb-3">{t('Money Transfer')} - IN</h5>
+                                </Link>
+                                <p>{t('Money can be transferred to different countries and currencies easily. This helps people send money to family, friends, or businesses internationally')}.</p>
+                                <Link
+                                    href={user ? route('moneytransfer.in.form') : '#'}
+                                    onClick={handleDisabledClick}
+                                    className={`btn px-3 mt-auto mx-auto ${!user ? 'disabled' : ''}`}
+                                    aria-disabled={!user}
+                                    title={!user ? t('Please log in to use this service') : ''}
+                                >
+                                    {!user ? `🔒 ${t('Login Required')}` : t('Click')}
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Money Transfer OUT */}
+                        <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">
+                            <div className={`service-item d-flex flex-column justify-content-center text-center rounded ${!user ? 'opacity-75' : ''}`}>
+                                <Link
+                                    href={user ? route('moneytransfer.out.form') : '#'}
+                                    onClick={handleDisabledClick}
+                                    style={!user ? { cursor: 'not-allowed', pointerEvents: 'auto' } : {}}
+                                >
+                                    <div className="service-icon flex-shrink-0">
+                                        <img src={`${appUrl}/website/assets/img/money-transfer-out.png`} className='home-card-img'/>
+                                    </div>
+                                    <h5 className="mb-3">{t('Money Transfer')} - OUT</h5>
+                                </Link>
+                                <p>{t('Customers only need basic details like the receiver\'s name and phone number. This makes sending money simple and convenient')}.</p>
+                                <Link
+                                    href={user ? route('moneytransfer.out.form') : '#'}
+                                    onClick={handleDisabledClick}
+                                    className={`btn px-3 mt-auto mx-auto ${!user ? 'disabled' : ''}`}
+                                    aria-disabled={!user}
+                                    title={!user ? t('Please log in to use this service') : ''}
+                                >
+                                    {!user ? `🔒 ${t('Login Required')}` : t('Click')}
+                                </Link>
+                            </div>
+                        </div>
+
                     </div>
-                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">
-                        <div className="service-item d-flex flex-column justify-content-center text-center rounded">
-                            <Link href={route('moneytransfer.out.form')}>
-                            <div className="service-icon flex-shrink-0">
-                                <img src={`${appUrl}/website/assets/img/money-transfer-out.png`} className='home-card-img'/>
-                            </div>
-                            <h5 className="mb-3">{t('Money Transfer')} - OUT</h5></Link>
-                            <p>{t('Customers only need basic details like the receiver’s name and phone number. This makes sending money simple and convenient')}.</p>
-                            <Link href={route('moneytransfer.out.form')} className="btn px-3 mt-auto mx-auto">{t('View')}</Link>
-                        </div>
-                    </div>
-                     {/* <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.1s">
-                        <div className="service-item d-flex flex-column justify-content-center text-center rounded">
-                            <div className="service-icon flex-shrink-0">
-                                <img src={`${appUrl}/website/assets/img/withdraw-money2.jpg`} className='home-card-img'/>
-                            </div>
-                            <h5 className="mb-3">{t('Withdraw Money')}</h5>
-                            <p>{t('Withdrawing money allows customers to quickly access their funds whenever they need it for daily expenses, shopping, or emergencies')}.</p>
-                            <a className="btn px-3 mt-auto mx-auto" href="">{t('View')}</a>
-                        </div>
-                    </div> 
-                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.3s">
-                        <div className="service-item d-flex flex-column justify-content-center text-center rounded">
-                            <div className="service-icon flex-shrink-0">
-                                <img src={`${appUrl}/website/assets/img/money-deposit.png`} className='home-card-img'/>
-                            </div>
-                            <h5 className="mb-3">{t('Deposit service')}</h5>
-                            <p>{t('Your money is kept securely in a bank or authorized financial institution instead of keeping cash at home')}.</p>
-                            <a className="btn px-3 mt-auto mx-auto" href="">{t('View')}</a>
-                        </div>
-                    </div>
-                    <div className="col-lg-4 col-md-6 wow zoomIn" data-wow-delay="0.6s">
-                        <div className="service-item d-flex flex-column justify-content-center text-center rounded">
-                            <div className="service-icon flex-shrink-0">
-                                <img src={`${appUrl}/website/assets/img/epay.png`} className='home-card-img'/>
-                            </div>
-                            <h5 className="mb-3">E Pay</h5>
-                            <p>{t('E-Pay (Electronic Payment) is fast, convenient, and secure, making it one of the best ways to handle modern financial transactions')}.</p>
-                            <a className="btn px-3 mt-auto mx-auto" href="">{t('View')}</a>
-                        </div>
-                    </div> */}
                 </div>
             </div>
-        </div>
-        {/* <!-- Service End --> */}
+            {/* <!-- Service End --> */}
 
-         <div className="container-fluid mb-5">
-                <div className="container my-5 py-5 px-lg-5">
+            {/* ... rest of your JSX unchanged ... */}
+              <div className="container-fluid mb-5">
+                <div className=" my-5 py-5 px-lg-5"> {/* //container */}
                     <div className="row g-5 py-5">
                         <div className="col-lg-6 text-center text-lg-start">
                             <h1 className="text-purple mb-4 animated zoomIn">{t('Secure and fast currency exchange with the best daily rates')}</h1>
@@ -106,7 +132,7 @@ export default function Home() {
 
         {/* <!-- Portfolio Start --> */}
          <div className="container-fluid">
-            <div className="container px-lg-5">
+            <div className=" px-lg-5">  {/* //container */}
 
                 <div className="section-title position-relative text-center mb-5 pb-2 wow fadeInUp" data-wow-delay="0.1s">
                     <h6 className="position-relative d-inline text-primary ps-4">{t('Your Rights')}</h6>
@@ -262,7 +288,6 @@ export default function Home() {
                 </div>
             </div>
         </div>
-       
-    </>
-  );
+        </>
+    );
 }
