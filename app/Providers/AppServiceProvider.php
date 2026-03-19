@@ -42,9 +42,9 @@ class AppServiceProvider extends ServiceProvider
         ]);
         
          // Share languages globally with all Inertia pages for Website END
-        FilamentAsset::register([
-            Js::make('custom-scriptdd', __DIR__ . '/../../resources/js/AdminCustom.js'),
-        ]);
+        // FilamentAsset::register([
+        //     Js::make('custom-scriptdd', __DIR__ . '/../../resources/js/AdminCustom.js'),
+        // ]);
 
         if (Schema::hasTable('languages')) {
             $locales = \App\Models\Language::get()->map(function ($language) {

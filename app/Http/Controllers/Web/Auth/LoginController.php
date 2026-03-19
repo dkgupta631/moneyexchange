@@ -45,10 +45,10 @@ class LoginController extends Controller
         }
 
         // Only staff / admin roles allowed here
-        if (! in_array(Auth::user()->role, ['staff', 'admin'])) {
+        if (! in_array(Auth::user()->role, ['staff', 'teller', 'admin'])) {
             Auth::logout();
             throw ValidationException::withMessages([
-                'name' => __('message.access_denied'),
+                'name' => __('message.Access Denied!'),
             ]);
         }elseif(Auth::user()->email_verified_at == '0'){
             Auth::logout();

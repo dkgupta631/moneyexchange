@@ -101,8 +101,8 @@ export default function WebLayout({ children }) {
                             ) : (
                                 /* Guest: show Staff Login */
                                 <Link
-                                    href={route('staff.login')}
-                                    className={`nav-item nav-link ${isActive('staff.login') ? 'active' : ''}`}
+                                    href={route('teller.login')}
+                                    className={`nav-item nav-link ${isActive('teller.login') ? 'active' : ''}`}
                                 >
                                     {t('Staff Login')}
                                 </Link>

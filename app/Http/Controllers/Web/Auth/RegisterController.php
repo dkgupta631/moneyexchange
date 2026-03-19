@@ -38,11 +38,11 @@ class RegisterController extends Controller
             'phoneNumber' => $validated['phoneNumber'],
             'email'       => $validated['email'],
             'password'    => Hash::make($validated['password']),
-            'role'        => 'staff',
+            'role'        => 'teller',
         ];
         // dd($data);
         User::create($data);
 
-        return redirect()->route('staff.login')->with('greet', __('message.Registration successful! Please log in.'));
+        return redirect()->route('teller.login')->with('greet', __('message.Registration successful! Please log in.'));
     }
 }
