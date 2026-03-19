@@ -320,7 +320,7 @@ export default function Register() {
 
                     <p className="footer-link">
                         {t('Already have an account?')}{' '}
-                        <Link href={route('staff.login')}>{t('Sign In')}</Link>
+                        <Link href={route('teller.login')}>{t('Sign In')}</Link>
                     </p>
                     <div className="security-badge">
                         🛡 {t('256-bit SSL encrypted · Secure registration')}

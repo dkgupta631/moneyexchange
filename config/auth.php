@@ -40,6 +40,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'bkkoffice' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
 
     /*

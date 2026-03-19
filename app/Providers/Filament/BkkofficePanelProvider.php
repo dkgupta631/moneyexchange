@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Helper\CustomLogin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -19,39 +18,25 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+use App\Filament\Helper\CustomLogin;
 use Filament\Navigation\MenuItem;
 // use App\Filament\Pages\Auth\ChangePassword;
 use Filament\Forms\Components\ColorPicker;
 
-
-class AdminPanelProvider extends PanelProvider
+class BkkofficePanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-       
         return $panel
-            ->default()
-            ->id('admin')
-            ->path('admin')
-            ->authGuard('web') 
-            ->login()
+            ->id('bkkoffice')
+            ->path('bkkoffice')
+            ->authGuard('bkkoffice') 
+            ->login(CustomLogin::class)
             ->profile()
             ->colors([
-                'primary' => Color::Amber,
-                'sidebar' => [
-                    'background' => '#053cb1', // Sidebar bg color
-                    'text' => '#F3F4F6',       // Sidebar text color
-                ],
-                'header' => [
-                    'background' => '#0f1ebe', // Header bg color
-                ],
-                'body' => [
-                    'background' => '#F9FAFB', // Main body background
-                ],
+                'primary' => Color::Purple,
             ])
-            
-
-            // Created by DK START
+             // Created by DK START
             ->maxContentWidth('full')
             // ->viteTheme('resources/css/app.css')
             // ->topNavigation()
@@ -73,12 +58,12 @@ class AdminPanelProvider extends PanelProvider
             // ->databaseNotifications()
             // ->databaseNotificationsPolling('30s')
               // Created by DK END
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->discoverResources(in: app_path('Filament/Bkkoffice/Resources'), for: 'App\\Filament\\Bkkoffice\\Resources')
+            ->discoverPages(in: app_path('Filament/Bkkoffice/Pages'), for: 'App\\Filament\\Bkkoffice\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Bkkoffice/Widgets'), for: 'App\\Filament\\Bkkoffice\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
