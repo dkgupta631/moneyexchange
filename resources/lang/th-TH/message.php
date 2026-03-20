@@ -931,6 +931,81 @@ return [
     "Good" => "ดี",
     "Strong" => "แข็งแกร่ง",
     "Very Strong" => "แข็งแกร่งมาก",
+    "Click" => "คลิก",
+    "Download" => "ดาวน์โหลด",
+    "Services" => "บริการ",
+    "deducted" => "หักแล้ว",
+    "full amount received" => "ได้รับเงินเต็มจำนวน",
+    "Transfer Charge" => "ค่าโอน",
+    "Transfer fee included" => "รวมค่าโอนแล้ว",
+    "Transfer fee excluded" => "ไม่รวมค่าธรรมเนียมการโอน",
+
+    // FOR BKK OFFICE  START
+     // Navigation
+    'Transfer-OUT Requests'       => 'คำขอโอนย้ายออก',
+    'Transfer Invoice'            => 'ใบโอนเงิน',
+    'Transfer Invoices'           => 'การโอนใบแจ้งหนี้',
+    'Transfers'                   => 'การโอน',
+    'Pending Transfer-OUT approvals' => 'รอการอนุมัติการโอนออก',
+ 
+    // Table columns
+    'Invoice #'                   => 'ใบแจ้งหนี้ #',
+    'Invoice Number'              => 'หมายเลขใบแจ้งหนี้',
+    'Phone'                       => 'โทรศัพท์',
+    'Net Amount'                  => 'จำนวนเงินสุทธิ',
+    'Slip'                        => 'ลื่น',
+    'Uploaded'                    => 'อัปโหลดแล้ว',
+   
+ 
+    // Status labels
+    'Pending'                     => 'Pending',
+    'Pending BKK Approval'        => 'Pending BKK Approval',
+    'Accepted'                    => 'Accepted',
+    'Completed'                   => 'Completed',
+    'Rejected'                    => 'Rejected',
+    'Cancelled'                   => 'Cancelled',
+    'All Statuses'                => 'All Statuses',
+ 
+    // Actions / buttons
+    'View Invoice'                => 'View Invoice',
+    'Accept'                      => 'Accept',
+    'Reject'                      => 'Reject',
+    'Upload Slip'                 => 'Upload Slip',
+    'View Slip'                   => 'View Slip',
+    'Cancel'                      => 'Cancel',
+    'Yes, Accept'                 => 'Yes, Accept',
+    'Yes, Reject'                 => 'Yes, Reject',
+    'Upload & Complete'           => 'Upload & Complete',
+ 
+    // Modals
+    'Accept Transfer Request'     => 'Accept Transfer Request',
+    'Reject Transfer Request'     => 'Reject Transfer Request',
+    'Upload Transaction Slip'     => 'Upload Transaction Slip',
+    'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.'
+                                  => 'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.',
+    'Upload the bank transfer receipt after processing the payment.'
+                                  => 'Upload the bank transfer receipt after processing the payment.',
+    'Transfer Details'            => 'Transfer Details',
+    'Invoice'                     => 'Invoice',
+    'Transaction Slip'            => 'Transaction Slip',
+    'Reason for Rejection'        => 'Reason for Rejection',
+    'Drag & drop or click to upload. Max 5MB.'
+                                  => 'Drag & drop or click to upload. Max 5MB.',
+    'Drop slip here or click to browse'
+                                  => 'Drop slip here or click to browse',
+ 
+    // Notifications
+    'Transfer Accepted'           => 'Transfer Accepted',
+    'Transfer Rejected'           => 'Transfer Rejected',
+    'has been accepted.'          => 'has been accepted.',
+    'has been rejected.'          => 'has been rejected.',
+    'Completed!'                  => 'Completed!',
+    'marked as completed. Slip saved.' => 'marked as completed. Slip saved.',
+ 
+    // Widget
+    'New Transfer-OUT Request!'   => 'New Transfer-OUT Request!',
+    'Requires your immediate attention' => 'Requires your immediate attention',
+    'Auto-refreshing every 8s'    => 'Auto-refreshing every 8s',
     
     
     

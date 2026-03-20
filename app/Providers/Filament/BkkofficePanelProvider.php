@@ -58,15 +58,25 @@ class BkkofficePanelProvider extends PanelProvider
             // ->databaseNotifications()
             // ->databaseNotificationsPolling('30s')
               // Created by DK END
+              
+            // ->discoverResources(in: app_path('Filament/Bkkoffice/Resources'), for: 'App\\Filament\\Bkkoffice\\Resources')
+            // ->discoverPages(in: app_path('Filament/Bkkoffice/Pages'), for: 'App\\Filament\\Bkkoffice\\Pages')
+            // ->pages([
+            //     Pages\Dashboard::class,
+            // ])
+            // ->discoverWidgets(in: app_path('Filament/Bkkoffice/Widgets'), for: 'App\\Filament\\Bkkoffice\\Widgets')
+            // ->widgets([
+            //     Widgets\AccountWidget::class,
+            //     Widgets\FilamentInfoWidget::class,
+            // ])
             ->discoverResources(in: app_path('Filament/Bkkoffice/Resources'), for: 'App\\Filament\\Bkkoffice\\Resources')
             ->discoverPages(in: app_path('Filament/Bkkoffice/Pages'), for: 'App\\Filament\\Bkkoffice\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                \App\Filament\Bkkoffice\Pages\Dashboard::class,  // ← use custom dashboard
             ])
             ->discoverWidgets(in: app_path('Filament/Bkkoffice/Widgets'), for: 'App\\Filament\\Bkkoffice\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                \Filament\Widgets\AccountWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

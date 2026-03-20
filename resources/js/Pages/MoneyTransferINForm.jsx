@@ -573,7 +573,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                     {feeMode === "with-fee" && <div style={S.radioDot} />}
                                 </div>
                                 <div style={S.feeRadioText}>
-                                    <span style={S.feeRadioMain}>{t('Apply Transfer Fee')}</span>
+                                    <span style={S.feeRadioMain}>{t('Transfer fee included')}</span>
                                     <span style={{
                                         ...S.feeRadioSub,
                                         color: feeMode === "with-fee" ? "#1a7a47" : "#a8d5b5",
@@ -613,7 +613,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                     {feeMode === "no-fee" && <div style={S.radioDotTeal} />}
                                 </div>
                                 <div style={S.feeRadioText}>
-                                    <span style={S.feeRadioMain}>{t('No Transfer Fee')}</span>
+                                    <span style={S.feeRadioMain}>{t('Transfer fee excluded')}</span>
                                     <span style={{
                                         ...S.feeRadioSub,
                                         color: feeMode === "no-fee" ? "#0d9488" : "#a8d5b5",
