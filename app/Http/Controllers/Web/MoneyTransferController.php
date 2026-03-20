@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\MoneyTransferCharge;
 use App\Models\MoneyTransferInvoice;
+use Illuminate\Support\Facades\Auth;
 
 class MoneyTransferController extends Controller
 {
@@ -68,6 +69,11 @@ class MoneyTransferController extends Controller
         $now           = now()->setTimezone('Asia/Bangkok');
         $invoiceNumber = '#TI' . $now->format('dmyHis');
 
+        // Get logged-in user ID
+        $user = Auth::user();
+        $authId = $user ? $user->id : null;
+        $invoice_url = URL('/money-transfer/invoice' . '/' . base64_encode($invoiceNumber));
+
         // Persist
         MoneyTransferInvoice::create([
             'invoice_number'        => $invoiceNumber,
@@ -82,6 +88,9 @@ class MoneyTransferController extends Controller
             'trf_fee_in_persentage' => $request->trf_fee_in_persentage,
             'trf_fee'               => $request->trf_fee,
             'net_amount'            => $request->net_amount,
+            'invoice_url'         => $invoice_url,
+            // 'invoice_slip'         => '',
+            'createdBy'         => $authId,
         ]);
 
         $msg = __('message.Invoice Generated Successfully!');
@@ -128,6 +137,11 @@ class MoneyTransferController extends Controller
         $now           = now()->setTimezone('Asia/Bangkok');
         $invoiceNumber = '#TO' . $now->format('dmyHis');
 
+         // Get logged-in user ID
+        $user = Auth::user();
+        $authId = $user ? $user->id : null;
+        $invoice_url = URL('/money-transfer/invoice' . '/' . base64_encode($invoiceNumber));
+
         // Persist
         MoneyTransferInvoice::create([
             'invoice_number'        => $invoiceNumber,
@@ -142,6 +156,9 @@ class MoneyTransferController extends Controller
             'trf_fee_in_persentage' => $request->trf_fee_in_persentage,
             'trf_fee'               => $request->trf_fee,
             'net_amount'            => $request->net_amount,
+            'invoice_url'         => $invoice_url,
+            // 'invoice_slip'         => '',
+            'createdBy'         => $authId,
         ]);
 
         $msg = __('message.Invoice Generated Successfully!');
