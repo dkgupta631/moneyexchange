@@ -958,54 +958,51 @@ return [
    
  
     // Status labels
-    'Pending'                     => 'Pending',
-    'Pending BKK Approval'        => 'Pending BKK Approval',
-    'Accepted'                    => 'Accepted',
-    'Completed'                   => 'Completed',
-    'Rejected'                    => 'Rejected',
-    'Cancelled'                   => 'Cancelled',
-    'All Statuses'                => 'All Statuses',
+    'Pending BKK Approval'        => 'รอการอนุมัติจาก BKK',
+    'Completed'                   => 'สมบูรณ์',
+    'All Statuses'                => 'สถานะทั้งหมด',
  
     // Actions / buttons
-    'View Invoice'                => 'View Invoice',
-    'Accept'                      => 'Accept',
-    'Reject'                      => 'Reject',
-    'Upload Slip'                 => 'Upload Slip',
-    'View Slip'                   => 'View Slip',
-    'Cancel'                      => 'Cancel',
-    'Yes, Accept'                 => 'Yes, Accept',
-    'Yes, Reject'                 => 'Yes, Reject',
-    'Upload & Complete'           => 'Upload & Complete',
+    'View Invoice'                => 'ดูใบแจ้งหนี้',
+    'Accept'                      => 'ยอมรับ',
+    'Reject'                      => 'ปฏิเสธ',
+    'Upload Slip'                 => 'อัพโหลดสลิป',
+    'View Slip'                   => 'ดูสลิป',
+    'Yes, Accept'                 => 'ใช่ ยอมรับ',
+    'Yes, Reject'                 => 'ใช่ ปฏิเสธ',
+    'Upload & Complete'           => 'อัปโหลดและเสร็จสิ้น',
  
     // Modals
-    'Accept Transfer Request'     => 'Accept Transfer Request',
-    'Reject Transfer Request'     => 'Reject Transfer Request',
-    'Upload Transaction Slip'     => 'Upload Transaction Slip',
-    'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.'
-                                  => 'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.',
-    'Upload the bank transfer receipt after processing the payment.'
-                                  => 'Upload the bank transfer receipt after processing the payment.',
-    'Transfer Details'            => 'Transfer Details',
-    'Invoice'                     => 'Invoice',
-    'Transaction Slip'            => 'Transaction Slip',
-    'Reason for Rejection'        => 'Reason for Rejection',
-    'Drag & drop or click to upload. Max 5MB.'
-                                  => 'Drag & drop or click to upload. Max 5MB.',
-    'Drop slip here or click to browse'
-                                  => 'Drop slip here or click to browse',
+    'Accept Transfer Request'     => 'ยอมรับคำขอโอน',
+    'Reject Transfer Request'     => 'ปฏิเสธคำขอโอน',
+    'Upload Transaction Slip'     => 'อัพโหลดสลิปการทำธุรกรรม',
+    'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.'  => 'คุณแน่ใจหรือไม่ว่าต้องการยอมรับคำขอโอนเงินออกนี้? การดำเนินการนี้จะแจ้งให้พนักงานธนาคารที่ปอยเปต์ทราบ',
+    'Upload the bank transfer receipt after processing the payment.' => 'โปรดอัปโหลดใบเสร็จการโอนเงินจากธนาคารหลังจากดำเนินการชำระเงินเสร็จสิ้น',
+    'Transfer Details'            => 'รายละเอียดการโอน',
+    'Transaction Slip'            => 'สลิปการทำธุรกรรม',
+    'Reason for Rejection'        => 'เหตุผลในการปฏิเสธ',
+    'Drag & drop or click to upload. Max 5MB.' => 'ลากและวาง หรือคลิกเพื่ออัปโหลด ขนาดสูงสุด 5MB',
+    'Drop slip here or click to browse' => 'วางใบแจ้งเงินเดือนที่นี่ หรือคลิกเพื่อดูรายการเพิ่มเติม',
  
     // Notifications
-    'Transfer Accepted'           => 'Transfer Accepted',
-    'Transfer Rejected'           => 'Transfer Rejected',
-    'has been accepted.'          => 'has been accepted.',
-    'has been rejected.'          => 'has been rejected.',
-    'Completed!'                  => 'Completed!',
-    'marked as completed. Slip saved.' => 'marked as completed. Slip saved.',
+    'Transfer Accepted'           => 'ยอมรับการโอนแล้ว',
+    'Transfer Rejected'           => 'การโอนถูกปฏิเสธ',
+    'has been accepted.'          => 'ได้รับการยอมรับแล้ว',
+    'has been rejected.'          => 'ถูกปฏิเสธแล้ว',
+    'Completed!'                  => 'สมบูรณ์!',
+    'marked as completed. Slip saved.' => 'ทำเครื่องหมายว่าเสร็จสมบูรณ์แล้ว บันทึกใบเสร็จเรียบร้อยแล้ว',
  
     // Widget
-    'New Transfer-OUT Request!'   => 'New Transfer-OUT Request!',
-    'Requires your immediate attention' => 'Requires your immediate attention',
-    'Auto-refreshing every 8s'    => 'Auto-refreshing every 8s',
+    'New Transfer-OUT Request!'   => 'คำขอโอนย้ายออกใหม่!',
+    'Requires your immediate attention' => 'เรื่องนี้ต้องการความสนใจจากคุณโดยทันที',
+    'Auto-refreshing every 8s'    => 'รีเฟรชอัตโนมัติทุก 8 วินาที',
+    "Pending Approval" => "รอการอนุมัติ",
+    "Accepted Today" => "ได้รับการยอมรับแล้ววันนี้",
+    "Completed Today" => "เสร็จวันนี้",
+    "Rejected Today" => "ถูกปฏิเสธในวันนี้",
+    "Awaiting your action" => "กำลังรอการดำเนินการของคุณ",
+    "Processing in progress" => "อยู่ระหว่างดำเนินการ",
+    "Review if needed" => "ตรวจสอบหากจำเป็น",
     
     
     

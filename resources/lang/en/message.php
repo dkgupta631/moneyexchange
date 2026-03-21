@@ -962,12 +962,8 @@ return [
     'Uploaded'                    => 'Uploaded',
  
     // Status labels
-    'Pending'                     => 'Pending',
     'Pending BKK Approval'        => 'Pending BKK Approval',
-    'Accepted'                    => 'Accepted',
     'Completed'                   => 'Completed',
-    'Rejected'                    => 'Rejected',
-    'Cancelled'                   => 'Cancelled',
     'All Statuses'                => 'All Statuses',
  
     // Actions / buttons
@@ -976,7 +972,6 @@ return [
     'Reject'                      => 'Reject',
     'Upload Slip'                 => 'Upload Slip',
     'View Slip'                   => 'View Slip',
-    'Cancel'                      => 'Cancel',
     'Yes, Accept'                 => 'Yes, Accept',
     'Yes, Reject'                 => 'Yes, Reject',
     'Upload & Complete'           => 'Upload & Complete',
@@ -985,18 +980,13 @@ return [
     'Accept Transfer Request'     => 'Accept Transfer Request',
     'Reject Transfer Request'     => 'Reject Transfer Request',
     'Upload Transaction Slip'     => 'Upload Transaction Slip',
-    'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.'
-                                  => 'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.',
-    'Upload the bank transfer receipt after processing the payment.'
-                                  => 'Upload the bank transfer receipt after processing the payment.',
+    'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.' => 'Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.',
+    'Upload the bank transfer receipt after processing the payment.' => 'Upload the bank transfer receipt after processing the payment.',
     'Transfer Details'            => 'Transfer Details',
-    'Invoice'                     => 'Invoice',
     'Transaction Slip'            => 'Transaction Slip',
     'Reason for Rejection'        => 'Reason for Rejection',
-    'Drag & drop or click to upload. Max 5MB.'
-                                  => 'Drag & drop or click to upload. Max 5MB.',
-    'Drop slip here or click to browse'
-                                  => 'Drop slip here or click to browse',
+    'Drag & drop or click to upload. Max 5MB.' => 'Drag & drop or click to upload. Max 5MB.',
+    'Drop slip here or click to browse' => 'Drop slip here or click to browse',
  
     // Notifications
     'Transfer Accepted'           => 'Transfer Accepted',
@@ -1010,6 +1000,23 @@ return [
     'New Transfer-OUT Request!'   => 'New Transfer-OUT Request!',
     'Requires your immediate attention' => 'Requires your immediate attention',
     'Auto-refreshing every 8s'    => 'Auto-refreshing every 8s',
+    "Pending Approval" => "Pending Approval",
+    "Accepted Today" => "Accepted Today",
+    "Completed Today" => "Completed Today",
+    "Rejected Today" => "Rejected Today",
+    "Awaiting your action" => "Awaiting your action",
+    "Processing in progress" => "Processing in progress",
+    "Review if needed" => "Review if needed",
+    "Download" => "Download",
+    "Download" => "Download",
+    "Download" => "Download",
+    "Download" => "Download",
+    "Download" => "Download",
+    "Download" => "Download",
+    "Download" => "Download",
+    "Download" => "Download",
+    "Download" => "Download",
+    
   
 
     
