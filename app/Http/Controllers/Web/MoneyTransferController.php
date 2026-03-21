@@ -91,6 +91,7 @@ class MoneyTransferController extends Controller
             'invoice_url'         => $invoice_url,
             // 'invoice_slip'         => '',
             'createdBy'         => $authId,
+            'created_at'         => $now,
         ]);
 
         $msg = __('message.Invoice Generated Successfully!');
@@ -159,6 +160,7 @@ class MoneyTransferController extends Controller
             'invoice_url'         => $invoice_url,
             // 'invoice_slip'         => '',
             'createdBy'         => $authId,
+            'created_at'         => $now,
         ]);
 
         $msg = __('message.Invoice Generated Successfully!');

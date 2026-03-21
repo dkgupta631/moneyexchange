@@ -65,7 +65,7 @@ class NewTransferAlertWidget extends Widget
 
                 // Filament toast notification
                 Notification::make()
-                    ->title('🔔 New Transfer-OUT Request!')
+                    ->title('🔔 ' .__('message.New Transfer-OUT Request!'))
                     ->body("From {$latest->customer_name} — {$latest->currency} {$this->latestTransfer['amount']}")
                     ->warning()
                     ->persistent()
@@ -84,7 +84,7 @@ class NewTransferAlertWidget extends Widget
             $record->update(['status' => 'accepted_bkk']);
 
             Notification::make()
-                ->title('✅ Transfer Accepted')
+                ->title('✅ ' .__('message.Transfer Accepted'))
                 ->body("Invoice #{$record->invoice_number} accepted successfully.")
                 ->success()
                 ->send();
@@ -101,7 +101,7 @@ class NewTransferAlertWidget extends Widget
             $record->update(['status' => 'Rejected']);
 
             Notification::make()
-                ->title('❌ Transfer Rejected')
+                ->title('❌ ' .__('message.Transfer Rejected'))
                 ->body("Invoice #{$record->invoice_number} rejected.")
                 ->danger()
                 ->send();
