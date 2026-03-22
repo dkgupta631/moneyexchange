@@ -25,10 +25,10 @@ export default function WebLayout({ children }) {
     }, [greet]);
 
     // ── Logout form ─────────────────────────────────────────────────────
-    const { post: logoutPost, processing: loggingOut } = useForm({});
+    const { get: logoutGet, processing: loggingOut } = useForm({});
     const handleLogout = (e) => {
         e.preventDefault();
-        logoutPost(route('logout'));
+        logoutGet(route('logout'));
     };
 
     // ── Language map ────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ export default function WebLayout({ children }) {
         <>
             <Head>
                 <meta head-key="description" name="description" content={t('Exchange currency rates help customers convert money correctly, make secure payments, and ensure transparency and trust in international transactions')} />
-                <link rel="icon" type="image/svg+xml" href={`${appUrl}/website/assets/logo/logo.png`} />
+                <link rel="icon" type="image/svg+xml" href={`${appUrl}/website/assets/logo/logo2.png`} />
             </Head>
 
             {/* <!-- Navbar & Hero Start --> */}

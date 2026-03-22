@@ -14,8 +14,8 @@ class TransferStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $pending   = MoneyTransferInvoice::where('status', 'pending_bkk_approval')->where('transfer_type', 'Transfer-OUT')->count();
-        $accepted  = MoneyTransferInvoice::where('status', 'accepted_bkk')->where('transfer_type', 'Transfer-OUT')->count();
+        $pending   = MoneyTransferInvoice::where('status', 'pending_bkk_approval')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', today())->count();
+        $accepted  = MoneyTransferInvoice::where('status', 'accepted_bkk')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', today())->count();
         $completed = MoneyTransferInvoice::where('status', 'completed')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', today())->count();
         $rejected  = MoneyTransferInvoice::where('status', 'Rejected')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', today())->count();
 

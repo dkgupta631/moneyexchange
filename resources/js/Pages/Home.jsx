@@ -19,7 +19,6 @@ export default function Home() {
         <>
             <Head title={t('Home')}>
                 <meta head-key="description" name="description" content={t('Exchange currency rates help customers convert money correctly, make secure payments, and ensure transparency and trust in international transactions')}/>
-                <link rel="icon" type="image/svg+xml" href={`${appUrl}/website/assets/logo/logo.png`}/>
             </Head>
 
             {/* <!-- Service Start --> */}

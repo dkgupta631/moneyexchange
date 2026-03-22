@@ -30,6 +30,7 @@ class NewTransferAlertWidget extends Widget
     {
         return MoneyTransferInvoice::where('status', 'pending_bkk_approval')
             ->where('transfer_type', 'Transfer-OUT')
+            ->whereDate('created_at', today())
             ->count();
     }
 
@@ -43,6 +44,7 @@ class NewTransferAlertWidget extends Widget
             // New transfer arrived!
             $latest = MoneyTransferInvoice::where('status', 'pending_bkk_approval')
                 ->where('transfer_type', 'Transfer-OUT')
+                ->whereDate('created_at', today())
                 ->latest()
                 ->first();
 
@@ -85,7 +87,10 @@ class NewTransferAlertWidget extends Widget
 
             Notification::make()
                 ->title('✅ ' .__('message.Transfer Accepted'))
-                ->body("Invoice #{$record->invoice_number} accepted successfully.")
+                // ->body("Invoice #{$record->invoice_number} accepted successfully.")
+                 ->body(__('message.Invoice Accepted', [
+                        'invoice' => $record->invoice_number,
+                    ]))
                 ->success()
                 ->send();
         }
@@ -102,7 +107,10 @@ class NewTransferAlertWidget extends Widget
 
             Notification::make()
                 ->title('❌ ' .__('message.Transfer Rejected'))
-                ->body("Invoice #{$record->invoice_number} rejected.")
+                // ->body("Invoice #{$record->invoice_number} rejected.")
+                ->body(__('message.Invoice Rejected', [
+                            'invoice' => $record->invoice_number,
+                        ]))
                 ->danger()
                 ->send();
         }
