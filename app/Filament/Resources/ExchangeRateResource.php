@@ -82,6 +82,10 @@ class ExchangeRateResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('Serial_number')
+                    ->label(__('message.Serial number'))
+                    ->badge()
+                    ->state(fn($column) => $column->getRowLoop()->iteration),
                 //  Tables\Columns\TextColumn::make('section')
                 //     ->searchable(),
                 Tables\Columns\TextColumn::make('buy_or_sell')

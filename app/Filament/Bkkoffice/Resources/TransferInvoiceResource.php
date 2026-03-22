@@ -30,12 +30,12 @@ class TransferInvoiceResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('message.Transfer Invoice');
+        return __('message.Transfer-OUT Requests');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('message.Transfer Invoices');
+        return __('message.Transfer-OUT Requests');
     }
 
     public static function getNavigationGroup(): ?string
@@ -47,6 +47,7 @@ class TransferInvoiceResource extends Resource
     {
         $count = static::getModel()::where('status', 'pending_bkk_approval')
             ->where('transfer_type', 'Transfer-OUT')
+            ->whereDate('created_at', today())
             ->count();
 
         return $count > 0 ? (string) $count : null;
@@ -107,70 +108,62 @@ class TransferInvoiceResource extends Resource
                 MoneyTransferInvoice::query()
                     ->where('transfer_type', 'Transfer-OUT')
                     ->whereDate('created_at', today())
-                    ->orderByRaw("FIELD(status, 'pending_bkk_approval', 'accepted_bkk', 'completed', 'Rejected', 'cancelled')")
-                    ->orderBy('created_at', 'desc')
+                    // ->orderByRaw("FIELD(status, 'pending_bkk_approval', 'accepted_bkk', 'completed', 'Rejected', 'cancelled')")
+                    ->orderBy('id', 'desc')
             )
             ->columns([
+                TextColumn::make('Serial_number')
+                    ->label(__('message.Serial number'))
+                    ->badge()
+                    ->state(fn($column) => $column->getRowLoop()->iteration),
                 TextColumn::make('created_at')
                     ->label(__('message.Time'))
-                    ->dateTime('d M Y H:i')
-                    ->timezone('Asia/Bangkok')          // ✅ Correct timezone
+                    ->dateTime('d M Y h:i')
                     ->sortable()
                     ->color('gray'),
-
                 TextColumn::make('invoice_number')
                     ->label(__('message.Invoice #'))
                     ->searchable()
                     ->copyable()
                     ->weight('bold')
                     ->color('primary'),
-
                 TextColumn::make('customer_name')
                     ->label(__('message.Customer'))
                     ->searchable()
                     ->default('—'),
-
                 TextColumn::make('phone')
                     ->label(__('message.Phone'))
                     ->default('—'),
-
                 TextColumn::make('bank_name')
                     ->label(__('message.Bank Name'))
                     ->badge()
                     ->color('info'),
-
                 TextColumn::make('acc_number')
                     ->label(__('message.Account Number'))
                     ->copyable(),
-
                 TextColumn::make('currency')
                     ->label(__('message.Currency'))
                     ->badge(),
-
                 TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
                     ->numeric(thousandsSeparator: ',')
                     ->color('warning')
                     ->weight('bold'),
-
                 TextColumn::make('trf_fee')
                     ->label(__('message.Fee'))
                     ->numeric(thousandsSeparator: ',')
                     ->color('gray'),
-
                 TextColumn::make('net_amount')
                     ->label(__('message.Net Amount'))
                     ->numeric(thousandsSeparator: ',')
                     ->color('success')
                     ->weight('bold'),
-
                 TextColumn::make('transaction_slip')
                     ->label(__('message.Slip'))
                     ->formatStateUsing(fn ($state) => $state
                         ? '✅ ' . __('message.Uploaded')
                         : '—')
                     ->color(fn ($state) => $state ? 'success' : 'gray'),
-
                 Tables\Columns\BadgeColumn::make('status')
                     ->label(__('message.Status'))
                     ->colors([
@@ -223,7 +216,7 @@ class TransferInvoiceResource extends Resource
 
                         Notification::make()
                             ->title(__('message.Transfer Accepted'))
-                            ->body(__('message.Invoice') . " #{$record->invoice_number} " . __('message.has been accepted.'))
+                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.has been accepted.'))
                             ->success()
                             ->send();
                     })
@@ -247,7 +240,7 @@ class TransferInvoiceResource extends Resource
 
                         Notification::make()
                             ->title(__('message.Transfer Rejected'))
-                            ->body(__('message.Invoice') . " #{$record->invoice_number} " . __('message.has been rejected.'))
+                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.has been rejected.'))
                             ->warning()
                             ->send();
                     })
@@ -266,7 +259,7 @@ class TransferInvoiceResource extends Resource
                         Forms\Components\Placeholder::make('invoice_info')
                             ->label(__('message.Invoice'))
                             ->content(fn (MoneyTransferInvoice $record) =>
-                                "#{$record->invoice_number} — {$record->bank_name} | {$record->acc_number} | {$record->currency} " . number_format($record->net_amount, 2)
+                                "{$record->invoice_number} — {$record->bank_name} | {$record->acc_number} | {$record->currency} " . number_format($record->net_amount, 2)
                             ),
                         Forms\Components\FileUpload::make('transaction_slip')
                             ->label(__('message.Transaction Slip'))
@@ -288,7 +281,7 @@ class TransferInvoiceResource extends Resource
 
                         Notification::make()
                             ->title('✅ ' . __('message.Completed!'))
-                            ->body(__('message.Invoice') . " #{$record->invoice_number} " . __('message.marked as completed. Slip saved.'))
+                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.marked as completed. Slip saved.'))
                             ->success()
                             ->send();
                     })

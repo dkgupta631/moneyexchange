@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { usePage, Link } from "@inertiajs/react";
+import { usePage, Head, Link } from "@inertiajs/react";
 
 // ─── Same thermal print CSS pattern as ShowMoneyExchangeInvoices ───────────
 const PRINT_STYLE = `
@@ -83,6 +83,7 @@ export default function MoneyTransferInvoice({ invoice }) {
 
     return (
         <>
+            <Head title={`${t("Money Transfer")} ${t("Invoice")}`} />
             <style>{PRINT_STYLE}</style>
 
             <div style={S.page}>
@@ -90,7 +91,7 @@ export default function MoneyTransferInvoice({ invoice }) {
 
                 {/* ══ TOP BAR — hidden on print via .no-print ══ */}
                 <div className="no-print" style={S.topBar}>
-                    <Link href="/money-transfer-in" style={S.backBtn}>
+                    <Link href={route('home')} style={S.backBtn}>
                         ← {t("Back")}
                     </Link>
                     <span style={S.breadcrumb}>

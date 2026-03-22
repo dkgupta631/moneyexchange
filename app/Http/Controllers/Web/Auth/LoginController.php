@@ -70,6 +70,6 @@ class LoginController extends Controller
     {
         Auth::logout(); // logout only auth user
         $request->session()->regenerateToken(); // regenerate CSRF token
-        return redirect()->route('staff.login');
+        return redirect()->route('home');
     }
 }

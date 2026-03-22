@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { usePage } from '@inertiajs/react';
+import { usePage, Head } from '@inertiajs/react';
 
 // ─── Brand colors ──────────────────────────────────────────────────────────
 const C = {
@@ -143,6 +143,7 @@ export default function ShowMoneyExchangeInvoices({ records, exchangerate }) {
 
     return (
         <>
+            <Head title={`${t("Money Exchange")} ${t("Invoice")}`} />
             <style>{PRINT_STYLE}</style>
             <br/><br/>
 

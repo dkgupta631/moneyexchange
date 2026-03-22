@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useForm, usePage } from "@inertiajs/react";
+import { useForm, Head, usePage } from "@inertiajs/react";
 
 // Bank list — filenames exactly as seen in the bank-images folder
 const BANKS = [
@@ -202,6 +202,8 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
         && data.acc_number.trim().length > 0;
 
     return (
+         <>
+            <Head title={t('Transfer-OUT')} />
         <div style={S.page}>
             <div style={S.orb1} />
             <div style={S.orb2} />
@@ -751,6 +753,7 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                 @keyframes cardIn  { from{opacity:0;transform:scale(.96) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
             `}</style>
         </div>
+        </>
     );
 }
 

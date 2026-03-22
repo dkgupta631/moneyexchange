@@ -43,7 +43,7 @@ Route::post('/register', [RegisterController::class, 'store']);
 // Login / Logout
 Route::get('/login', [LoginController::class, 'create'])->name('teller.login');
 Route::post('/login', [LoginController::class, 'store'])->name('login');
-Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+Route::get('/logout', [LoginController::class, 'destroy'])->name('logout');
 
 
 

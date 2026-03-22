@@ -42,7 +42,7 @@ class BkkofficePanelProvider extends PanelProvider
             // ->topNavigation()
             ->font('Poppins')
             // ->favicon(fn () => view('filament.faviconlogo'))
-            ->favicon(url('website/assets/logo/logo.png'))
+            ->favicon(url('website/assets/logo/logo2.png'))
             ->brandLogo(fn () => view('filament.logo')) // Dashboard sidebar logo
             ->sidebarCollapsibleOnDesktop()
             ->userMenuItems([
