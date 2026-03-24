@@ -25,23 +25,23 @@ class TransferStatsWidget extends BaseWidget
             ->sum('net_amount');
 
         return [
-            Stat::make('⏳ ' .__('message.Pending Approval'), $pending)
+            Stat::make('⏳ ' .__('message.Pending').' '.__('message.Transfer-OUT'), $pending)
                 ->description(__('message.Awaiting your action'))
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning')
                 ->chart([1, 2, $pending]),
 
-            Stat::make('✅ ' .__('message.Accepted Today'), $accepted)
+            Stat::make('✅ '.__('message.Accepted').' '.__('message.Transfer-OUT'), $accepted)
                 ->description(__('message.Processing in progress'))
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success'),
 
-            Stat::make('✔  ' .__('message.Completed Today'), $completed)
+            Stat::make('✔  '.__('message.Completed').' '.__('message.Transfer-OUT'), $completed)
                 ->description('THB ' . number_format($totalNet, 2))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('primary'),
 
-            Stat::make('❌  ' .__('message.Rejected Today'), $rejected)
+            Stat::make('❌  '.__('message.Rejected').' '.__('message.Transfer-OUT'), $rejected)
                 ->description(__('message.Review if needed'))
                 ->descriptionIcon('heroicon-m-x-circle')
                 ->color('danger'),

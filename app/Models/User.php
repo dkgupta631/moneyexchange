@@ -64,6 +64,10 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
+        if ($panel->getId() === 'teller' && $this->role === 'teller') {
+            return true;
+        }
+
         return false;
     }
 }

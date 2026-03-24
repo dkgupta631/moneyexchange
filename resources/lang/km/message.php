@@ -995,17 +995,13 @@ return [
     'New Transfer-OUT Request!' => 'មានសំណើផ្ទេរចេញថ្មី!',
     'Requires your immediate attention' => 'ត្រូវការការយកចិត្តទុកដាក់ភ្លាមៗ',
     'Auto-refreshing every' => 'ធ្វើបច្ចុប្បន្នភាពដោយស្វ័យប្រវត្តិរៀងរាល់',
-    "Pending Approval" => "កំពុងរង់ចាំការអនុម័ត",
-    "Accepted Today" => "បានអនុម័តថ្ងៃនេះ",
-    "Completed Today" => "បានបញ្ចប់ថ្ងៃនេះ",
-    "Rejected Today" => "បានបដិសេធថ្ងៃនេះ",
     "Awaiting your action" => "កំពុងរង់ចាំសកម្មភាពរបស់អ្នក",
     "Processing in progress" => "កំពុងដំណើរការ",
     "Review if needed" => "ពិនិត្យមើលប្រសិនបើចាំបាច់",
     "awaiting your approval" => "កំពុងរង់ចាំការអនុម័តរបស់អ្នក",
-
     "Invoice Accepted" => "វិក្កយបត្រ #:invoice ត្រូវបានអនុម័តដោយជោគជ័យ",
     "Invoice Rejected" => "វិក្កយបត្រ #:invoice ត្រូវបានបដិសេធ",
+    "Enter reason for rejection..." => "បញ្ចូលហេតុផលសម្រាប់ការបដិសេធ...",
 
 
     

@@ -74,6 +74,7 @@ class CustomLogin extends Login
         // Step 3 — check role matches panel
         $allowed = match($panelId) {
             'bkkoffice' => $user->role === 'bkkoffice',
+            'teller' => $user->role === 'teller',
         };
 
         if (! $allowed) {

@@ -27,6 +27,7 @@ return new class extends Migration
             $table->string('trf_fee')->nullable();
             $table->string('net_amount')->nullable();
             $table->enum('status', ['pending_bkk_approval', 'accepted_bkk', 'completed', 'Rejected', 'cancelled'])->default('pending_bkk_approval');
+            $table->string('reject_reason')->nullable();
             $table->string('invoice_url')->nullable();
             $table->string('invoice_slip')->nullable();
             $table->string('transaction_slip')->nullable();

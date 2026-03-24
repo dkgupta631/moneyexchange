@@ -83,7 +83,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
         acc_number:            "",
         entered_amount:        "",
         transfer_type:         "Transfer-IN",
-        currency:              "THB",
+        currency:              "฿",
         trf_fee_in_persentage: feePercentage,
         trf_fee:               "",
         net_amount:            "",

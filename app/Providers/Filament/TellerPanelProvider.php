@@ -19,22 +19,19 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 use App\Filament\Helper\CustomLogin;
-use Filament\Navigation\MenuItem;
-// use App\Filament\Pages\Auth\ChangePassword;
-use Filament\Forms\Components\ColorPicker;
 
-class BkkofficePanelProvider extends PanelProvider
+class TellerPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->id('bkkoffice')
-            ->path('bkkoffice')
-            ->authGuard('bkkoffice') 
+            ->id('teller')
+            ->path('teller')
+            ->authGuard('teller') 
             ->login(CustomLogin::class)
             ->profile()
             ->colors([
-                'primary' => Color::Green,
+                'primary' => Color::Purple,
             ])
              // Created by DK START
             ->maxContentWidth('full')
@@ -59,24 +56,18 @@ class BkkofficePanelProvider extends PanelProvider
             // ->databaseNotificationsPolling('30s')
               // Created by DK END
               
-            // ->discoverResources(in: app_path('Filament/Bkkoffice/Resources'), for: 'App\\Filament\\Bkkoffice\\Resources')
-            // ->discoverPages(in: app_path('Filament/Bkkoffice/Pages'), for: 'App\\Filament\\Bkkoffice\\Pages')
-            // ->pages([
-            //     Pages\Dashboard::class,
+            // ->colors([
+            //     'primary' => Color::Amber,
             // ])
-            // ->discoverWidgets(in: app_path('Filament/Bkkoffice/Widgets'), for: 'App\\Filament\\Bkkoffice\\Widgets')
-            // ->widgets([
-            //     Widgets\AccountWidget::class,
-            //     Widgets\FilamentInfoWidget::class,
-            // ])
-            ->discoverResources(in: app_path('Filament/Bkkoffice/Resources'), for: 'App\\Filament\\Bkkoffice\\Resources')
-            ->discoverPages(in: app_path('Filament/Bkkoffice/Pages'), for: 'App\\Filament\\Bkkoffice\\Pages')
+            ->discoverResources(in: app_path('Filament/Teller/Resources'), for: 'App\\Filament\\Teller\\Resources')
+            ->discoverPages(in: app_path('Filament/Teller/Pages'), for: 'App\\Filament\\Teller\\Pages')
             ->pages([
-                \App\Filament\Bkkoffice\Pages\Dashboard::class,  // ← use custom dashboard
+                Pages\Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Bkkoffice/Widgets'), for: 'App\\Filament\\Bkkoffice\\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Teller/Widgets'), for: 'App\\Filament\\Teller\\Widgets')
             ->widgets([
-                \Filament\Widgets\AccountWidget::class,
+                Widgets\AccountWidget::class,
+                Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
