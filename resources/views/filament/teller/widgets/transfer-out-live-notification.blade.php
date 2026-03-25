@@ -1,21 +1,18 @@
 {{--
     transfer-out-live-notification.blade.php
     ─────────────────────────────────────────
-    FIX SUMMARY:
-    • Removed wire:poll from the div — the widget PHP class handles polling
-      via $pollingInterval = '5s'. Having both causes double-polling bugs.
-    • Removed @teller-notify.window — in Filament v3/Livewire 3, $dispatch()
-      does NOT emit browser events. Instead, the PHP widget calls $this->js()
-      which executes tellerReceive() directly in the browser.
-    • window.tellerReceive is registered inside boot() so the PHP widget can
-      call it reliably after every poll response.
-    • Uses x-init with $nextTick to ensure Alpine is fully ready before
-      processing initial records passed from PHP via @js().
+    FIX: Now uses the same proven pattern as BKK office panel:
+    • wire:poll.5000ms="checkNewNotifications" on the div
+    • PHP dispatches 'teller-new-notification' Livewire event
+    • Alpine listens with x-on:teller-new-notification.window
+    • No $this->js() race conditions
 --}}
 
 <div
-    x-data="tellerNotify(@js($latestAccepted), @js($latestCompleted), {{ (int) $pendingCount }})"
-    x-init="$nextTick(() => boot())"
+    x-data="tellerNotify()"
+    x-init="boot()"
+    x-on:teller-new-notification.window="handleNewRecord($event.detail.record)"
+    wire:poll.5000ms="checkNewNotifications"
 >
 
 {{-- ══════════════════════════════════════════════════════════
@@ -78,6 +75,12 @@
 </div>
 
 {{-- ══════════════════════════════════════════════════════════
+     PENDING COUNT (from Livewire)
+══════════════════════════════════════════════════════════ --}}
+<span x-ref="pendingSync" data-count="{{ $pendingCount }}" style="display:none;"
+    x-init="$watch('$el.dataset.count', v => pending = parseInt(v)||0)"></span>
+
+{{-- ══════════════════════════════════════════════════════════
      POPUP OVERLAY
 ══════════════════════════════════════════════════════════ --}}
 <template x-if="showPopup && currentRecord">
@@ -110,8 +113,6 @@
                 <div :style="headerGlow()" style="position:absolute;inset:0;pointer-events:none;border-radius:22px 22px 0 0;"></div>
                 <div style="position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
                     <div style="display:flex;align-items:center;gap:14px;">
-
-                        {{-- icon --}}
                         <div :style="iconBox()" style="width:50px;height:50px;border-radius:15px;flex-shrink:0;
                             display:flex;align-items:center;justify-content:center;">
                             <template x-if="currentRecord.popup_type === 'accepted'">
@@ -126,7 +127,6 @@
                                 </svg>
                             </template>
                         </div>
-
                         <div>
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                                 <span :style="titleColor()" style="font-size:15px;font-weight:800;letter-spacing:.01em;"
@@ -138,8 +138,6 @@
                             <p style="font-size:11px;color:rgba(255,255,255,.40);margin:0;" x-text="popupSubtitle()"></p>
                         </div>
                     </div>
-
-                    {{-- X close --}}
                     <button @click="dismiss()"
                         style="width:32px;height:32px;border-radius:10px;border:none;cursor:pointer;
                             background:rgba(255,255,255,.07);display:flex;align-items:center;
@@ -155,7 +153,6 @@
                 </div>
             </div>
 
-            {{-- separator --}}
             <div style="height:1px;background:rgba(255,255,255,.07);margin:0 22px;"></div>
 
             {{-- ── INVOICE + STATUS ─────────────────────────────────── --}}
@@ -176,7 +173,6 @@
 
             {{-- ── DETAILS GRID ──────────────────────────────────────── --}}
             <div style="padding:2px 22px 16px;display:grid;grid-template-columns:1fr 1fr;gap:9px;">
-
                 <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;">
                     <div style="font-size:9.5px;color:rgba(255,255,255,.36);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">
                         {{ __('message.Invoice Number') }}
@@ -184,21 +180,18 @@
                     <div style="font-size:12px;font-weight:700;color:#a78bfa;font-family:monospace;letter-spacing:.04em;"
                         x-text="currentRecord.invoice_number"></div>
                 </div>
-
                 <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;">
                     <div style="font-size:9.5px;color:rgba(255,255,255,.36);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">
                         {{ __('message.popup_account_name') }}
                     </div>
                     <div style="font-size:13px;font-weight:600;color:#fff;" x-text="currentRecord.acc_name || '—'"></div>
                 </div>
-
                 <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;">
                     <div style="font-size:9.5px;color:rgba(255,255,255,.36);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">
                         {{ __('message.popup_bank') }}
                     </div>
                     <div style="font-size:13px;font-weight:600;color:#fff;" x-text="currentRecord.bank_name || '—'"></div>
                 </div>
-
                 <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;">
                     <div style="font-size:9.5px;color:rgba(255,255,255,.36);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">
                         {{ __('message.popup_account_number') }}
@@ -206,8 +199,6 @@
                     <div style="font-size:13px;font-weight:700;color:#93c5fd;font-family:monospace;letter-spacing:.06em;"
                         x-text="currentRecord.acc_number || '—'"></div>
                 </div>
-
-                {{-- Amount --}}
                 <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 14px;">
                     <div style="font-size:9.5px;color:rgba(255,255,255,.36);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">
                         {{ __('message.popup_amount') }}
@@ -216,8 +207,6 @@
                         <span x-text="currentRecord.currency"></span>&nbsp;<span x-text="fmt(currentRecord.entered_amount)"></span>
                     </div>
                 </div>
-
-                {{-- Net Amount --}}
                 <div :style="netCard()" style="border-radius:12px;padding:13px 14px;">
                     <div style="font-size:9.5px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">
                         {{ __('message.popup_net_amount') }}
@@ -256,18 +245,16 @@
 [x-cloak] { display:none !important; }
 </style>
 <script>
-function tellerNotify(initAccepted, initCompleted, initPending) {
+function tellerNotify() {
     return {
-        // ── state ────────────────────────────────────────────────────
-        accepted:      Array.isArray(initAccepted)  ? initAccepted  : [],
-        completed:     Array.isArray(initCompleted) ? initCompleted : [],
-        pending:       parseInt(initPending) || 0,
+        // ── state ────────────────────────────────────────────────────────
+        pending:       {{ (int) $pendingCount }},
         showPopup:     false,
         currentRecord: null,
         queue:         [],
-        SEEN:          'tlr_seen_v4',   // bump version = fresh start
+        SEEN:          'tlr_seen_v5',   // bumped — fresh start
 
-        // ── localStorage ─────────────────────────────────────────────
+        // ── localStorage seen-set ────────────────────────────────────────
         getSeenSet() {
             try { return new Set(JSON.parse(localStorage.getItem(this.SEEN) || '[]')); }
             catch { return new Set(); }
@@ -277,48 +264,23 @@ function tellerNotify(initAccepted, initCompleted, initPending) {
             if (a.length > 800) a = a.slice(-800);
             try { localStorage.setItem(this.SEEN, JSON.stringify(a)); } catch {}
         },
-        isSeen(id) { return this.getSeenSet().has(String(id)); },
-        markSeen(id) {
-            const s = this.getSeenSet();
-            s.add(String(id));
-            this.saveSeenSet(s);
+        isSeen(id)  { return this.getSeenSet().has(String(id)); },
+        markSeen(id){ const s = this.getSeenSet(); s.add(String(id)); this.saveSeenSet(s); },
+
+        // ── MAIN ENTRY — called by x-on:teller-new-notification.window ───
+        // PHP widget dispatches this event when it detects a new record.
+        handleNewRecord(record) {
+            if (!record || !record.id) return;
+            // Only show popup for 'completed' status per requirements,
+            // but show BOTH accepted & completed — remove the filter
+            // below if you only want completed.
+            if (this.isSeen(record.id)) return;
+            this.markSeen(record.id);
+            this.queue.push(record);
+            this.next();
         },
 
-        // ── voice ────────────────────────────────────────────────────
-        speak(rec) {
-            try {
-                if (!('speechSynthesis' in window)) return;
-                window.speechSynthesis.cancel();
-                let msg = rec.popup_type === 'accepted'
-                    ? `{{ __('message.Have new Transfer-OUT') }}. Invoice ${rec.invoice_number}. Account ${rec.acc_name}. Net amount ${rec.currency} ${this.fmt(rec.net_amount)}.`
-                    : `Transfer-OUT {{ __('message.Completed') }}. Invoice ${rec.invoice_number}. Customer ${rec.customer_name}. Net amount ${rec.currency} ${this.fmt(rec.net_amount)}.`;
-                const u = new SpeechSynthesisUtterance(msg);
-                u.lang   = document.documentElement.lang || 'en-US';
-                u.rate   = 0.88;
-                u.volume = 1;
-                window.speechSynthesis.speak(u);
-            } catch(e) { console.warn('[teller] speak error', e); }
-        },
-
-        // ── format number ─────────────────────────────────────────────
-        fmt(n) {
-            return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        },
-        nowTime() {
-            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        },
-
-        // ── queue ────────────────────────────────────────────────────
-        enqueue(accepted, completed) {
-            const all = [...(accepted || this.accepted), ...(completed || this.completed)];
-            const newRecs = all.filter(r => !this.isSeen(r.id));
-            // Mark immediately so next poll won't re-add
-            newRecs.forEach(r => this.markSeen(r.id));
-            if (newRecs.length > 0) {
-                this.queue.push(...newRecs);
-                this.next();
-            }
-        },
+        // ── queue ─────────────────────────────────────────────────────────
         next() {
             if (this.showPopup || this.queue.length === 0) return;
             this.currentRecord = this.queue.shift();
@@ -331,27 +293,37 @@ function tellerNotify(initAccepted, initCompleted, initPending) {
             setTimeout(() => this.next(), 350);
         },
 
-        // ── *** THE KEY FIX ***
-        // PHP widget calls: $this->js("window.tellerReceive({...})")
-        // We register this function on window so PHP can call it directly.
-        boot() {
-            // Register the global receiver that PHP's $this->js() will call
-            window.tellerReceive = (data) => {
-                if (!data) return;
-                this.accepted  = data.accepted  || [];
-                this.completed = data.completed || [];
-                this.pending   = parseInt(data.pendingCount) || 0;
-                this.enqueue(this.accepted, this.completed);
-            };
-
-            // Process records already present on page load
-            this.enqueue();
-
-            console.log('[TellerNotify] Booted. Accepted:', this.accepted.length, 'Completed:', this.completed.length);
+        // ── voice alert ───────────────────────────────────────────────────
+        speak(rec) {
+            try {
+                if (!('speechSynthesis' in window)) return;
+                window.speechSynthesis.cancel();
+                const msg = rec.popup_type === 'completed'
+                    ? `Transfer-OUT {{ __('message.Completed') }}. Invoice ${rec.invoice_number}. Customer ${rec.customer_name}. Net amount ${rec.currency} ${this.fmt(rec.net_amount)}.`
+                    : `{{ __('message.Have new Transfer-OUT') }}. Invoice ${rec.invoice_number}. Account ${rec.acc_name}. Net amount ${rec.currency} ${this.fmt(rec.net_amount)}.`;
+                const u    = new SpeechSynthesisUtterance(msg);
+                u.lang     = document.documentElement.lang || 'en-US';
+                u.rate     = 0.88;
+                u.volume   = 1;
+                window.speechSynthesis.speak(u);
+            } catch(e) { console.warn('[teller] speak error', e); }
         },
 
-        // ── theme: accepted = amber/orange, completed = emerald ───────
-        isC() { return this.currentRecord?.popup_type === 'completed'; },
+        // ── boot — nothing special needed anymore ─────────────────────────
+        boot() {
+            console.log('[TellerNotify] Booted. Listening for teller-new-notification events.');
+        },
+
+        // ── helpers ───────────────────────────────────────────────────────
+        fmt(n) {
+            return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+        },
+        nowTime() {
+            return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        },
+
+        // ── theme ─────────────────────────────────────────────────────────
+        isC()          { return this.currentRecord?.popup_type === 'completed'; },
         cardStyle()    { return this.isC()
             ? 'background:linear-gradient(155deg,#021a0e 0%,#062015 55%,#021a0e 100%);'
             : 'background:linear-gradient(155deg,#1a1000 0%,#211600 55%,#1a1000 100%);'; },

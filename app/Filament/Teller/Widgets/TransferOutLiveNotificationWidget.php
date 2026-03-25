@@ -6,57 +6,61 @@ use App\Models\MoneyTransferInvoice;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Carbon;
 
-/**
- * TransferOutLiveNotificationWidget
- * ───────────────────────────────────
- * FIX: In Filament v3 / Livewire 3, $this->dispatch() dispatches a
- * Livewire event, NOT a browser JS event.
- *
- * To send data to the browser/Alpine, we use $this->js() to execute
- * inline JavaScript directly after every poll. This calls a global
- * function `tellerReceive(data)` that Alpine registers on window.
- *
- * This is 100% reliable in Filament v3 + Livewire 3 on Laravel 12.
- */
 class TransferOutLiveNotificationWidget extends Widget
 {
     protected static string $view = 'filament.teller.widgets.transfer-out-live-notification';
 
-    /**
-     * Livewire polls this widget every 5 seconds.
-     * The widget's own $pollingInterval triggers refreshData() automatically.
-     */
-    protected static ?string $pollingInterval = '5s';
+    protected static bool $isLazy = false;
 
     protected int | string | array $columnSpan = 'full';
 
-    public array $latestAccepted  = [];
-    public array $latestCompleted = [];
-    public int   $pendingCount    = 0;
+    public array  $latestAccepted   = [];
+    public array  $latestCompleted  = [];
+    public int    $pendingCount     = 0;
+    public int    $lastKnownAccepted   = 0;
+    public int    $lastKnownCompleted  = 0;
 
     public function mount(): void
     {
+        $this->lastKnownAccepted  = (int) cache()->get($this->cacheKeyAccepted(),  0);
+        $this->lastKnownCompleted = (int) cache()->get($this->cacheKeyCompleted(), 0);
         $this->loadData();
     }
 
-    /**
-     * Called automatically by Livewire every 5s via pollingInterval.
-     * After loading data, pushes it to the browser via inline JS.
-     */
-    public function refreshData(): void
+    // ── called by wire:poll every 5 s ────────────────────────────────────
+    public function checkNewNotifications(): void
     {
         $this->loadData();
 
-        // ── Push to browser via inline JS execution ─────────────────────
-        // $this->js() runs JavaScript in the browser after Livewire responds.
-        // tellerReceive() is registered on window by the Alpine component.
-        $payload = json_encode([
-            'accepted'     => $this->latestAccepted,
-            'completed'    => $this->latestCompleted,
-            'pendingCount' => $this->pendingCount,
-        ], JSON_UNESCAPED_UNICODE);
+        $currentAccepted  = count($this->latestAccepted);
+        $currentCompleted = count($this->latestCompleted);
 
-        $this->js("if(typeof window.tellerReceive==='function'){window.tellerReceive({$payload});}");
+        // ── new ACCEPTED records? ─────────────────────────────────────────
+        if ($currentAccepted > $this->lastKnownAccepted) {
+            // find only truly new ones (by index offset)
+            $newAccepted = array_slice($this->latestAccepted, 0,
+                $currentAccepted - $this->lastKnownAccepted);
+
+            foreach ($newAccepted as $record) {
+                $this->dispatch('teller-new-notification', record: $record);
+            }
+
+            $this->lastKnownAccepted = $currentAccepted;
+            cache()->put($this->cacheKeyAccepted(), $currentAccepted, 3600);
+        }
+
+        // ── new COMPLETED records? ────────────────────────────────────────
+        if ($currentCompleted > $this->lastKnownCompleted) {
+            $newCompleted = array_slice($this->latestCompleted, 0,
+                $currentCompleted - $this->lastKnownCompleted);
+
+            foreach ($newCompleted as $record) {
+                $this->dispatch('teller-new-notification', record: $record);
+            }
+
+            $this->lastKnownCompleted = $currentCompleted;
+            cache()->put($this->cacheKeyCompleted(), $currentCompleted, 3600);
+        }
     }
 
     private function loadData(): void
@@ -90,7 +94,6 @@ class TransferOutLiveNotificationWidget extends Widget
             ])
             ->toArray();
 
-        // Completed: append '_c' suffix so the ID never collides with accepted
         $this->latestCompleted = MoneyTransferInvoice::query()
             ->where('transfer_type', 'Transfer-OUT')
             ->whereDate('created_at', $today)
@@ -111,5 +114,15 @@ class TransferOutLiveNotificationWidget extends Widget
                 'net_amount'     => (float)  ($r->net_amount     ?? 0),
             ])
             ->toArray();
+    }
+
+    private function cacheKeyAccepted(): string
+    {
+        return 'teller_accepted_count_' . auth()->id();
+    }
+
+    private function cacheKeyCompleted(): string
+    {
+        return 'teller_completed_count_' . auth()->id();
     }
 }
