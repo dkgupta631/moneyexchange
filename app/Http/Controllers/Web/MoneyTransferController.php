@@ -67,7 +67,7 @@ class MoneyTransferController extends Controller
 
         // Generate invoice number
         $now           = now()->setTimezone('Asia/Bangkok');
-        $invoiceNumber = '#TI' . $now->format('dmyHis');
+        $invoiceNumber = '#TI' . $now->format('dmyhis');
 
         // Get logged-in user ID
         $user = Auth::user();

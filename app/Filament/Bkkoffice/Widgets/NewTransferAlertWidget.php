@@ -31,6 +31,7 @@ class NewTransferAlertWidget extends Widget
     {
         return MoneyTransferInvoice::where('status', 'pending_bkk_approval')
             ->where('transfer_type', 'Transfer-OUT')
+            ->whereDate('created_at', today())
             ->count();
     }
 

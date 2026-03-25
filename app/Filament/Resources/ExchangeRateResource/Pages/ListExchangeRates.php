@@ -9,7 +9,10 @@ use Filament\Resources\Pages\ListRecords;
 class ListExchangeRates extends ListRecords
 {
     protected static string $resource = ExchangeRateResource::class;
-
+    public function getBreadcrumb(): string
+    {
+        return __('message.List');
+    }
     protected function getHeaderActions(): array
     {
         return [

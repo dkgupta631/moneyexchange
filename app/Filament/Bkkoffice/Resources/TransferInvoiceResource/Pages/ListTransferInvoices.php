@@ -9,6 +9,10 @@ use Filament\Resources\Pages\ListRecords;
 class ListTransferInvoices extends ListRecords
 {
     protected static string $resource = TransferInvoiceResource::class;
+    public function getBreadcrumb(): string
+    {
+        return __('message.List');
+    }
 
     protected function getHeaderWidgets(): array
     {

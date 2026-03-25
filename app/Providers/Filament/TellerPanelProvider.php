@@ -19,6 +19,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 use App\Filament\Helper\CustomLogin;
+use App\Filament\Teller\Pages\TellerDashboard;
 
 class TellerPanelProvider extends PanelProvider
 {
@@ -27,48 +28,41 @@ class TellerPanelProvider extends PanelProvider
         return $panel
             ->id('teller')
             ->path('teller')
-            ->authGuard('teller') 
+            ->authGuard('teller')
             ->login(CustomLogin::class)
             ->profile()
             ->colors([
                 'primary' => Color::Purple,
             ])
-             // Created by DK START
+            // ─── Layout / Branding ────────────────────────────────────────
             ->maxContentWidth('full')
-            // ->viteTheme('resources/css/app.css')
-            // ->topNavigation()
             ->font('Poppins')
-            // ->favicon(fn () => view('filament.faviconlogo'))
             ->favicon(url('website/assets/logo/logo2.png'))
-            ->brandLogo(fn () => view('filament.logo')) // Dashboard sidebar logo
+            ->brandLogo(fn () => view('filament.logo'))
             ->sidebarCollapsibleOnDesktop()
-            ->userMenuItems([
-                // 'profile' => MenuItem::make('profile')
-                //     ->label(fn (): string => 'Profile')
-                //     ->url(fn (): string => Profile::getUrl()),
-
-                // 'change-password' => MenuItem::make('Change Password')
-                //     ->url(fn (): string => ChangePassword::getUrl())
-                //     ->label(fn (): string => 'Change Password')
-                //     ->icon('heroicon-s-lock-closed'),
-            ])
-            // ->databaseNotifications()
-            // ->databaseNotificationsPolling('30s')
-              // Created by DK END
-              
-            // ->colors([
-            //     'primary' => Color::Amber,
-            // ])
-            ->discoverResources(in: app_path('Filament/Teller/Resources'), for: 'App\\Filament\\Teller\\Resources')
-            ->discoverPages(in: app_path('Filament/Teller/Pages'), for: 'App\\Filament\\Teller\\Pages')
+            // ─── Dashboard ────────────────────────────────────────────────
             ->pages([
-                Pages\Dashboard::class,
+                TellerDashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Teller/Widgets'), for: 'App\\Filament\\Teller\\Widgets')
+            // ─── Resources ────────────────────────────────────────────────
+            ->discoverResources(
+                in: app_path('Filament/Teller/Resources'),
+                for: 'App\\Filament\\Teller\\Resources'
+            )
+            ->discoverPages(
+                in: app_path('Filament/Teller/Pages'),
+                for: 'App\\Filament\\Teller\\Pages'
+            )
+            // ─── Widgets ─────────────────────────────────────────────────
+            ->discoverWidgets(
+                in: app_path('Filament/Teller/Widgets'),
+                for: 'App\\Filament\\Teller\\Widgets'
+            )
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                // Keep default Filament info widgets removed;
+                // We load custom ones via Dashboard page.
             ])
+            // ─── Middleware ───────────────────────────────────────────────
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

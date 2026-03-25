@@ -123,7 +123,7 @@ class TransferInvoiceResource extends Resource
                 ->state(fn($column) => $column->getRowLoop()->iteration),
                 TextColumn::make('created_at')
                     ->label(__('message.Time'))
-                    ->dateTime('d M Y H:i')
+                    ->dateTime('d M Y h:i')
                     ->sortable()
                     ->color('gray'),
 
@@ -143,36 +143,34 @@ class TransferInvoiceResource extends Resource
                     ->label(__('message.Phone'))
                     ->default('—'),
 
-                TextColumn::make('bank_name')
-                    ->label(__('message.Bank Name'))
-                    ->badge()
-                    ->color('info'),
-
-                TextColumn::make('acc_number')
-                    ->label(__('message.Account Number'))
-                    ->copyable(),
-
-                TextColumn::make('currency')
-                    ->label(__('message.Currency'))
-                    ->badge(),
-
-                TextColumn::make('entered_amount')
+                TextColumn::make('bank_details')
+                    ->label(__('message.Bank Details'))
+                    ->getStateUsing(function ($record) {
+                        return "{$record->bank_name} - {$record->acc_number} - {$record->acc_name}";
+                    })
+                    ->searchable()
+                    ->copyable()
+                    ->wrap(),
+               TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
-                    ->numeric(thousandsSeparator: ',')
-                    ->color('warning')
-                    ->weight('bold'),
-
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->currency . ' ' . $state;
+                    })
+                    ->sortable()
+                    ->alignRight(),
                 TextColumn::make('trf_fee')
-                    ->label(__('message.Fee'))
-                    ->numeric(thousandsSeparator: ',')
-                    ->color('gray'),
-
+                    ->label(__('message.Transfer Fee'))
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->currency . ' ' . $state;
+                    })
+                    ->sortable(),
                 TextColumn::make('net_amount')
                     ->label(__('message.Net Amount'))
-                    ->numeric(thousandsSeparator: ',')
-                    ->color('success')
-                    ->weight('bold'),
-
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->currency . ' ' . $state;
+                    })
+                    ->sortable()
+                    ->weight('bold')->color('success'),
                 TextColumn::make('transaction_slip')
                     ->label(__('message.Slip'))
                     ->formatStateUsing(fn ($state) => $state
