@@ -67,7 +67,7 @@ class MoneyTransferController extends Controller
 
         // Generate invoice number
         $now           = now()->setTimezone('Asia/Bangkok');
-        $invoiceNumber = '#TI' . $now->format('dmyHis');
+        $invoiceNumber = '#TI' . $now->format('dmyhis');
 
         // Get logged-in user ID
         $user = Auth::user();
@@ -83,7 +83,7 @@ class MoneyTransferController extends Controller
             'bank_name'             => $validated['bank_name'],
             'acc_name'              => $validated['acc_name'],
             'acc_number'            => $validated['acc_number'],
-            'currency'              => $validated['currency'] ?? 'THB',
+            'currency'              => $request->currency ?? 'THB',
             'entered_amount'        => $enteredAmount,
             'trf_fee_in_persentage' => $request->trf_fee_in_persentage,
             'trf_fee'               => $request->trf_fee,
@@ -152,7 +152,7 @@ class MoneyTransferController extends Controller
             'bank_name'             => $validated['bank_name'],
             'acc_name'              => $validated['acc_name'],
             'acc_number'            => $validated['acc_number'],
-            'currency'              => $validated['currency'] ?? 'THB',
+            'currency'              => $request->currency ?? 'THB',
             'entered_amount'        => $enteredAmount,
             'trf_fee_in_persentage' => $request->trf_fee_in_persentage,
             'trf_fee'               => $request->trf_fee,

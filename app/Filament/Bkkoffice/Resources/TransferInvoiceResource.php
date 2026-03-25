@@ -97,6 +97,12 @@ class TransferInvoiceResource extends Resource
                             'Rejected'             => __('message.Rejected'),
                             'cancelled'            => __('message.Cancelled'),
                         ]),
+                    Forms\Components\Textarea::make('reject_reason')
+                        ->label(__('message.Reason for Rejection'))
+                        ->disabled()
+                        ->rows(2)
+                        ->columnSpanFull()
+                        ->visible(fn ($record) => $record?->status === 'Rejected'),
                 ])->columns(2),
         ]);
     }
@@ -108,62 +114,70 @@ class TransferInvoiceResource extends Resource
                 MoneyTransferInvoice::query()
                     ->where('transfer_type', 'Transfer-OUT')
                     ->whereDate('created_at', today())
-                    // ->orderByRaw("FIELD(status, 'pending_bkk_approval', 'accepted_bkk', 'completed', 'Rejected', 'cancelled')")
                     ->orderBy('id', 'desc')
             )
             ->columns([
-                TextColumn::make('Serial_number')
-                    ->label(__('message.Serial number'))
-                    ->badge()
-                    ->state(fn($column) => $column->getRowLoop()->iteration),
+                 TextColumn::make('Serial_number')
+                ->label(__('message.Serial number'))
+                ->badge()
+                ->state(fn($column) => $column->getRowLoop()->iteration),
                 TextColumn::make('created_at')
                     ->label(__('message.Time'))
                     ->dateTime('d M Y h:i')
                     ->sortable()
                     ->color('gray'),
+
                 TextColumn::make('invoice_number')
                     ->label(__('message.Invoice #'))
                     ->searchable()
                     ->copyable()
                     ->weight('bold')
                     ->color('primary'),
+
                 TextColumn::make('customer_name')
                     ->label(__('message.Customer'))
                     ->searchable()
                     ->default('—'),
+
                 TextColumn::make('phone')
                     ->label(__('message.Phone'))
                     ->default('—'),
-                TextColumn::make('bank_name')
-                    ->label(__('message.Bank Name'))
-                    ->badge()
-                    ->color('info'),
-                TextColumn::make('acc_number')
-                    ->label(__('message.Account Number'))
-                    ->copyable(),
-                TextColumn::make('currency')
-                    ->label(__('message.Currency'))
-                    ->badge(),
-                TextColumn::make('entered_amount')
+
+                TextColumn::make('bank_details')
+                    ->label(__('message.Bank Details'))
+                    ->getStateUsing(function ($record) {
+                        return "{$record->bank_name} - {$record->acc_number} - {$record->acc_name}";
+                    })
+                    ->searchable()
+                    ->copyable()
+                    ->wrap(),
+               TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
-                    ->numeric(thousandsSeparator: ',')
-                    ->color('warning')
-                    ->weight('bold'),
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->currency . ' ' . $state;
+                    })
+                    ->sortable()
+                    ->alignRight(),
                 TextColumn::make('trf_fee')
-                    ->label(__('message.Fee'))
-                    ->numeric(thousandsSeparator: ',')
-                    ->color('gray'),
+                    ->label(__('message.Transfer Fee'))
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->currency . ' ' . $state;
+                    })
+                    ->sortable(),
                 TextColumn::make('net_amount')
                     ->label(__('message.Net Amount'))
-                    ->numeric(thousandsSeparator: ',')
-                    ->color('success')
-                    ->weight('bold'),
+                    ->formatStateUsing(function ($state, $record) {
+                        return $record->currency . ' ' . $state;
+                    })
+                    ->sortable()
+                    ->weight('bold')->color('success'),
                 TextColumn::make('transaction_slip')
                     ->label(__('message.Slip'))
                     ->formatStateUsing(fn ($state) => $state
                         ? '✅ ' . __('message.Uploaded')
                         : '—')
                     ->color(fn ($state) => $state ? 'success' : 'gray'),
+
                 Tables\Columns\BadgeColumn::make('status')
                     ->label(__('message.Status'))
                     ->colors([
@@ -222,6 +236,7 @@ class TransferInvoiceResource extends Resource
                     })
                     ->visible(fn (MoneyTransferInvoice $record) => $record->status === 'pending_bkk_approval'),
 
+                // ✅ FIXED: reject_reason now saved to DB
                 Action::make('reject')
                     ->label(__('message.Reject'))
                     ->icon('heroicon-o-x-circle')
@@ -232,11 +247,17 @@ class TransferInvoiceResource extends Resource
                     ->form([
                         Forms\Components\Textarea::make('reject_reason')
                             ->label(__('message.Reason for Rejection'))
+                            ->placeholder(__('message.Enter reason for rejection...'))
                             ->required()
-                            ->rows(3),
+                            ->minLength(3)
+                            ->rows(4),
                     ])
                     ->action(function (MoneyTransferInvoice $record, array $data) {
-                        $record->update(['status' => 'Rejected']);
+                        // ✅ Save both status AND reject_reason
+                        $record->update([
+                            'status'        => 'Rejected',
+                            'reject_reason' => $data['reject_reason'],
+                        ]);
 
                         Notification::make()
                             ->title(__('message.Transfer Rejected'))

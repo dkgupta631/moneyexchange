@@ -996,16 +996,13 @@ return [
     'New Transfer-OUT Request!'   => 'คำขอโอนย้ายออกใหม่!',
     'Requires your immediate attention' => 'เรื่องนี้ต้องการความสนใจจากคุณโดยทันที',
     'Auto-refreshing every'    => 'รีเฟรชอัตโนมัติทุกๆ',
-    "Pending Approval" => "รอการอนุมัติ",
-    "Accepted Today" => "ได้รับการยอมรับแล้ววันนี้",
-    "Completed Today" => "เสร็จวันนี้",
-    "Rejected Today" => "ถูกปฏิเสธในวันนี้",
     "Awaiting your action" => "กำลังรอการดำเนินการของคุณ",
     "Processing in progress" => "อยู่ระหว่างดำเนินการ",
     "Review if needed" => "ตรวจสอบหากจำเป็น",
     "awaiting your approval" => "รอการอนุมัติจากคุณ",
     "Invoice Accepted" => "ใบแจ้งหนี้ :invoice ได้รับการอนุมัติเรียบร้อยแล้ว",
     "Invoice Rejected" => "ใบแจ้งหนี้ :invoice ถูกปฏิเสธ",
+    "Enter reason for rejection..." => "ระบุเหตุผลในการปฏิเสธ...",
     
     
     

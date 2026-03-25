@@ -34,7 +34,7 @@ class BkkofficePanelProvider extends PanelProvider
             ->login(CustomLogin::class)
             ->profile()
             ->colors([
-                'primary' => Color::Purple,
+                'primary' => Color::Green,
             ])
              // Created by DK START
             ->maxContentWidth('full')
