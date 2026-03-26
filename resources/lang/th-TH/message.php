@@ -1003,6 +1003,15 @@ return [
     "Invoice Accepted" => "ใบแจ้งหนี้ :invoice ได้รับการอนุมัติเรียบร้อยแล้ว",
     "Invoice Rejected" => "ใบแจ้งหนี้ :invoice ถูกปฏิเสธ",
     "Enter reason for rejection..." => "ระบุเหตุผลในการปฏิเสธ...",
+    "Reject Reason" => "ปฏิเสธเหตุผล",
+    "Today Transfer-OUT" => "วันนี้โอนออก",
+    "No Transfer-OUT requests today" => "ไม่มีคำขอโอนย้ายออกในวันนี้",
+    "No slip uploaded" => "ไม่มีการอัพโหลดสลิป",
+    "Download Slip" => "ดาวน์โหลดสลิป",
+    "Close" => "ปิด",
+    "Transfer Requests" => "คำขอโอน",
+    "Received at" => "รับได้ที่",
+    "Rejected Successfully" => "ปฏิเสธสำเร็จแล้ว",
     
     
     
