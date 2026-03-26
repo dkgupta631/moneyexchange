@@ -3,7 +3,6 @@
 namespace App\Filament\Teller\Resources;
 
 use App\Filament\Teller\Resources\TransferOutResource\Pages;
-use App\Filament\Teller\Exports\TransferOutExport;
 use App\Models\MoneyTransferInvoice;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms;
@@ -18,8 +17,10 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TransferOutResource extends Resource
 {
@@ -56,6 +57,7 @@ class TransferOutResource extends Resource
     {
         $count = static::getEloquentQuery()
             ->whereIn('status', ['pending_bkk_approval', 'accepted_bkk'])
+            ->whereDate('created_at', Carbon::today())
             ->count();
 
         return $count > 0 ? (string) $count : null;
@@ -65,6 +67,7 @@ class TransferOutResource extends Resource
     {
         $count = static::getEloquentQuery()
             ->whereIn('status', ['pending_bkk_approval', 'accepted_bkk'])
+            ->whereDate('created_at', Carbon::today())
             ->count();
 
         return $count > 0 ? 'warning' : 'success';
@@ -248,7 +251,7 @@ class TransferOutResource extends Resource
                     ->label(__('message.Reject'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-                    ->tooltip(__('message.Reject Transfer'))
+                    ->tooltip(__('message.Reject Transfer Request'))
                     ->modalHeading(__('message.Reject Transfer Request'))
                     ->modalDescription(
                         fn (MoneyTransferInvoice $record) =>
@@ -269,7 +272,9 @@ class TransferOutResource extends Resource
                         ]);
                         Notification::make()
                             ->title(__('message.Rejected Successfully'))
+                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.has been rejected.'))
                             ->danger()->send();
+                         
                     })
                     ->visible(fn (MoneyTransferInvoice $record): bool =>
                         in_array($record->status, ['pending_bkk_approval', 'accepted_bkk'])
@@ -278,55 +283,28 @@ class TransferOutResource extends Resource
 
             // ── Header Actions: Export Excel + PDF ───────────────────────────
             ->headerActions([
-
                 // Export to Excel — respects active filters
                 ExportAction::make('export_excel')
                     ->label(__('message.Export'))
                     ->icon('heroicon-o-table-cells')
                     ->color('success')
                     ->exports([
-                        TransferOutExport::make()
-                            ->fromTable()
-                            ->withFilename(
-                                'Transfer-OUT_' . Carbon::today()->format('Y-m-d')
-                            ),
+                         ExcelExport::make()->fromTable()->except([
+                            'Serial_number', 'updated_at',
+                        ]),
                     ]),
-
-                // Export to PDF — respects active filters
-                Action::make('export_pdf')
-                    ->label(__('message.PDF'))
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('danger')
-                    ->action(function ($livewire) {
-                        $records = $livewire->getFilteredTableQuery()->get();
-
-                        $pdf = Pdf::loadView('filament.teller.exports.transfer-out-pdf', [
-                            'records'   => $records,
-                            'date'      => Carbon::today()->format('d M Y'),
-                            'total'     => $records->sum('net_amount'),
-                            'currency'  => $records->first()?->currency ?? 'THB',
-                            'pending'   => $records->where('status', 'pending_bkk_approval')->count(),
-                            'accepted'  => $records->where('status', 'accepted_bkk')->count(),
-                            'completed' => $records->where('status', 'completed')->count(),
-                            'rejected'  => $records->where('status', 'Rejected')->count(),
-                        ])->setPaper('a4', 'landscape');
-
-                        $filename = 'Transfer-OUT_' . Carbon::today()->format('Y-m-d') . '.pdf';
-
-                        return response()->streamDownload(
-                            fn () => print($pdf->output()),
-                            $filename,
-                            ['Content-Type' => 'application/pdf']
-                        );
-                    }),
             ])
 
             // ── Bulk Actions ─────────────────────────────────────────────────
             ->bulkActions([
-                ExportBulkAction::make('bulk_export_excel')
-                    ->label(__('message.Export Excel'))
+
+                 ExportBulkAction::make('bulk_export_excel')
+                    ->label(__('message.Export'))
+                    ->color('success')
                     ->exports([
-                        TransferOutExport::make(),
+                         ExcelExport::make()->fromTable()->except([
+                            'Serial_number', 'updated_at',
+                        ]),
                     ]),
             ])
 

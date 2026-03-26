@@ -1002,6 +1002,15 @@ return [
     "Invoice Accepted" => "វិក្កយបត្រ #:invoice ត្រូវបានអនុម័តដោយជោគជ័យ",
     "Invoice Rejected" => "វិក្កយបត្រ #:invoice ត្រូវបានបដិសេធ",
     "Enter reason for rejection..." => "បញ្ចូលហេតុផលសម្រាប់ការបដិសេធ...",
+    "Reject Reason" => "មូលហេតុបដិសេធ",
+    "Today Transfer-OUT" => "ការផ្ទេរចេញថ្ងៃនេះ",
+    "No Transfer-OUT requests today" => "មិនមានសំណើផ្ទេរចេញថ្ងៃនេះទេ",
+    "No slip uploaded" => "មិនមានការអាប់ឡូតស្លិប",
+    "Download Slip" => "ទាញយកស្លិប",
+    "Close" => "បិទ",
+    "Transfer Requests" => "សំណើផ្ទេរ",
+    "Received at" => "ទទួលនៅ",
+    "Rejected Successfully" => "បដិសេធដោយជោគជ័យ",
 
 
     
