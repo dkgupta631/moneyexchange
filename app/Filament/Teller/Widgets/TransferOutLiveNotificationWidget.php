@@ -15,7 +15,7 @@ class TransferOutLiveNotificationWidget extends Widget
 
     protected int | string | array $columnSpan = 'full';
 
-    public array $latestAccepted  = [];
+    // public array $latestAccepted  = [];
     public array $latestCompleted = [];
     public int   $pendingCount    = 0;
 
@@ -24,14 +24,14 @@ class TransferOutLiveNotificationWidget extends Widget
      * Count-based diffing double-fires when multiple records
      * change status in the same poll interval.
      */
-    public array $seenAcceptedIds  = [];
+    // public array $seenAcceptedIds  = [];
     public array $seenCompletedIds = [];
 
     public function mount(): void
     {
         // Restore seen IDs from cache so a page refresh doesn't
         // re-fire notifications for records the user already saw.
-        $this->seenAcceptedIds  = (array) cache()->get($this->cacheKeyAccepted(),  []);
+        // $this->seenAcceptedIds  = (array) cache()->get($this->cacheKeyAccepted(),  []);
         $this->seenCompletedIds = (array) cache()->get($this->cacheKeyCompleted(), []);
 
         $this->loadData();
@@ -43,25 +43,25 @@ class TransferOutLiveNotificationWidget extends Widget
         $this->loadData();
 
         // ── new ACCEPTED records? ─────────────────────────────────────────
-        $newAccepted = array_filter(
-            $this->latestAccepted,
-            fn($r) => ! in_array($r['id'], $this->seenAcceptedIds, true)
-        );
+        // $newAccepted = array_filter(
+        //     $this->latestAccepted,
+        //     fn($r) => ! in_array($r['id'], $this->seenAcceptedIds, true)
+        // );
 
-        foreach ($newAccepted as $record) {
-            // Dispatch browser event so Alpine/JS listeners can react
-            // (e.g. open a popup modal). The Filament notification is
-            // sent in the Livewire action called back from the view.
-            $this->dispatch('teller-new-notification', record: $record);
-        }
+        // foreach ($newAccepted as $record) {
+        //     // Dispatch browser event so Alpine/JS listeners can react
+        //     // (e.g. open a popup modal). The Filament notification is
+        //     // sent in the Livewire action called back from the view.
+        //     $this->dispatch('teller-new-notification', record: $record);
+        // }
 
-        if (! empty($newAccepted)) {
-            $newIds = array_column($newAccepted, 'id');
-            $this->seenAcceptedIds = array_values(
-                array_unique(array_merge($this->seenAcceptedIds, $newIds))
-            );
-            cache()->put($this->cacheKeyAccepted(), $this->seenAcceptedIds, 3600);
-        }
+        // if (! empty($newAccepted)) {
+        //     $newIds = array_column($newAccepted, 'id');
+        //     $this->seenAcceptedIds = array_values(
+        //         array_unique(array_merge($this->seenAcceptedIds, $newIds))
+        //     );
+        //     cache()->put($this->cacheKeyAccepted(), $this->seenAcceptedIds, 3600);
+        // }
 
         // ── new COMPLETED records? ────────────────────────────────────────
         $newCompleted = array_filter(
@@ -127,26 +127,26 @@ class TransferOutLiveNotificationWidget extends Widget
             ->whereIn('status', ['pending_bkk_approval', 'accepted_bkk'])
             ->count();
 
-        $this->latestAccepted = MoneyTransferInvoice::query()
-            ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', $today)
-            ->where('status', 'accepted_bkk')
-            ->orderByDesc('updated_at')
-            ->limit(20)
-            ->get()
-            ->map(fn ($r) => [
-                'id'             => (string) $r->id,
-                'popup_type'     => 'accepted',
-                'invoice_number' => (string) ($r->invoice_number ?? ''),
-                'customer_name'  => (string) ($r->customer_name  ?? ''),
-                'bank_name'      => (string) ($r->bank_name      ?? ''),
-                'acc_name'       => (string) ($r->acc_name       ?? ''),
-                'acc_number'     => (string) ($r->acc_number     ?? ''),
-                'currency'       => (string) ($r->currency       ?? 'THB'),
-                'entered_amount' => (float)  ($r->entered_amount ?? 0),
-                'net_amount'     => (float)  ($r->net_amount     ?? 0),
-            ])
-            ->toArray();
+        // $this->latestAccepted = MoneyTransferInvoice::query()
+        //     ->where('transfer_type', 'Transfer-OUT')
+        //     ->whereDate('created_at', $today)
+        //     ->where('status', 'accepted_bkk')
+        //     ->orderByDesc('updated_at')
+        //     ->limit(20)
+        //     ->get()
+        //     ->map(fn ($r) => [
+        //         'id'             => (string) $r->id,
+        //         'popup_type'     => 'accepted',
+        //         'invoice_number' => (string) ($r->invoice_number ?? ''),
+        //         'customer_name'  => (string) ($r->customer_name  ?? ''),
+        //         'bank_name'      => (string) ($r->bank_name      ?? ''),
+        //         'acc_name'       => (string) ($r->acc_name       ?? ''),
+        //         'acc_number'     => (string) ($r->acc_number     ?? ''),
+        //         'currency'       => (string) ($r->currency       ?? 'THB'),
+        //         'entered_amount' => (float)  ($r->entered_amount ?? 0),
+        //         'net_amount'     => (float)  ($r->net_amount     ?? 0),
+        //     ])
+        //     ->toArray();
 
         $this->latestCompleted = MoneyTransferInvoice::query()
             ->where('transfer_type', 'Transfer-OUT')

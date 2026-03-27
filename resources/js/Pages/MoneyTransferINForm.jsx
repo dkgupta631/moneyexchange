@@ -58,7 +58,9 @@ function BankImg({ bank, size = 34, appUrl }) {
                 borderRadius: "50%",
                 objectFit: "cover",
                 flexShrink: 0,
-                border: "2px solid rgba(39,174,96,0.15)",
+                borderWidth: "2px",
+                borderStyle: "solid",
+                borderColor: "rgba(39,174,96,0.15)",
                 background: "#f0faf4",
             }}
         />
@@ -71,7 +73,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
 
     const feePercentage = gettransferchanges.trf_fee_in_persentage ?? 0;
 
-    // "with-fee" = use fetched percentage | "no-fee" = 0%
+    // "with-fee" = deduct from amount | "no-fee" = customer pays fee in cash
     const [feeMode, setFeeMode] = useState("with-fee");
 
     const { data, setData, post, processing, errors } = useForm({
@@ -112,27 +114,45 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
         return () => document.removeEventListener("mousedown", fn);
     }, []);
 
-    /* Recalculate whenever amount OR fee mode changes — single source of truth */
+    /* ─────────────────────────────────────────────────────────────
+       Recalculate whenever amount OR fee mode changes.
+
+       "with-fee"  → fee IS deducted  → net = entered − fee
+       "no-fee"    → fee paid in cash → net = entered (unchanged)
+                     BUT fee is still calculated & saved to DB so
+                     we have a full record of the cash amount owed.
+    ───────────────────────────────────────────────────────────── */
     useEffect(() => {
         const amount = parseFloat(data.entered_amount);
-        // Always keep trf_fee_in_persentage in sync with the radio selection
-        const currentFee = feeMode === "with-fee" ? feePercentage : 0;
 
         if (!isNaN(amount) && amount > 0) {
-            const fee = parseFloat(((amount * currentFee) / 100).toFixed(2));
-            const net = parseFloat((amount - fee).toFixed(2));
-            setSummary({ entered: amount, fee, net, feePercentage: currentFee });
+            // Always calculate the real fee amount for display + DB
+            const feeAmount = parseFloat(((amount * feePercentage) / 100).toFixed(2));
+
+            // net = full amount when customer pays fee in cash separately
+            const net = feeMode === "no-fee"
+                ? amount
+                : parseFloat((amount - feeAmount).toFixed(2));
+
+            setSummary({
+                entered:       amount,
+                fee:           feeAmount,
+                net,
+                feePercentage: feePercentage,   // always show real %
+                noFeeMode:     feeMode === "no-fee",
+            });
+
             setData(prev => ({
                 ...prev,
-                trf_fee_in_persentage: currentFee,
-                trf_fee:               fee.toFixed(2),   // e.g. "40.00" or "0.00"
-                net_amount:            net.toFixed(2),   // e.g. "1960.00"
+                trf_fee_in_persentage: feePercentage,       // always save real %
+                trf_fee:               feeAmount.toFixed(2), // always save fee $
+                net_amount:            net.toFixed(2),
             }));
         } else {
             setSummary(null);
             setData(prev => ({
                 ...prev,
-                trf_fee_in_persentage: currentFee,
+                trf_fee_in_persentage: feePercentage,
                 trf_fee:               "0.00",
                 net_amount:            "",
             }));
@@ -555,7 +575,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                         </div>
                         <div style={S.feeRadioRow}>
 
-                            {/* Option 1: Apply fee */}
+                            {/* Option 1: Apply fee — deducted from amount */}
                             <label style={{
                                 ...S.feeRadioLabel,
                                 ...(feeMode === "with-fee" ? S.feeRadioLabelActive : {}),
@@ -583,11 +603,15 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                         {feePercentage}% {t('deducted')}
                                     </span>
                                 </div>
+                                {/* ✅ FIX: Use inline style object with all longhand border props — no shorthand mixing */}
                                 <span style={{
                                     ...S.feeBadge,
-                                    background: feeMode === "with-fee" ? "rgba(26,122,71,.12)" : "#f4fbf6",
-                                    color:      feeMode === "with-fee" ? "#1a7a47"             : "#a8d5b5",
-                                    borderColor: feeMode === "with-fee" ? "rgba(26,122,71,.3)" : "transparent",
+                                    background:    feeMode === "with-fee" ? "rgba(26,122,71,.12)" : "#f4fbf6",
+                                    color:         feeMode === "with-fee" ? "#1a7a47"             : "#a8d5b5",
+                                    borderTopColor:    feeMode === "with-fee" ? "rgba(26,122,71,.3)" : "transparent",
+                                    borderRightColor:  feeMode === "with-fee" ? "rgba(26,122,71,.3)" : "transparent",
+                                    borderBottomColor: feeMode === "with-fee" ? "rgba(26,122,71,.3)" : "transparent",
+                                    borderLeftColor:   feeMode === "with-fee" ? "rgba(26,122,71,.3)" : "transparent",
                                 }}>
                                     {feePercentage}%
                                 </span>
@@ -595,7 +619,7 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
 
                             <div style={S.feeRadioDivider} />
 
-                            {/* Option 2: No fee */}
+                            {/* Option 2: No fee — customer pays cash, full amount sent */}
                             <label style={{
                                 ...S.feeRadioLabel,
                                 ...(feeMode === "no-fee" ? S.feeRadioLabelNoFeeActive : {}),
@@ -620,16 +644,20 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                         ...S.feeRadioSub,
                                         color: feeMode === "no-fee" ? "#0d9488" : "#a8d5b5",
                                     }}>
-                                        0% — {t('full amount received')}
+                                        {t('fee paid in separately')}
                                     </span>
                                 </div>
+                                {/* ✅ FIX: Use inline style object with all longhand border props — no shorthand mixing */}
                                 <span style={{
                                     ...S.feeBadge,
-                                    background:  feeMode === "no-fee" ? "rgba(13,148,136,.10)" : "#f4fbf6",
-                                    color:       feeMode === "no-fee" ? "#0d9488"              : "#a8d5b5",
-                                    borderColor: feeMode === "no-fee" ? "rgba(13,148,136,.3)"  : "transparent",
+                                    background:    feeMode === "no-fee" ? "rgba(13,148,136,.10)" : "#f4fbf6",
+                                    color:         feeMode === "no-fee" ? "#0d9488"              : "#a8d5b5",
+                                    borderTopColor:    feeMode === "no-fee" ? "rgba(13,148,136,.3)" : "transparent",
+                                    borderRightColor:  feeMode === "no-fee" ? "rgba(13,148,136,.3)" : "transparent",
+                                    borderBottomColor: feeMode === "no-fee" ? "rgba(13,148,136,.3)" : "transparent",
+                                    borderLeftColor:   feeMode === "no-fee" ? "rgba(13,148,136,.3)" : "transparent",
                                 }}>
-                                    0%
+                                    Cash
                                 </span>
                             </label>
                         </div>
@@ -689,21 +717,51 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                                     marginLeft: "auto",
                                     fontSize: "10px", fontWeight: "700",
                                     padding: "2px 9px", borderRadius: "999px",
-                                    background: feeMode === "no-fee" ? "rgba(13,148,136,.10)" : "rgba(26,122,71,.10)",
-                                    color:      feeMode === "no-fee" ? "#0d9488"              : "#1a7a47",
-                                    border: `1px solid ${feeMode === "no-fee" ? "rgba(13,148,136,.25)" : "rgba(26,122,71,.20)"}`,
+                                    background: summary.noFeeMode
+                                        ? "rgba(13,148,136,.10)"
+                                        : "rgba(26,122,71,.10)",
+                                    color: summary.noFeeMode ? "#0d9488" : "#1a7a47",
+                                    borderWidth: "1px",
+                                    borderStyle: "solid",
+                                    borderColor: summary.noFeeMode ? "rgba(13,148,136,.25)" : "rgba(26,122,71,.20)",
                                 }}>
-                                    {feeMode === "no-fee" ? t("No Fee Applied") : `${feePercentage}% ${t("Fee Applied")}`}
+                                    {summary.noFeeMode
+                                        ? t("Fee Paid in Cash")
+                                        : `${feePercentage}% ${t("Fee Applied")}`}
                                 </span>
                             </div>
                             <div style={S.div} />
                             <SR label={t('Entered Amount')} val={`฿${fmt(summary.entered)} THB`} />
+
+                            {/* ── Transfer Fee row
+                                with-fee  → "− ฿40.00 THB"  red    (deducted from amount)
+                                no-fee    → "+ ฿40.00 THB"  teal   (paid in cash, not deducted)
+                            ── */}
                             <SR
                                 label={`${t('Transfer Fee')} (${summary.feePercentage}%)`}
-                                val={summary.feePercentage === 0 ? `฿0.00 THB` : `− ฿${fmt(summary.fee)} THB`}
-                                red={summary.feePercentage > 0}
-                                green={summary.feePercentage === 0}
+                                val={
+                                    summary.fee === 0
+                                        ? `฿0.00 THB`
+                                        : summary.noFeeMode
+                                            ? `+ ฿${fmt(summary.fee)} THB`
+                                            : `− ฿${fmt(summary.fee)} THB`
+                                }
+                                red={!summary.noFeeMode && summary.fee > 0}
+                                teal={summary.noFeeMode && summary.fee > 0}
                             />
+
+                            {/* Cash fee info note */}
+                            {summary.noFeeMode && summary.fee > 0 && (
+                                <div style={S.cashFeeNote}>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.5">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <line x1="12" y1="8" x2="12" y2="12"/>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                                    </svg>
+                                    {t('Customer pays fee in separately')}
+                                </div>
+                            )}
+
                             <div style={S.div} />
                             <div style={{ ...S.sRow, paddingTop: 5 }}>
                                 <span style={S.sumTotalLbl}>{t('Net Receive Amount')}</span>
@@ -766,13 +824,15 @@ function Field({ label, required, optional, t, error, children, style }) {
     );
 }
 
-function SR({ label, val, red, green }) {
+/* SR supports red (deducted fee) and teal (cash fee) */
+function SR({ label, val, red, teal, green }) {
     return (
         <div style={S.sRow}>
             <span style={S.sLbl}>{label}</span>
             <span style={{
                 ...S.sVal,
                 ...(red   ? { color: "#dc2626", fontWeight: 700 } : {}),
+                ...(teal  ? { color: "#0d9488", fontWeight: 700 } : {}),
                 ...(green ? { color: "#0d9488", fontWeight: 700 } : {}),
             }}>{val}</span>
         </div>
@@ -799,7 +859,9 @@ const S = {
         boxShadow: "0 20px 60px rgba(26,122,71,.14), 0 4px 16px rgba(0,0,0,.06)",
         width: "100%", maxWidth: "660px",
         animation: "fadeUp .5s cubic-bezier(.22,.68,0,1.2) both",
-        border: "1.5px solid rgba(39,174,96,.10)",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "rgba(39,174,96,.10)",
         marginTop: "80px",
         overflow: "hidden",
     },
@@ -821,7 +883,9 @@ const S = {
         background: "rgba(255,255,255,.15)",
         display: "flex", alignItems: "center", justifyContent: "center",
         margin: "0 auto",
-        border: "1.5px solid rgba(255,255,255,.25)",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "rgba(255,255,255,.25)",
         boxShadow: "0 4px 20px rgba(0,0,0,.12)",
     },
     hTitle: { fontFamily: "'DM Sans', sans-serif", fontSize: "24px", fontWeight: "700", color: "#fff", letterSpacing: "2.5px", marginBottom: "4px", position: "relative", zIndex: 1 },
@@ -831,7 +895,9 @@ const S = {
         background: "rgba(255,255,255,.18)", color: "#fff",
         borderRadius: "999px", padding: "4px 14px", fontSize: "11px",
         fontWeight: "700", letterSpacing: ".7px",
-        border: "1px solid rgba(255,255,255,.3)",
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: "rgba(255,255,255,.3)",
         position: "relative", zIndex: 1,
     },
 
@@ -870,7 +936,9 @@ const S = {
     fromSection: {
         background: "linear-gradient(145deg, #f4fbf6 0%, #ebf7ee 100%)",
         borderRadius: "18px",
-        border: "1.5px solid rgba(39,174,96,.16)",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "rgba(39,174,96,.16)",
         overflow: "hidden",
         boxShadow: "0 4px 20px rgba(26,122,71,.08), inset 0 1px 0 rgba(255,255,255,.8)",
     },
@@ -878,7 +946,9 @@ const S = {
         background: "linear-gradient(135deg, rgba(26,122,71,.06) 0%, rgba(39,174,96,.06) 100%)",
         padding: "14px 18px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        borderBottom: "1px solid rgba(39,174,96,.12)",
+        borderBottomWidth: "1px",
+        borderBottomStyle: "solid",
+        borderBottomColor: "rgba(39,174,96,.12)",
     },
     fromHeaderLeft: { display: "flex", alignItems: "center", gap: "10px" },
     fromIconBox: {
@@ -893,7 +963,10 @@ const S = {
         display: "flex", alignItems: "center", gap: "4px",
         fontSize: "10px", fontWeight: "700", color: "#22c55e",
         background: "rgba(34,197,94,.08)", padding: "3px 9px",
-        borderRadius: "999px", border: "1px solid rgba(34,197,94,.2)",
+        borderRadius: "999px",
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: "rgba(34,197,94,.2)",
         letterSpacing: ".4px",
     },
     fromBody: { padding: "16px 18px", display: "flex", flexDirection: "column", gap: "13px" },
@@ -970,7 +1043,9 @@ const S = {
     senderCheck: {
         width: "28px", height: "28px", borderRadius: "50%",
         background: "rgba(255,255,255,.15)", display: "flex", alignItems: "center", justifyContent: "center",
-        border: "1.5px solid rgba(255,255,255,.4)",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "rgba(255,255,255,.4)",
         flexShrink: 0,
     },
 
@@ -1004,16 +1079,19 @@ const S = {
     dropPanel: {
         position: "absolute", top: "100%", left: 0, right: 0,
         background: "#fff",
-        border: "1.5px solid #1a7a47", borderTop: "none",
-        borderRadius: "0 0 14px 14px",
+        borderTopWidth: 0,
+        borderRightWidth: "1.5px",  borderRightStyle: "solid",  borderRightColor: "#1a7a47",
+        borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#1a7a47",
+        borderLeftWidth: "1.5px",   borderLeftStyle: "solid",   borderLeftColor: "#1a7a47",
+        borderBottomLeftRadius: "14px", borderBottomRightRadius: "14px",
         boxShadow: "0 20px 50px rgba(26,122,71,.18)",
         zIndex: 999, animation: "popDown .18s ease both", overflow: "hidden",
     },
-    searchRow: { display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderBottom: "1px solid #e8f8ee", background: "#f4fbf6" },
+    searchRow: { display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "#e8f8ee", background: "#f4fbf6" },
     searchInput: { border: "none", outline: "none", background: "transparent", fontSize: "13px", color: "#0d2e18", flex: 1, fontFamily: "'DM Sans', sans-serif" },
     searchClear: { border: "none", background: "none", color: "#a8d5b5", cursor: "pointer", fontSize: "12px", padding: "0 2px", lineHeight: 1 },
     dropScroll: { maxHeight: "260px", overflowY: "auto" },
-    dropItem: { display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", cursor: "pointer", transition: "background .12s", borderBottom: "1px solid #f2fbf5" },
+    dropItem: { display: "flex", alignItems: "center", gap: "12px", padding: "10px 16px", cursor: "pointer", transition: "background .12s", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "#f2fbf5" },
     dropItemActive: { background: "#edf8f1" },
     bankMeta: { display: "flex", flexDirection: "column", flex: 1 },
     bankNm: { fontSize: "13px", fontWeight: "700", color: "#0d2e18" },
@@ -1025,14 +1103,18 @@ const S = {
     feeToggleBox: {
         background: "linear-gradient(145deg, #f4fbf6 0%, #ebf7ee 100%)",
         borderRadius: "16px",
-        border: "1.5px solid rgba(39,174,96,.16)",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "rgba(39,174,96,.16)",
         overflow: "hidden",
         boxShadow: "0 2px 12px rgba(26,122,71,.07)",
     },
     feeToggleHeader: {
         display: "flex", alignItems: "center", gap: "7px",
         padding: "11px 16px 10px",
-        borderBottom: "1px solid rgba(39,174,96,.12)",
+        borderBottomWidth: "1px",
+        borderBottomStyle: "solid",
+        borderBottomColor: "rgba(39,174,96,.12)",
         background: "linear-gradient(135deg, rgba(26,122,71,.05) 0%, rgba(39,174,96,.05) 100%)",
     },
     feeToggleTitle: {
@@ -1053,7 +1135,9 @@ const S = {
     radioHidden: { position: "absolute", opacity: 0, width: 0, height: 0, pointerEvents: "none" },
     radioCircle: {
         width: "18px", height: "18px", borderRadius: "50%", flexShrink: 0,
-        border: "2px solid #c8e6d0",
+        borderWidth: "2px",
+        borderStyle: "solid",
+        borderColor: "#c8e6d0",
         display: "flex", alignItems: "center", justifyContent: "center",
         background: "#fff", transition: "border-color .15s",
     },
@@ -1064,11 +1148,17 @@ const S = {
     feeRadioText: { display: "flex", flexDirection: "column", gap: "1px", flex: 1 },
     feeRadioMain: { fontSize: "13px", fontWeight: "700", color: "#0d2e18" },
     feeRadioSub:  { fontSize: "11px", fontWeight: "500", transition: "color .15s" },
+
+    // ✅ FIX: feeBadge uses only longhand border props — no shorthand "border" key at all
     feeBadge: {
         fontSize: "11px", fontWeight: "700",
         padding: "3px 10px", borderRadius: "999px",
-        border: "1px solid transparent",
+        borderTopWidth: "1px",    borderTopStyle: "solid",
+        borderRightWidth: "1px",  borderRightStyle: "solid",
+        borderBottomWidth: "1px", borderBottomStyle: "solid",
+        borderLeftWidth: "1px",   borderLeftStyle: "solid",
         transition: "all .15s", flexShrink: 0,
+        // borderColor is set dynamically in JSX per-mode, so no default here
     },
 
     /* Amount */
@@ -1078,14 +1168,26 @@ const S = {
     pills: { display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" },
     pill: {
         padding: "5px 12px", borderRadius: "999px",
-        border: "1.5px solid #c8e6d0",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "#c8e6d0",
         background: "#f8fdf9", color: "#1a7a47", fontSize: "11.5px", fontWeight: "700",
         cursor: "pointer", transition: "all .15s", fontFamily: "'DM Sans', sans-serif",
     },
     pillOn: { background: "#1a7a47", color: "#fff", borderColor: "#1a7a47" },
 
     /* Summary */
-    summary: { background: "linear-gradient(135deg, #f4fbf6 0%, #e2f5e9 100%)", borderTopLeftRadius:"14px", borderTopRightRadius:"14px", borderBottomLeftRadius:"14px", borderBottomRightRadius:"14px", padding: "16px 18px", borderTopWidth:"1.5px", borderTopStyle:"solid", borderTopColor:"rgba(39,174,96,.16)", borderRightWidth:"1.5px", borderRightStyle:"solid", borderRightColor:"rgba(39,174,96,.16)", borderBottomWidth:"1.5px", borderBottomStyle:"solid", borderBottomColor:"rgba(39,174,96,.16)", borderLeftWidth:"1.5px", borderLeftStyle:"solid", borderLeftColor:"rgba(39,174,96,.16)", animation: "fadeUp .3s ease both" },
+    summary: {
+        background: "linear-gradient(135deg, #f4fbf6 0%, #e2f5e9 100%)",
+        borderTopLeftRadius: "14px",    borderTopRightRadius: "14px",
+        borderBottomLeftRadius: "14px", borderBottomRightRadius: "14px",
+        padding: "16px 18px",
+        borderTopWidth: "1.5px",    borderTopStyle: "solid",    borderTopColor: "rgba(39,174,96,.16)",
+        borderRightWidth: "1.5px",  borderRightStyle: "solid",  borderRightColor: "rgba(39,174,96,.16)",
+        borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "rgba(39,174,96,.16)",
+        borderLeftWidth: "1.5px",   borderLeftStyle: "solid",   borderLeftColor: "rgba(39,174,96,.16)",
+        animation: "fadeUp .3s ease both",
+    },
     sumHead: { display: "flex", alignItems: "center", gap: "7px", marginBottom: "9px" },
     sumTitle: { fontWeight: "800", color: "#1a7a47", fontSize: "13px" },
     div: { height: "1px", background: "rgba(39,174,96,.15)", margin: "7px 0" },
@@ -1095,8 +1197,20 @@ const S = {
     sumTotalLbl: { fontSize: "13.5px", fontWeight: "800", color: "#0d2e18" },
     sumTotal: { fontSize: "20px", fontWeight: "800", color: "#1a7a47", letterSpacing: "-.5px" },
 
+    /* Cash fee info note */
+    cashFeeNote: {
+        display: "flex", alignItems: "center", gap: "6px",
+        fontSize: "11px", color: "#0d9488", fontWeight: "600",
+        background: "rgba(13,148,136,.07)",
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: "rgba(13,148,136,.18)",
+        borderRadius: "8px", padding: "6px 10px",
+        marginTop: "2px",
+    },
+
     /* Submit */
     btn: { marginTop: "4px", background: "linear-gradient(135deg, #0d4a26 0%, #1a7a47 50%, #27ae60 100%)", color: "#fff", border: "none", borderRadius: "14px", padding: "15px 24px", fontSize: "14.5px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "9px", letterSpacing: ".3px", boxShadow: "0 6px 24px rgba(26,122,71,.35)", transition: "opacity .2s, box-shadow .2s", fontFamily: "'DM Sans', sans-serif" },
     btnOff: { opacity: .4, cursor: "not-allowed", boxShadow: "none" },
-    spin: { width: "16px", height: "16px", border: "2.5px solid rgba(255,255,255,.35)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin .7s linear infinite" },
+    spin: { width: "16px", height: "16px", borderWidth: "2.5px", borderStyle: "solid", borderColor: "rgba(255,255,255,.35)", borderTopColor: "#fff", borderRadius: "50%", display: "inline-block", animation: "spin .7s linear infinite" },
 };

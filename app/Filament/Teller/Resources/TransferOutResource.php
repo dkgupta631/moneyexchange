@@ -22,6 +22,8 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
+use Illuminate\Support\Str;
+
 class TransferOutResource extends Resource
 {
     protected static ?string $model = MoneyTransferInvoice::class;
@@ -128,70 +130,71 @@ class TransferOutResource extends Resource
                 TextColumn::make('created_at')
                     ->label(__('message.Time'))
                     ->dateTime('d M Y h:i')
-                    ->sortable()
+                    ->searchable()
                     ->color('gray'),
                 TextColumn::make('invoice_number')
                     ->label(__('message.Invoice Number'))
                     ->searchable()->sortable()->copyable()
                     ->weight('bold')->color('primary'),
-
-                TextColumn::make('customer_name')
-                    ->label(__('message.Customer Name'))
-                    ->searchable()->sortable(),
-
+                Tables\Columns\BadgeColumn::make('status')
+                    ->label(__('message.Status'))
+                    ->colors([
+                        'warning' => 'pending_bkk_approval',
+                        'success' => 'accepted_bkk',
+                        'primary' => 'completed',
+                        'danger'  => 'Rejected',
+                        'gray'    => 'cancelled',
+                    ])
+                    ->formatStateUsing(fn ($state) => match($state) {
+                        'pending_bkk_approval' => '⏳ ' . __('message.Pending'),
+                        'accepted_bkk'         => '✅ ' . __('message.Accepted'),
+                        'completed'            => '✔ '  . __('message.Completed'),
+                        'Rejected'             => '❌ ' . __('message.Rejected'),
+                        'cancelled'            => '🚫 ' . __('message.Cancelled'),
+                        default                => $state,
+                    })->searchable()
+                    ->sortable(),
+                TextColumn::make('combinessd')
+                    ->label(__('message.Customer name'))
+                    ->html()
+                    ->getStateUsing(fn ($record) =>
+                        '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
+                        Str::ucfirst($record->phone)
+                    ),
                TextColumn::make('bank_details')
                     ->label(__('message.Bank Details'))
-                    ->getStateUsing(function ($record) {
-                        return "{$record->bank_name} - {$record->acc_number} - {$record->acc_name}";
-                    })
-                    ->searchable()
-                    ->copyable()
-                    ->wrap(),
+                    ->html()
+                    ->getStateUsing(fn ($record) =>
+                        '<strong>' . Str::ucfirst($record->bank_name) . '</strong><br>' .
+                        Str::ucfirst($record->acc_number) . '<br>' .
+                        Str::ucfirst($record->acc_name)
+                    )
+                    ->copyable(),
                 TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
                     ->formatStateUsing(function ($state, $record) {
                         return $record->currency . ' ' . $state;
                     })
-                    ->sortable()
+                    ->searchable()
                     ->alignRight(),
                 TextColumn::make('trf_fee')
                     ->label(__('message.Transfer Fee'))
                     ->formatStateUsing(function ($state, $record) {
                         return $record->currency . ' ' . $state;
                     })
-                    ->sortable(),
+                    ->searchable(),
                 TextColumn::make('net_amount')
                     ->label(__('message.Net Amount'))
                     ->formatStateUsing(function ($state, $record) {
                         return $record->currency . ' ' . $state;
                     })
-                    ->sortable()
+                    ->searchable()
                     ->weight('bold')->color('success'),
-                TextColumn::make('status')
-                    ->label(__('message.Status'))
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending_bkk_approval' => 'warning',
-                        'accepted_bkk'         => 'info',
-                        'completed'            => 'success',
-                        'Rejected'             => 'danger',
-                        'cancelled'            => 'gray',
-                        default                => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending_bkk_approval' => __('message.Pending'),
-                        'accepted_bkk'         => __('message.Accepted'),
-                        'completed'            => __('message.Completed'),
-                        'Rejected'             => __('message.Rejected'),
-                        'cancelled'            => __('message.Cancelled'),
-                        default                => $state,
-                    })
-                    ->sortable(),
-
                 TextColumn::make('reject_reason')
                     ->label(__('message.Reject Reason'))
                     ->limit(30)->placeholder('—')
                     ->color('danger')
+                    ->searchable()
                     ->tooltip(fn ($record) => $record?->reject_reason),
 
             ])
