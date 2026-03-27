@@ -15,6 +15,8 @@ use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 
+use Illuminate\Support\Str;
+
 class TransferInvoiceResource extends Resource
 {
     protected static ?string $model = MoneyTransferInvoice::class;
@@ -124,52 +126,48 @@ class TransferInvoiceResource extends Resource
                 TextColumn::make('created_at')
                     ->label(__('message.Time'))
                     ->dateTime('d M Y h:i')
-                    ->sortable()
+                    ->searchable()
                     ->color('gray'),
-
                 TextColumn::make('invoice_number')
                     ->label(__('message.Invoice #'))
-                    ->searchable()
-                    ->copyable()
+                   ->searchable()->sortable()->copyable()
                     ->weight('bold')
                     ->color('primary'),
-
-                TextColumn::make('customer_name')
-                    ->label(__('message.Customer'))
-                    ->searchable()
-                    ->default('—'),
-
-                TextColumn::make('phone')
-                    ->label(__('message.Phone'))
-                    ->default('—'),
-
-                TextColumn::make('bank_details')
+                TextColumn::make('combinessd')
+                    ->label(__('message.Customer name'))
+                    ->html()
+                    ->getStateUsing(fn ($record) =>
+                        '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
+                        Str::ucfirst($record->phone)
+                    ),
+               TextColumn::make('bank_details')
                     ->label(__('message.Bank Details'))
-                    ->getStateUsing(function ($record) {
-                        return "{$record->bank_name} - {$record->acc_number} - {$record->acc_name}";
-                    })
-                    ->searchable()
-                    ->copyable()
-                    ->wrap(),
+                    ->html()
+                    ->getStateUsing(fn ($record) =>
+                        '<strong>' . Str::ucfirst($record->bank_name) . '</strong><br>' .
+                        Str::ucfirst($record->acc_number) . '<br>' .
+                        Str::ucfirst($record->acc_name)
+                    )
+                    ->copyable(),
                TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
                     ->formatStateUsing(function ($state, $record) {
                         return $record->currency . ' ' . $state;
                     })
-                    ->sortable()
+                    ->searchable()
                     ->alignRight(),
                 TextColumn::make('trf_fee')
                     ->label(__('message.Transfer Fee'))
                     ->formatStateUsing(function ($state, $record) {
                         return $record->currency . ' ' . $state;
                     })
-                    ->sortable(),
+                    ->searchable(),
                 TextColumn::make('net_amount')
                     ->label(__('message.Net Amount'))
                     ->formatStateUsing(function ($state, $record) {
                         return $record->currency . ' ' . $state;
                     })
-                    ->sortable()
+                    ->searchable()
                     ->weight('bold')->color('success'),
                 TextColumn::make('transaction_slip')
                     ->label(__('message.Slip'))
@@ -194,7 +192,8 @@ class TransferInvoiceResource extends Resource
                         'Rejected'             => '❌ ' . __('message.Rejected'),
                         'cancelled'            => '🚫 ' . __('message.Cancelled'),
                         default                => $state,
-                    }),
+                    })->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 SelectFilter::make('status')

@@ -254,7 +254,7 @@ export default function MoneyTransferInvoice({ invoice }) {
                         <RRow label={t("Entered Amount")} value={`฿ ${fmt(inv.entered_amount)}`} />
                         <RRow
                             label={`${t("Transfer Fee")} (${inv.trf_fee_in_persentage ?? 0}%)`}
-                            value={`− ฿ ${fmt(inv.trf_fee)}`}
+                            value={`฿ ${fmt(inv.trf_fee)}`}
                             valueColor="#dc2626"
                         />
 

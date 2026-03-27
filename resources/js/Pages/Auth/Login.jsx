@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm, Head, Link, usePage } from '@inertiajs/react';
-
+const appUrl = window.location.origin;
 /* ─── CSS ───────────────────────────────────────────────────────── */
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -112,8 +112,8 @@ export default function Login() {
                 <div className="card">
 
                     <div className="brand">
-                        <div className="brand-icon">🏢</div>
-                        <h1>{t('Staff Portal')}</h1>
+                        <div className="brand-icon"> <img src={`${appUrl}/website/assets/logo/logo2.png`} style={{ borderRadius: '10px', height: '50px', width: '50px' }} /></div>
+                        <h1>G+ Services</h1>
                         <p>{t('Secure Sign In')}</p>
                     </div>
 
