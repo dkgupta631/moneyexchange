@@ -1012,6 +1012,19 @@ return [
     "Transfer Requests" => "คำขอโอน",
     "Received at" => "รับได้ที่",
     "Rejected Successfully" => "ปฏิเสธสำเร็จแล้ว",
+    "fee paid in separately" => "ค่าธรรมเนียมจ่ายแยกต่างหาก",
+    "Customer pays fee in separately" => "ลูกค้าชำระค่าธรรมเนียมแยกต่างหาก",
+    "Fee Paid in Cash" => "ชำระค่าธรรมเนียมเป็นเงินสด",
+    "Transfer To" => "โอนไปที่",
+    "Recipient Details" => "รายละเอียดผู้รับ",
+    "Confirm Transfer" => "ยืนยันการโอนเงิน",
+    "Please review your transfer details carefully before confirming" => "โปรดตรวจสอบรายละเอียดการโอนเงินของคุณอย่างละเอียดก่อนยืนยัน",
+    "Fee Applied" => "มีค่าธรรมเนียม",
+    "Fee Mode" => "โหมดค่าธรรมเนียม",
+    "Reconfirm" => "ยืนยันอีกครั้ง",
+    "Transfer From (Sender Details)" => "โอนเงินจาก (รายละเอียดผู้ส่ง)",
+    "Once confirmed, this transfer will be processed. Please verify all details carefully." => "เมื่อได้รับการยืนยันแล้ว การโอนเงินนี้จะถูกดำเนินการ โปรดตรวจสอบรายละเอียดทั้งหมดอย่างรอบคอบ",
+    "Customer pays fee separately in cash" => "ลูกค้าชำระค่าธรรมเนียมแยกต่างหากเป็นเงินสด",
     
     
     
