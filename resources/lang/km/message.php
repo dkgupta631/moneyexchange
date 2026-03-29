@@ -1011,6 +1011,19 @@ return [
     "Transfer Requests" => "សំណើផ្ទេរ",
     "Received at" => "ទទួលនៅ",
     "Rejected Successfully" => "បដិសេធដោយជោគជ័យ",
+    "fee paid in separately" => "ថ្លៃសេវាបង់ដោយឡែក",
+    "Customer pays fee in separately" => "អតិថិជនបង់ថ្លៃសេវាដោយឡែក",
+    "Fee Paid in Cash" => "ថ្លៃសេវាបង់ជាសាច់ប្រាក់",
+    "Transfer To" => "ផ្ទេរទៅ",
+    "Recipient Details" => "ព័ត៌មានអ្នកទទួល",
+    "Confirm Transfer" => "បញ្ជាក់ការផ្ទេរ",
+    "Please review your transfer details carefully before confirming" => "សូមពិនិត្យព័ត៌មានការផ្ទេររបស់អ្នកយ៉ាងម៉ត់ចត់ មុនពេលបញ្ជាក់",
+    "Fee Applied" => "ថ្លៃសេវាដែលបានអនុវត្ត",
+    "Fee Mode" => "វិធីបង់ថ្លៃសេវា",
+    "Reconfirm" => "បញ្ជាក់ម្តងទៀត",
+    "Transfer From (Sender Details)" => "ផ្ទេរពី (ព័ត៌មានអ្នកផ្ញើ)",
+    "Once confirmed, this transfer will be processed. Please verify all details carefully." => "បន្ទាប់ពីបានបញ្ជាក់ ការផ្ទេរនេះនឹងត្រូវបានដំណើរការ។ សូមផ្ទៀងផ្ទាត់ព័ត៌មានទាំងអស់យ៉ាងម៉ត់ចត់",
+    "Customer pays fee separately in cash" => "អតិថិជនបង់ថ្លៃសេវាដោយឡែកជាសាច់ប្រាក់",
 
 
     
