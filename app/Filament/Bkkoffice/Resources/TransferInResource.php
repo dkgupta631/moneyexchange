@@ -2,7 +2,7 @@
 
 namespace App\Filament\Bkkoffice\Resources;
 
-use App\Filament\Bkkoffice\Resources\TransferInvoiceResource\Pages;
+use App\Filament\Bkkoffice\Resources\TransferInResource\Pages;
 use App\Models\MoneyTransferInvoice;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -13,31 +13,30 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\Builder;
 
 use Illuminate\Support\Str;
 
-class TransferInvoiceResource extends Resource
+class TransferInResource extends Resource
 {
     protected static ?string $model = MoneyTransferInvoice::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-arrow-up-right';
+    protected static ?string $navigationIcon = 'heroicon-o-arrow-down-left';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationLabel(): string
     {
-        return __('message.Transfer-OUT Requests');
+        return __('message.Transfer-IN Requests');
     }
 
     public static function getModelLabel(): string
     {
-        return __('message.Transfer-OUT Requests');
+        return __('message.Transfer-IN Request');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('message.Transfer-OUT Requests');
+        return __('message.Transfer-IN Requests');
     }
 
     public static function getNavigationGroup(): ?string
@@ -45,10 +44,11 @@ class TransferInvoiceResource extends Resource
         return __('message.Transfers');
     }
 
+    // ✅ Sidebar badge — pending Transfer-IN today
     public static function getNavigationBadge(): ?string
     {
         $count = static::getModel()::where('status', 'pending_bkk_approval')
-            ->where('transfer_type', 'Transfer-OUT')
+            ->where('transfer_type', 'Transfer-IN')
             ->whereDate('created_at', today())
             ->count();
 
@@ -57,12 +57,12 @@ class TransferInvoiceResource extends Resource
 
     public static function getNavigationBadgeColor(): ?string
     {
-        return 'danger';
+        return 'success';
     }
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return __('message.Pending Transfer-OUT approvals');
+        return __('message.Pending Transfer-IN approvals');
     }
 
     public static function form(Form $form): Form
@@ -114,7 +114,7 @@ class TransferInvoiceResource extends Resource
         return $table
             ->query(
                 MoneyTransferInvoice::query()
-                    ->where('transfer_type', 'Transfer-OUT')
+                    ->where('transfer_type', 'Transfer-IN')
                     ->whereDate('created_at', today())
                     ->orderBy('id', 'desc')
             )
@@ -128,19 +128,23 @@ class TransferInvoiceResource extends Resource
                     ->dateTime('d M Y h:i')
                     ->searchable()
                     ->color('gray'),
+
                 TextColumn::make('invoice_number')
                     ->label(__('message.Invoice #'))
-                   ->searchable()->sortable()->copyable()
+                    ->searchable()
+                    ->copyable()
                     ->weight('bold')
                     ->color('primary'),
-                TextColumn::make('combinessd')
+
+               TextColumn::make('combinessd')
                     ->label(__('message.Customer name'))
                     ->html()
                     ->getStateUsing(fn ($record) =>
                         '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
                         Str::ucfirst($record->phone)
                     ),
-               TextColumn::make('bank_name')
+                // ✅ Combined Bank Details column
+                TextColumn::make('bank_name')
                     ->label(__('message.Bank Details'))
                     ->formatStateUsing(fn ($state, $record) =>
                         ($record->bank_name ?? '—') . "\n" . ($record->acc_number ?? '')
@@ -153,6 +157,7 @@ class TransferInvoiceResource extends Resource
                             <span style="font-size:11px;color:#64748b">' . e($record->acc_name ?? '') . '</span>
                         </div>';
                     })->copyable(),
+
                TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
                     ->formatStateUsing(function ($state, $record) {
@@ -173,6 +178,7 @@ class TransferInvoiceResource extends Resource
                     })
                     ->searchable()
                     ->weight('bold')->color('success'),
+
                 TextColumn::make('transaction_slip')
                     ->label(__('message.Slip'))
                     ->formatStateUsing(fn ($state) => $state
@@ -196,8 +202,7 @@ class TransferInvoiceResource extends Resource
                         'Rejected'             => '❌ ' . __('message.Rejected'),
                         'cancelled'            => '🚫 ' . __('message.Cancelled'),
                         default                => $state,
-                    })->searchable()
-                    ->sortable(),
+                    }),
                     TextColumn::make('reject_reason')
                         ->label(__('message.Reject Reason'))
                         ->limit(30)->placeholder('—')
@@ -217,6 +222,7 @@ class TransferInvoiceResource extends Resource
                     ->placeholder(__('message.All Statuses')),
             ])
             ->actions([
+                // ✅ View Invoice
                 Action::make('view_invoice')
                     ->label(__('message.View Invoice'))
                     ->icon('heroicon-o-document-text')
@@ -225,57 +231,96 @@ class TransferInvoiceResource extends Resource
                     ->openUrlInNewTab()
                     ->visible(fn (MoneyTransferInvoice $record) => ! empty($record->invoice_url)),
 
-                Action::make('accept')
-                    ->label(__('message.Accept'))
+                // ✅ Accept → opens upload slip popup
+                Action::make('accept_and_upload')
+                    ->label(__('message.Accept & Upload'))
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->requiresConfirmation()
-                    ->modalHeading(__('message.Accept Transfer Request'))
-                    ->modalDescription(__('message.Are you sure you want to accept this Transfer-OUT request? This will notify the teller at Poipet.'))
-                    ->modalSubmitActionLabel(__('message.Yes, Accept'))
+                    ->modalHeading(__('message.Accept & Upload Transaction Slip'))
+                    ->modalDescription(__('message.Verify the bank transfer and upload the receipt to complete this Transfer-IN.'))
+                    ->modalSubmitActionLabel(__('message.Upload & Complete'))
                     ->modalCancelActionLabel(__('message.Cancel'))
-                    ->action(function (MoneyTransferInvoice $record) {
-                        $record->update(['status' => 'accepted_bkk']);
+                    ->modalWidth('md')
+                    ->form([
+                        Forms\Components\Placeholder::make('transfer_info')
+                            ->label(__('message.Transfer Details'))
+                            ->content(fn (MoneyTransferInvoice $record) =>
+                                "{$record->invoice_number} | {$record->bank_name} | {$record->acc_number} | {$record->currency} " . number_format($record->net_amount, 2)
+                            ),
+
+                        Forms\Components\FileUpload::make('transaction_slip')
+                            ->label(__('message.Transaction Slip'))
+                            ->image()
+                            ->imageEditor()
+                            ->disk('public')
+                            ->directory('transaction-slips-in')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'])
+                            ->maxSize(5120)
+                            ->required()
+                            ->helperText(__('message.Drag & drop or click to upload. Max 5MB.'))
+                            ->placeholder(__('message.Drop slip here or click to browse')),
+                    ])
+                    ->action(function (MoneyTransferInvoice $record, array $data) {
+                        $record->update([
+                            'status'           => 'completed',
+                            'transaction_slip' => $data['transaction_slip'],
+                        ]);
 
                         Notification::make()
-                            ->title(__('message.Transfer Accepted'))
-                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.has been accepted.'))
+                            ->title('✅ ' . __('message.Transfer-IN Completed!'))
+                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.marked as completed. Slip saved.'))
                             ->success()
                             ->send();
                     })
                     ->visible(fn (MoneyTransferInvoice $record) => $record->status === 'pending_bkk_approval'),
 
-                // ✅ FIXED: reject_reason now saved to DB
+                // ✅ Reject with dropdown + optional textarea
                 Action::make('reject')
                     ->label(__('message.Reject'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-                    ->modalHeading(__('message.Reject Transfer Request'))
+                    ->modalHeading(__('message.Reject Transfer-IN Request'))
                     ->modalSubmitActionLabel(__('message.Yes, Reject'))
                     ->modalCancelActionLabel(__('message.Cancel'))
+                    ->modalWidth('md')
                     ->form([
-                        Forms\Components\Textarea::make('reject_reason')
+                        Forms\Components\Select::make('reject_category')
                             ->label(__('message.Reason for Rejection'))
-                            ->placeholder(__('message.Enter reason for rejection...'))
+                            ->options([
+                                'Wrong Account details' => __('message.Wrong Account details'),
+                                'Wrong amount'          => __('message.Wrong amount'),
+                                'Change mind'           => __('message.Change mind'),
+                                'other'                 => __('message.Other (specify below)'),
+                            ])
                             ->required()
-                            ->minLength(3)
-                            ->rows(4),
+                            ->live(),
+
+                        Forms\Components\Textarea::make('reject_reason_text')
+                            ->label(__('message.Specify Reason'))
+                            ->placeholder(__('message.Enter detailed reason...'))
+                            ->rows(3)
+                            ->required()
+                            ->visible(fn (Forms\Get $get) => $get('reject_category') === 'other'),
                     ])
                     ->action(function (MoneyTransferInvoice $record, array $data) {
-                        // ✅ Save both status AND reject_reason
+                        $reason = $data['reject_category'] === 'other'
+                            ? ($data['reject_reason_text'] ?? __('message.Other'))
+                            : $data['reject_category'];
+
                         $record->update([
                             'status'        => 'Rejected',
-                            'reject_reason' => $data['reject_reason'],
+                            'reject_reason' => $reason,
                         ]);
 
                         Notification::make()
-                            ->title(__('message.Transfer Rejected'))
-                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.has been rejected.'))
+                            ->title('❌ ' . __('message.Transfer-IN Rejected'))
+                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.has been rejected.') . ' ' . __('message.Reason') . ': ' . $reason)
                             ->warning()
                             ->send();
                     })
                     ->visible(fn (MoneyTransferInvoice $record) => $record->status === 'pending_bkk_approval'),
 
+                // ✅ Upload slip for accepted records
                 Action::make('upload_slip')
                     ->label(__('message.Upload Slip'))
                     ->icon('heroicon-o-arrow-up-tray')
@@ -296,7 +341,7 @@ class TransferInvoiceResource extends Resource
                             ->image()
                             ->imageEditor()
                             ->disk('public')
-                            ->directory('transaction-slips')
+                            ->directory('transaction-slips-in')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'])
                             ->maxSize(5120)
                             ->required()
@@ -317,6 +362,7 @@ class TransferInvoiceResource extends Resource
                     })
                     ->visible(fn (MoneyTransferInvoice $record) => $record->status === 'accepted_bkk'),
 
+                // ✅ View uploaded slip
                 Action::make('view_slip')
                     ->label(__('message.View Slip'))
                     ->icon('heroicon-o-photo')
@@ -342,7 +388,7 @@ class TransferInvoiceResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTransferInvoices::route('/'),
+            'index' => Pages\ListTransferIn::route('/'),
         ];
     }
 }
