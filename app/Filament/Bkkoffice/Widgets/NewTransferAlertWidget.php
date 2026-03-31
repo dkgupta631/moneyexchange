@@ -5,6 +5,7 @@ namespace App\Filament\Bkkoffice\Widgets;
 use App\Models\MoneyTransferInvoice;
 use Filament\Widgets\Widget;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Carbon;
 
 class NewTransferAlertWidget extends Widget
 {
@@ -31,7 +32,7 @@ class NewTransferAlertWidget extends Widget
     {
         return MoneyTransferInvoice::where('status', 'pending_bkk_approval')
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', today())
+            ->whereDate('created_at', Carbon::today())
             ->count();
     }
 

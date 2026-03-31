@@ -1029,6 +1029,35 @@ return [
     "Transfer From (Sender Details)" => "Transfer From (Sender Details)",
     "Once confirmed, this transfer will be processed. Please verify all details carefully." => "Once confirmed, this transfer will be processed. Please verify all details carefully.",
     "Customer pays fee separately in cash" => "Customer pays fee separately in cash",
+
+    // Transfer-IN navigation
+    'Transfer-IN Requests'              => 'Transfer-IN Requests',
+    'Transfer-IN Request'               => 'Transfer-IN Request',
+    'Transfer-IN'                       => 'Transfer-IN',
+    'Pending Transfer-IN approvals'     => 'Pending Transfer-IN approvals',
+    'New Transfer-IN Request!'          => 'New Transfer-IN Request!',
+    'Transfer-IN Accepted'              => 'Transfer-IN Accepted',
+    'Transfer-IN Rejected'              => 'Transfer-IN Rejected',
+    'Transfer-IN Completed!'            => 'Transfer-IN Completed!',
+    'Reject Transfer-IN Request'        => 'Reject Transfer-IN Request',
+    'Accept & Upload'                   => 'Accept & Upload',
+    'Accept & Upload Transaction Slip'  => 'Accept & Upload Transaction Slip',
+    'Verify the bank transfer and upload the receipt to complete this Transfer-IN.' => 'Verify the bank transfer and upload the receipt to complete this Transfer-IN.',
+
+    // Reject reasons dropdown
+    'Wrong Account details'             => 'Wrong Account details',
+    'Wrong amount'                      => 'Wrong amount',
+    'Change mind'                       => 'Change mind',
+    'Other (specify below)'             => 'Other (specify below)',
+    'Specify Reason'                    => 'Specify Reason',
+    'Enter detailed reason...'          => 'Enter detailed reason...',
+    'Select reason'                     => 'Select reason',
+    'Please select a reason'            => 'Please select a reason',
+    'Please enter at least 3 characters'=> 'Please enter at least 3 characters',
+
+    // Notifications
+    'has been accepted. Please upload the slip.' => 'has been accepted. Please upload the slip.',
+
     "Close" => "Close",
     "Close" => "Close",
     "Close" => "Close",

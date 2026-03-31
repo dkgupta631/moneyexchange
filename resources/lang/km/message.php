@@ -1024,6 +1024,32 @@ return [
     "Transfer From (Sender Details)" => "ផ្ទេរពី (ព័ត៌មានអ្នកផ្ញើ)",
     "Once confirmed, this transfer will be processed. Please verify all details carefully." => "បន្ទាប់ពីបានបញ្ជាក់ ការផ្ទេរនេះនឹងត្រូវបានដំណើរការ។ សូមផ្ទៀងផ្ទាត់ព័ត៌មានទាំងអស់យ៉ាងម៉ត់ចត់",
     "Customer pays fee separately in cash" => "អតិថិជនបង់ថ្លៃសេវាដោយឡែកជាសាច់ប្រាក់",
+    // Transfer-IN navigation
+    'Transfer-IN Requests'              => 'សំណើផ្ទេរចូល',
+    'Transfer-IN Request'               => 'សំណើផ្ទេរចូល',
+    'Pending Transfer-IN approvals'     => 'កំពុងរង់ចាំការអនុម័តផ្ទេរចូល',
+    'New Transfer-IN Request!'          => 'សំណើផ្ទេរចូលថ្មី!',
+    'Transfer-IN Accepted'              => 'បានអនុម័តការផ្ទេរចូល',
+    'Transfer-IN Rejected'              => 'ការផ្ទេរចូលត្រូវបានបដិសេធ',
+    'Transfer-IN Completed!'            => 'ការផ្ទេរចូលបានបញ្ចប់ដោយជោគជ័យ!',
+    'Reject Transfer-IN Request'        => 'បដិសេធសំណើផ្ទេរចូល',
+    'Accept & Upload'                   => 'យល់ព្រម និងអាប់ឡូត',
+    'Accept & Upload Transaction Slip'  => 'យល់ព្រម និងអាប់ឡូតស្លីបប្រតិបត្តិការ',
+    'Verify the bank transfer and upload the receipt to complete this Transfer-IN.' => 'សូមផ្ទៀងផ្ទាត់ការផ្ទេរប្រាក់តាមធនាគារ និងអាប់ឡូតបង្កាន់ដៃ ដើម្បីបញ្ចប់ការផ្ទេរចូលនេះ។',
+
+    // Reject reasons dropdown
+    'Wrong Account details'             => 'ព័ត៌មានគណនីមិនត្រឹមត្រូវ',
+    'Wrong amount'                      => 'ចំនួនទឹកប្រាក់មិនត្រឹមត្រូវ',
+    'Change mind'                       => 'ប្តូរគំនិត',
+    'Other (specify below)'             => 'ផ្សេងទៀត (សូមបញ្ជាក់ខាងក្រោម)',
+    'Specify Reason'                    => 'បញ្ជាក់ហេតុផល',
+    'Enter detailed reason...'          => 'បញ្ចូលហេតុផលលម្អិត...',
+    'Select reason'                     => 'ជ្រើសរើសហេតុផល',
+    'Please select a reason'            => 'សូមជ្រើសរើសហេតុផល',
+    'Please enter at least 3 characters'=> 'សូមបញ្ចូលយ៉ាងហោចណាស់ 3 តួអក្សរ',
+
+    // Notifications
+    'has been accepted. Please upload the slip.' => 'ត្រូវបានអនុម័តហើយ។ សូមអាប់ឡូតស្លីប។',
 
 
     
