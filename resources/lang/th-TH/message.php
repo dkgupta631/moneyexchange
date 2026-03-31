@@ -1025,6 +1025,32 @@ return [
     "Transfer From (Sender Details)" => "โอนเงินจาก (รายละเอียดผู้ส่ง)",
     "Once confirmed, this transfer will be processed. Please verify all details carefully." => "เมื่อได้รับการยืนยันแล้ว การโอนเงินนี้จะถูกดำเนินการ โปรดตรวจสอบรายละเอียดทั้งหมดอย่างรอบคอบ",
     "Customer pays fee separately in cash" => "ลูกค้าชำระค่าธรรมเนียมแยกต่างหากเป็นเงินสด",
+     // Transfer-IN navigation
+    'Transfer-IN Requests'              => 'คำขอโอนย้ายเข้า',
+    'Transfer-IN Request'               => 'คำขอโอนเข้า',
+    'Pending Transfer-IN approvals'     => 'รอการอนุมัติการโอนเข้า',
+    'New Transfer-IN Request!'          => 'คำขอโอนย้ายเข้าใหม่!',
+    'Transfer-IN Accepted'              => 'รับการโอนย้ายเข้า',
+    'Transfer-IN Rejected'              => 'การโอนเข้าถูกปฏิเสธ',
+    'Transfer-IN Completed!'            => 'การโอนย้ายเข้าเสร็จสมบูรณ์แล้ว!',
+    'Reject Transfer-IN Request'        => 'ปฏิเสธคำขอโอนเงินเข้า',
+    'Accept & Upload'                   => 'ยอมรับและอัปโหลด',
+    'Accept & Upload Transaction Slip'  => 'ยอมรับและอัปโหลดสลิปธุรกรรม',
+    'Verify the bank transfer and upload the receipt to complete this Transfer-IN.' => 'ตรวจสอบการโอนเงินผ่านธนาคารและอัปโหลดใบเสร็จรับเงินเพื่อดำเนินการโอนเงินเข้าให้เสร็จสมบูรณ์',
+
+    // Reject reasons dropdown
+    'Wrong Account details'             => 'รายละเอียดบัญชีไม่ถูกต้อง',
+    'Wrong amount'                      => 'จำนวนเงินไม่ถูกต้อง',
+    'Change mind'                       => 'เปลี่ยนใจ',
+    'Other (specify below)'             => 'อื่นๆ (โปรดระบุด้านล่าง)',
+    'Specify Reason'                    => 'ระบุเหตุผล',
+    'Enter detailed reason...'          => 'กรอกเหตุผลโดยละเอียด...',
+    'Select reason'                     => 'เลือกเหตุผล',
+    'Please select a reason'            => 'โปรดเลือกเหตุผล',
+    'Please enter at least 3 characters'=> 'กรุณาป้อนอย่างน้อย 3 ตัวอักษร',
+
+    // Notifications
+    'has been accepted. Please upload the slip.' => 'ได้รับการอนุมัติแล้ว โปรดอัปโหลดสลิป',
     
     
     

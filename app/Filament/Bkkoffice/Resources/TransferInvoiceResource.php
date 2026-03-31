@@ -16,6 +16,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 
 class TransferInvoiceResource extends Resource
 {
@@ -23,7 +24,7 @@ class TransferInvoiceResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-up-right';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationLabel(): string
     {
@@ -45,11 +46,15 @@ class TransferInvoiceResource extends Resource
         return __('message.Transfers');
     }
 
+    // ✅ Sidebar badge — pending Transfer-IN today
     public static function getNavigationBadge(): ?string
     {
-        $count = static::getModel()::where('status', 'pending_bkk_approval')
+        $count = MoneyTransferInvoice::whereIn('status', [
+                'pending_bkk_approval',
+                'accepted_bkk'
+            ])
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', today())
+            ->whereDate('created_at', Carbon::today())
             ->count();
 
         return $count > 0 ? (string) $count : null;
