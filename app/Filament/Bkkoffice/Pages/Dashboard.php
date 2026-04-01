@@ -27,10 +27,10 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
-            NewTransferAlertWidget::class,
             NewTransferInAlertWidget::class,
-            TransferStatsWidget::class,
+            NewTransferAlertWidget::class,
             TransferInStatsWidget::class,
+            TransferStatsWidget::class,
         ];
     }
 

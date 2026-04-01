@@ -7,6 +7,7 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Carbon;
 
 class TransferStatsWidget extends BaseWidget
 {
@@ -16,18 +17,18 @@ class TransferStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $pending   = MoneyTransferInvoice::where('status', 'pending_bkk_approval')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', today())->count();
-        $accepted  = MoneyTransferInvoice::where('status', 'accepted_bkk')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', today())->count();
-        $completed = MoneyTransferInvoice::where('status', 'completed')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', today())->count();
-        $rejected  = MoneyTransferInvoice::where('status', 'Rejected')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', today())->count();
+        $pending   = MoneyTransferInvoice::where('status', 'pending_bkk_approval')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', Carbon::today())->count();
+        $accepted  = MoneyTransferInvoice::where('status', 'accepted_bkk')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', Carbon::today())->count();
+        $completed = MoneyTransferInvoice::where('status', 'completed')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', Carbon::today())->count();
+        $rejected  = MoneyTransferInvoice::where('status', 'Rejected')->where('transfer_type', 'Transfer-OUT')->whereDate('created_at', Carbon::today())->count();
 
         $totalNet = MoneyTransferInvoice::where('status', 'completed')
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', today())
+            ->whereDate('created_at', Carbon::today())
             ->sum('net_amount');
         $totalFee = MoneyTransferInvoice::where('status', 'completed')
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', today())
+            ->whereDate('created_at', Carbon::today())
             ->sum('trf_fee');
 
         $netFeeDescription = new HtmlString('

@@ -42,6 +42,7 @@ class BkkofficePanelProvider extends PanelProvider
             ->font('Poppins')
             ->favicon(url('website/assets/logo/logo.png'))
             ->brandLogo(fn () => view('filament.logo'))
+            ->brandName('G+ Services — BkkOffice')
             ->sidebarCollapsibleOnDesktop()
             ->discoverResources(
                 in: app_path('Filament/Bkkoffice/Resources'),

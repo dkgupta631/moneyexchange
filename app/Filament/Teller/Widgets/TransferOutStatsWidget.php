@@ -18,34 +18,33 @@ class TransferOutStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $today = Carbon::today();
 
         $pending = MoneyTransferInvoice::query()
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', $today)
+            ->whereDate('created_at', Carbon::today())
             ->where('status', 'pending_bkk_approval')
             ->count();
 
         $accepted = MoneyTransferInvoice::query()
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', $today)
+            ->whereDate('created_at', Carbon::today())
             ->where('status', 'accepted_bkk')
             ->count();
 
         $completed = MoneyTransferInvoice::query()
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', $today)
+            ->whereDate('created_at', Carbon::today())
             ->where('status', 'completed')
             ->count();
 
         $completedAmount = MoneyTransferInvoice::query()
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', $today)
+            ->whereDate('created_at', Carbon::today())
             ->where('status', 'completed')
             ->sum('net_amount');
         $totalFee = MoneyTransferInvoice::where('status', 'completed')
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', today())
+            ->whereDate('created_at', Carbon::today())
             ->sum('trf_fee');
 
         $netFeeDescription = new HtmlString('
@@ -64,7 +63,7 @@ class TransferOutStatsWidget extends BaseWidget
 
         $rejected = MoneyTransferInvoice::query()
             ->where('transfer_type', 'Transfer-OUT')
-            ->whereDate('created_at', $today)
+            ->whereDate('created_at', Carbon::today())
             ->where('status', 'Rejected')
             ->count();
 
@@ -91,7 +90,7 @@ class TransferOutStatsWidget extends BaseWidget
                 '✔️ ' . __('message.Completed') . ' ' . __('message.Transfer-OUT'),
                 $completed
             )
-                ->description('Total: ' . number_format($completedAmount, 2). ' | Fee: ' . number_format($totalFee, 2))
+                ->description( __('message.Total').' ' . number_format($completedAmount, 2). ' | '. __('message.Fee') .' '. number_format($totalFee, 2))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success')
                 ->chart($this->getRecentCounts('completed')),

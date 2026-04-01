@@ -20,6 +20,8 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 use App\Filament\Helper\CustomLogin;
 use App\Filament\Teller\Pages\TellerDashboard;
+use App\Filament\Teller\Widgets\TransferInLiveBanner;
+use App\Filament\Teller\Widgets\TransferInStatsOverview;
 
 class TellerPanelProvider extends PanelProvider
 {
@@ -39,6 +41,7 @@ class TellerPanelProvider extends PanelProvider
             ->font('Poppins')
             ->favicon(url('website/assets/logo/logo2.png'))
             ->brandLogo(fn () => view('filament.logo'))
+            ->brandName('G+ Services — Teller')
             ->sidebarCollapsibleOnDesktop()
             // ─── Dashboard ────────────────────────────────────────────────
             ->pages([
@@ -59,8 +62,8 @@ class TellerPanelProvider extends PanelProvider
                 for: 'App\\Filament\\Teller\\Widgets'
             )
             ->widgets([
-                // Keep default Filament info widgets removed;
-                // We load custom ones via Dashboard page.
+                TransferInLiveBanner::class,
+                TransferInStatsOverview::class,
             ])
             // ─── Middleware ───────────────────────────────────────────────
             ->middleware([
