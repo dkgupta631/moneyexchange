@@ -250,32 +250,47 @@ class TransferInvoiceResource extends Resource
                     })
                     ->visible(fn (MoneyTransferInvoice $record) => $record->status === 'pending_bkk_approval'),
 
-                // ✅ FIXED: reject_reason now saved to DB
+                // ✅ Reject with dropdown + optional textarea
                 Action::make('reject')
                     ->label(__('message.Reject'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-                    ->modalHeading(__('message.Reject Transfer Request'))
+                    ->modalHeading(__('message.Reject Transfer-OUT Request'))
                     ->modalSubmitActionLabel(__('message.Yes, Reject'))
                     ->modalCancelActionLabel(__('message.Cancel'))
+                    ->modalWidth('md')
                     ->form([
-                        Forms\Components\Textarea::make('reject_reason')
+                        Forms\Components\Select::make('reject_category')
                             ->label(__('message.Reason for Rejection'))
-                            ->placeholder(__('message.Enter reason for rejection...'))
+                            ->options([
+                                'Wrong Account details' => __('message.Wrong Account details'),
+                                'Wrong amount'          => __('message.Wrong amount'),
+                                'Change mind'           => __('message.Change mind'),
+                                'other'                 => __('message.Other (specify below)'),
+                            ])
                             ->required()
-                            ->minLength(3)
-                            ->rows(4),
+                            ->live(),
+
+                        Forms\Components\Textarea::make('reject_reason_text')
+                            ->label(__('message.Specify Reason'))
+                            ->placeholder(__('message.Enter detailed reason...'))
+                            ->rows(3)
+                            ->required()
+                            ->visible(fn (Forms\Get $get) => $get('reject_category') === 'other'),
                     ])
                     ->action(function (MoneyTransferInvoice $record, array $data) {
-                        // ✅ Save both status AND reject_reason
+                        $reason = $data['reject_category'] === 'other'
+                            ? ($data['reject_reason_text'] ?? __('message.Other'))
+                            : $data['reject_category'];
+
                         $record->update([
                             'status'        => 'Rejected',
-                            'reject_reason' => $data['reject_reason'],
+                            'reject_reason' => $reason,
                         ]);
 
                         Notification::make()
-                            ->title(__('message.Transfer Rejected'))
-                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.has been rejected.'))
+                            ->title('❌ ' . __('message.Transfer-IN Rejected'))
+                            ->body(__('message.Invoice') . " {$record->invoice_number} " . __('message.has been rejected.') . ' ' . __('message.Reason') . ': ' . $reason)
                             ->warning()
                             ->send();
                     })

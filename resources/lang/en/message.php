@@ -1058,7 +1058,7 @@ return [
     // Notifications
     'has been accepted. Please upload the slip.' => 'has been accepted. Please upload the slip.',
 
-    "Close" => "Close",
+    "Reject Transfer-OUT Request" => "Reject Transfer-OUT Request",
     "Close" => "Close",
     "Close" => "Close",
     "Close" => "Close",
