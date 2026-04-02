@@ -1059,8 +1059,8 @@ return [
     'has been accepted. Please upload the slip.' => 'has been accepted. Please upload the slip.',
 
     "Reject Transfer-OUT Request" => "Reject Transfer-OUT Request",
-    "Close" => "Close",
-    "Close" => "Close",
+    "Today Transfer-IN" => "Today Transfer-IN",
+    "No Transfer-IN records found for today" => "No Transfer-IN records found for today",
     "Close" => "Close",
     "Close" => "Close",
     "Close" => "Close",

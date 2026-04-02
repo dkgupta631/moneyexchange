@@ -10,6 +10,8 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\MaxWidth;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -17,11 +19,17 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Illuminate\Support\Facades\Blade;
 
 use App\Filament\Helper\CustomLogin;
 use App\Filament\Teller\Pages\TellerDashboard;
-use App\Filament\Teller\Widgets\TransferInLiveBanner;
-use App\Filament\Teller\Widgets\TransferInStatsOverview;
+
+// ✅ All widgets explicitly imported
+use App\Filament\Teller\Widgets\TransferInLiveNotificationWidget;
+use App\Filament\Teller\Widgets\TransferInStatsWidget;
+use App\Filament\Teller\Widgets\TransferOutLiveNotificationWidget;
+use App\Filament\Teller\Widgets\TransferOutStatsWidget;
+use App\Filament\Teller\Widgets\GlobalTransferInNotificationWidget;
 
 class TellerPanelProvider extends PanelProvider
 {
@@ -36,18 +44,15 @@ class TellerPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Purple,
             ])
-            // ─── Layout / Branding ────────────────────────────────────────
             ->maxContentWidth('full')
             ->font('Poppins')
             ->favicon(url('website/assets/logo/logo2.png'))
             ->brandLogo(fn () => view('filament.logo'))
             ->brandName('G+ Services — Teller')
             ->sidebarCollapsibleOnDesktop()
-            // ─── Dashboard ────────────────────────────────────────────────
             ->pages([
                 TellerDashboard::class,
             ])
-            // ─── Resources ────────────────────────────────────────────────
             ->discoverResources(
                 in: app_path('Filament/Teller/Resources'),
                 for: 'App\\Filament\\Teller\\Resources'
@@ -56,15 +61,31 @@ class TellerPanelProvider extends PanelProvider
                 in: app_path('Filament/Teller/Pages'),
                 for: 'App\\Filament\\Teller\\Pages'
             )
-            // ─── Widgets ─────────────────────────────────────────────────
             ->discoverWidgets(
                 in: app_path('Filament/Teller/Widgets'),
                 for: 'App\\Filament\\Teller\\Widgets'
             )
+            // ✅ Explicitly list so Livewire registers component aliases
             ->widgets([
-                TransferInLiveBanner::class,
-                TransferInStatsOverview::class,
+                Widgets\AccountWidget::class,
+                TransferInLiveNotificationWidget::class,
+                TransferInStatsWidget::class,
+                TransferOutLiveNotificationWidget::class,
+                TransferOutStatsWidget::class,
+                GlobalTransferInNotificationWidget::class,
             ])
+
+            // ══════════════════════════════════════════════════════════════
+            // ✅ GLOBAL POPUP — injected into EVERY teller page via RenderHook
+            // The GlobalTransferInNotificationWidget Livewire component is
+            // mounted inside BODY_START so it polls and fires the popup
+            // regardless of which page/resource the teller is viewing.
+            // ══════════════════════════════════════════════════════════════
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn (): \Illuminate\View\View => view('filament.teller.global-notification-hook'),
+            )
+
             // ─── Middleware ───────────────────────────────────────────────
             ->middleware([
                 EncryptCookies::class,
