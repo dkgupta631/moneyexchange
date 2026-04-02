@@ -6,16 +6,14 @@ use App\Filament\Teller\Resources\TransferInResource\Pages;
 use App\Models\MoneyTransferInvoice;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
-
-use Illuminate\Support\Str;
 
 class TransferInResource extends Resource
 {
@@ -45,10 +43,10 @@ class TransferInResource extends Resource
         return __('message.Transfers');
     }
 
+    // ✅ Sidebar badge — pending + accepted count
     public static function getNavigationBadge(): ?string
     {
-        $count = MoneyTransferInvoice::query()
-            ->where('transfer_type', 'Transfer-IN')
+        $count = static::getModel()::where('transfer_type', 'Transfer-IN')
             ->whereDate('created_at', Carbon::today())
             ->whereIn('status', ['pending_bkk_approval', 'accepted_bkk'])
             ->count();
@@ -63,197 +61,193 @@ class TransferInResource extends Resource
 
     public static function getNavigationBadgeTooltip(): ?string
     {
-        return __('message.Pending') . ' ' . __('message.Transfer-IN');
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->where('transfer_type', 'Transfer-IN')
-            ->whereDate('created_at', Carbon::today())
-            ->latest();
+        return __('message.Pending Transfer-IN approvals');
     }
 
     public static function form(Form $form): Form
     {
-        return $form->schema([]);
+        return $form->schema([
+            Forms\Components\Section::make(__('message.Transfer Details'))
+                ->schema([
+                    Forms\Components\TextInput::make('invoice_number')->label(__('message.Invoice Number'))->disabled(),
+                    Forms\Components\TextInput::make('customer_name')->label(__('message.Customer Name'))->disabled(),
+                    Forms\Components\TextInput::make('phone')->label(__('message.Phone'))->disabled(),
+                    Forms\Components\TextInput::make('bank_name')->label(__('message.Bank Name'))->disabled(),
+                    Forms\Components\TextInput::make('acc_name')->label(__('message.Account Name'))->disabled(),
+                    Forms\Components\TextInput::make('acc_number')->label(__('message.Account Number'))->disabled(),
+                    Forms\Components\TextInput::make('currency')->label(__('message.Currency'))->disabled(),
+                    Forms\Components\TextInput::make('entered_amount')->label(__('message.Amount'))->disabled(),
+                    Forms\Components\TextInput::make('trf_fee')->label(__('message.Transfer Fee'))->disabled(),
+                    Forms\Components\TextInput::make('net_amount')->label(__('message.Net Amount'))->disabled(),
+                    Forms\Components\Select::make('status')
+                        ->label(__('message.Status'))
+                        ->options([
+                            'pending_bkk_approval' => __('message.Pending BKK Approval'),
+                            'accepted_bkk'         => __('message.Accepted'),
+                            'completed'            => __('message.Completed'),
+                            'Rejected'             => __('message.Rejected'),
+                            'cancelled'            => __('message.Cancelled'),
+                        ])->disabled(),
+                    Forms\Components\Textarea::make('reject_reason')
+                        ->label(__('message.Reason for Rejection'))
+                        ->disabled()->rows(2)->columnSpanFull()
+                        ->visible(fn ($record) => $record?->status === 'Rejected'),
+                ])->columns(2),
+        ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->poll('8s')
-            ->defaultSort('created_at', 'desc')
+            ->query(
+                MoneyTransferInvoice::query()
+                    ->where('transfer_type', 'Transfer-IN')
+                    ->whereDate('created_at', Carbon::today())
+                    ->orderBy('id', 'desc')
+            )
             ->columns([
-                Tables\Columns\TextColumn::make('Serial_number')
+                TextColumn::make('serial_number')
                     ->label(__('message.Serial number'))
+                    ->rowIndex()
                     ->badge()
-                    ->state(fn($column) => $column->getRowLoop()->iteration),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('message.Time'))
-                    ->dateTime('d M Y h:i')
-                    ->searchable()
                     ->color('gray'),
-                Tables\Columns\TextColumn::make('invoice_number')
-                    ->label(__('message.Invoice Number'))
-                    ->searchable()->sortable()->copyable()
-                    ->weight('bold')->color('primary'),
 
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('created_at')
+                    ->label(__('message.Time'))
+                    ->dateTime('d M Y H:i')
+                    ->timezone('Asia/Bangkok')
+                    ->sortable()
+                    ->color('gray'),
+
+                TextColumn::make('invoice_number')
+                    ->label(__('message.Invoice Number'))
+                    ->searchable()
+                    ->copyable()
+                    ->weight('bold')
+                    ->color('primary'),
+
+                Tables\Columns\BadgeColumn::make('status')
                     ->label(__('message.Status'))
-                    ->badge()
-                    ->formatStateUsing(fn ($state) => match ($state) {
-                        'pending_bkk_approval' => __('message.Pending'),
-                        'accepted_bkk'         => __('message.Accepted'),
-                        'completed'            => __('message.Completed'),
-                        'Rejected'             => __('message.Rejected'),
-                        'cancelled'            => __('message.Cancelled'),
+                    ->colors([
+                        'warning' => 'pending_bkk_approval',
+                        'success' => 'accepted_bkk',
+                        'primary' => 'completed',
+                        'danger'  => 'Rejected',
+                        'gray'    => 'cancelled',
+                    ])
+                    ->formatStateUsing(fn ($state) => match($state) {
+                        'pending_bkk_approval' => '⏳ ' . __('message.Pending'),
+                        'accepted_bkk'         => '✅ ' . __('message.Accepted'),
+                        'completed'            => '✔ '  . __('message.Completed'),
+                        'Rejected'             => '❌ ' . __('message.Rejected'),
+                        'cancelled'            => '🚫 ' . __('message.Cancelled'),
                         default                => $state,
-                    })
-                    ->color(fn ($state) => match ($state) {
-                        'pending_bkk_approval' => 'warning',
-                        'accepted_bkk'         => 'info',
-                        'completed'            => 'success',
-                        'Rejected'             => 'danger',
-                        'cancelled'            => 'gray',
-                        default                => 'gray',
-                    })
-                    ->icon(fn ($state) => match ($state) {
-                        'pending_bkk_approval' => 'heroicon-o-clock',
-                        'accepted_bkk'         => 'heroicon-o-check-circle',
-                        'completed'            => 'heroicon-o-check-badge',
-                        'Rejected'             => 'heroicon-o-x-circle',
-                        'cancelled'            => 'heroicon-o-ban',
-                        default                => null,
                     }),
 
-                Tables\Columns\TextColumn::make('combinessd')
+                TextColumn::make('customer_name')
                     ->label(__('message.Customer name'))
-                    ->html()
-                    ->getStateUsing(fn ($record) =>
-                        '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
-                        Str::ucfirst($record->phone)
-                    ),
-                Tables\Columns\TextColumn::make('bank_details')
+                    ->searchable()
+                    ->default('—'),
+
+                // ✅ Combined bank details
+                TextColumn::make('bank_name')
                     ->label(__('message.Bank Details'))
                     ->html()
-                    ->getStateUsing(fn ($record) =>
-                        '<strong>' . Str::ucfirst($record->bank_name) . '</strong><br>' .
-                        Str::ucfirst($record->acc_number) . '<br>' .
-                        Str::ucfirst($record->acc_name)
-                    )
-                    ->copyable(),
-                Tables\Columns\TextColumn::make('entered_amount')
+                    ->formatStateUsing(function ($state, $record) {
+                        return '<div style="line-height:1.5">
+                            <strong>' . e($record->bank_name ?? '—') . '</strong><br>
+                            <span style="font-size:12px;color:#94a3b8">' . e($record->acc_number ?? '') . '</span><br>
+                            <span style="font-size:11px;color:#64748b">' . e($record->acc_name ?? '') . '</span>
+                        </div>';
+                    }),
+
+                TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
-                    ->formatStateUsing(function ($state, $record) {
-                        return $record->currency . ' ' . $state;
-                    })
-                    ->searchable()
-                    ->alignRight(),
-                Tables\Columns\TextColumn::make('trf_fee')
+                    ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
+                    ->color('warning')
+                    ->weight('bold'),
+
+                TextColumn::make('trf_fee')
                     ->label(__('message.Transfer Fee'))
-                    ->formatStateUsing(function ($state, $record) {
-                        return $record->currency . ' ' . $state;
-                    })
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('net_amount')
+                    ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
+                    ->color('gray'),
+
+                TextColumn::make('net_amount')
                     ->label(__('message.Net Amount'))
-                    ->formatStateUsing(function ($state, $record) {
-                        return $record->currency . ' ' . $state;
-                    })
-                    ->searchable()
-                    ->weight('bold')->color('success'),
-                Tables\Columns\TextColumn::make('reject_reason')
+                    ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
+                    ->color('success')
+                    ->weight('bold'),
+
+                TextColumn::make('reject_reason')
                     ->label(__('message.Reject Reason'))
-                    ->limit(30)->placeholder('—')
+                    ->default('—')
                     ->color('danger')
-                    ->searchable()
-                    ->tooltip(fn ($record) => $record?->reject_reason),
+                    ->wrap(),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->label(__('message.Status'))
+                    ->options([
+                        'pending_bkk_approval' => '⏳ ' . __('message.Pending'),
+                        'accepted_bkk'         => '✅ ' . __('message.Accepted'),
+                        'completed'            => '✔ '  . __('message.Completed'),
+                        'Rejected'             => '❌ ' . __('message.Rejected'),
+                    ])
+                    ->placeholder(__('message.All Statuses')),
             ])
             ->actions([
-                // 1. View Invoice (new tab)
-                Tables\Actions\Action::make('view_invoice')
+                // ✅ Action 1: View Invoice in new tab
+                Action::make('view_invoice')
                     ->label(__('message.View Invoice'))
                     ->icon('heroicon-o-document-text')
                     ->color('info')
-                    ->tooltip(__('message.View Invoice'))
-                    ->url(fn (MoneyTransferInvoice $record): string => $record->invoice_url ?? '#')
+                    ->url(fn (MoneyTransferInvoice $record) => $record->invoice_url)
                     ->openUrlInNewTab()
-                    ->visible(fn (MoneyTransferInvoice $record): bool => !empty($record->invoice_url)),
+                    ->visible(fn (MoneyTransferInvoice $record) => ! empty($record->invoice_url)),
 
-                // View Transaction Slip
-                // Tables\Actions\Action::make('view_slip')
-                //     ->label(__('message.View_Slip'))
-                //     ->icon('heroicon-o-photo')
-                //     ->color('info')
-                //     ->modalHeading(__('message.Transaction_Slip'))
-                //     ->modalWidth('lg')
-                //     ->modalSubmitActionLabel(__('message.Download'))
-                //     ->form([
-                //         Forms\Components\ViewField::make('slip_preview')
-                //             ->view('filament.teller.components.slip-preview')
-                //             ->viewData(fn ($record) => ['slip_url' => $record->transaction_slip ? Storage::url($record->transaction_slip) : null]),
-                //     ])
-                //     ->action(function ($record) {
-                //         // Download handled via JS in view
-                //     })
-                //     ->visible(fn ($record) => !empty($record->transaction_slip)),
-                Tables\Actions\Action::make('view_slip')
+                // ✅ Action 2: View / Download transaction slip
+                Action::make('view_slip')
                     ->label(__('message.Transaction Slip'))
                     ->icon('heroicon-o-photo')
                     ->color('success')
-                    ->tooltip(__('message.Transaction Slip'))
-                    ->modalHeading(__('message.Transaction Slip'))
-                    ->modalContent(function (MoneyTransferInvoice $record) {
-                        if (empty($record->transaction_slip)) {
-                            return view('filament.teller.modals.no-slip', [
-                                'message' => __('message.No slip uploaded'),
-                            ]);
-                        }
-                        return view('filament.teller.modals.view-slip', [
-                            'slipUrl'       => Storage::url($record->transaction_slip),
-                            'invoiceNumber' => $record->invoice_number,
-                            'downloadLabel' => __('message.Download Slip'),
-                        ]);
-                    })
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel(__('message.Close'))
-                    ->visible(fn (MoneyTransferInvoice $record): bool => !empty($record->transaction_slip)),
+                    ->url(fn (MoneyTransferInvoice $record) => asset('storage/' . $record->transaction_slip))
+                    ->openUrlInNewTab()
+                    ->visible(fn (MoneyTransferInvoice $record) =>
+                        $record->status === 'completed' && ! empty($record->transaction_slip)
+                    ),
 
-                // Reject Action
-                Tables\Actions\Action::make('reject')
+                // ✅ Action 3: Reject with dropdown + optional textarea
+                Action::make('reject')
                     ->label(__('message.Reject'))
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
-                    ->requiresConfirmation(false)
-                    ->modalHeading(__('message.Reject_Transfer-IN_Request'))
+                    ->modalHeading(__('message.Reject Transfer-IN Request'))
+                    ->modalSubmitActionLabel(__('message.Yes, Reject'))
+                    ->modalCancelActionLabel(__('message.Cancel'))
                     ->modalWidth('md')
-                    ->modalSubmitActionLabel(__('message.Reject'))
-                    ->modalSubmitAction(fn ($action) => $action->color('danger')->icon('heroicon-o-x-circle'))
                     ->form([
-                        Forms\Components\Select::make('reject_reason')
-                            ->label(__('message.Reason_for_Rejection'))
-                            ->required()
+                        Forms\Components\Select::make('reject_category')
+                            ->label(__('message.Reason for Rejection'))
                             ->options([
-                                'Wrong Account details' => __('message.Wrong_Account_details'),
-                                'Wrong amount'          => __('message.Wrong_amount'),
-                                'Change mind'           => __('message.Change_mind'),
-                                'Other'                 => __('message.Other'),
+                                'Wrong Account details' => __('message.Wrong Account details'),
+                                'Wrong amount'          => __('message.Wrong amount'),
+                                'Change mind'           => __('message.Change mind'),
+                                'other'                 => __('message.Other (specify below)'),
                             ])
-                            ->live()
-                            ->placeholder(__('message.Select_an_option')),
+                            ->required()
+                            ->live(),
 
-                        Forms\Components\Textarea::make('other_reason')
-                            ->label(__('message.Specify_Reason'))
-                            ->placeholder(__('message.Enter_rejection_reason'))
+                        Forms\Components\Textarea::make('reject_reason_text')
+                            ->label(__('message.Specify Reason'))
+                            ->placeholder(__('message.Enter detailed reason...'))
                             ->rows(3)
-                            ->visible(fn (Forms\Get $get) => $get('reject_reason') === 'Other')
-                            ->requiredIf('reject_reason', 'Other'),
+                            ->required()
+                            ->visible(fn (Forms\Get $get) => $get('reject_category') === 'other'),
                     ])
-                    ->action(function ($record, array $data) {
-                        $reason = $data['reject_reason'] === 'Other'
-                            ? ($data['other_reason'] ?? 'Other')
-                            : $data['reject_reason'];
+                    ->action(function (MoneyTransferInvoice $record, array $data) {
+                        $reason = $data['reject_category'] === 'other'
+                            ? ($data['reject_reason_text'] ?? __('message.Other'))
+                            : $data['reject_category'];
 
                         $record->update([
                             'status'        => 'Rejected',
@@ -261,17 +255,25 @@ class TransferInResource extends Resource
                         ]);
 
                         Notification::make()
-                            ->title(__('message.Transfer-IN') . ' ' . __('message.Rejected'))
-                            ->body(__('message.Invoice') . ' #' . $record->invoice_number . ' ' . __('message.has_been_rejected'))
-                            ->danger()
+                            ->title('❌ ' . __('message.Transfer-IN Rejected'))
+                            ->body(__('message.Invoice') . " {$record->invoice_number} — " . $reason)
+                            ->warning()
                             ->send();
                     })
-                    ->visible(fn ($record) => in_array($record->status, ['pending_bkk_approval', 'accepted_bkk'])),
+                    ->visible(fn (MoneyTransferInvoice $record) =>
+                        in_array($record->status, ['pending_bkk_approval', 'accepted_bkk'])
+                    ),
             ])
             ->bulkActions([])
-            ->emptyStateHeading(__('message.No_Transfer-IN_today'))
-            ->emptyStateDescription(__('message.No_Transfer-IN_records_found_for_today'))
-            ->emptyStateIcon('heroicon-o-inbox');
+            ->poll('8s')
+            ->defaultSort('created_at', 'desc')
+            ->striped()
+            ->paginated([10, 25, 50]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [];
     }
 
     public static function getPages(): array

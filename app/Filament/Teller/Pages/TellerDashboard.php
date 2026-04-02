@@ -78,8 +78,8 @@ class TellerDashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
-            \App\Filament\Teller\Widgets\TransferInLiveBanner::class,
-            \App\Filament\Teller\Widgets\TransferInStatsOverview::class,
+           \App\Filament\Teller\Widgets\TransferInLiveNotificationWidget::class,
+            \App\Filament\Teller\Widgets\TransferInStatsWidget::class,
             \App\Filament\Teller\Widgets\TransferOutLiveNotificationWidget::class,
             \App\Filament\Teller\Widgets\TransferOutStatsWidget::class,
         ];
