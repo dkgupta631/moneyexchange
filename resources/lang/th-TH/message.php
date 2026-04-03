@@ -1051,6 +1051,14 @@ return [
 
     // Notifications
     'has been accepted. Please upload the slip.' => 'ได้รับการอนุมัติแล้ว โปรดอัปโหลดสลิป',
+    "Reject Transfer-OUT Request" => "ปฏิเสธคำขอโอนเงินออก",
+    "Today Transfer-IN" => "วันนี้โอนเข้า",
+    "No Transfer-IN records found for today" => "ไม่พบข้อมูลการโอนเข้าในวันนี้",
+    "Sale/Buy" => "ขาย/ซื้อ",
+    "Normal rate" => "อัตราปกติ",
+    "Standard rate" => "อัตรามาตรฐาน",
+    "Exchange rates" => "อัตราแลกเปลี่ยน",
+    "Exchange rate" => "อัตราแลกเปลี่ยน",
     
     
     

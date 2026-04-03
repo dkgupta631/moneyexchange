@@ -1050,6 +1050,14 @@ return [
 
     // Notifications
     'has been accepted. Please upload the slip.' => 'ត្រូវបានអនុម័តហើយ។ សូមអាប់ឡូតស្លីប។',
+    "Reject Transfer-OUT Request" => "បដិសេធសំណើផ្ទេរចេញ",
+    "Today Transfer-IN" => "ការផ្ទេរចូលថ្ងៃនេះ",
+    "No Transfer-IN records found for today" => "មិនមានកំណត់ត្រាការផ្ទេរចូលសម្រាប់ថ្ងៃនេះទេ",
+    "Sale/Buy" => "លក់/ទិញ",
+    "Normal rate" => "អត្រាធម្មតា",
+    "Standard rate" => "អត្រាស្តង់ដារ",
+    "Exchange rates" => "អត្រាប្តូរប្រាក់",
+    "Exchange rate" => "អត្រាប្តូរប្រាក់",
 
 
     
