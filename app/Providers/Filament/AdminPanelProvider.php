@@ -18,61 +18,57 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-
 use Filament\Navigation\MenuItem;
-// use App\Filament\Pages\Auth\ChangePassword;
 use Filament\Forms\Components\ColorPicker;
-
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-       
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
-            ->authGuard('web') 
+            ->authGuard('web')
             ->login()
             ->profile()
             ->colors([
-                'primary' => Color::Amber,
-                'sidebar' => [
-                    'background' => '#053cb1', // Sidebar bg color
-                    'text' => '#F3F4F6',       // Sidebar text color
+                // Gold accent — primary buttons, links, highlights
+                'primary' => [
+                    50  => '#FFF8E7',
+                    100 => '#FEEFC3',
+                    200 => '#FDDF8A',
+                    300 => '#FCC948',
+                    400 => '#F5B014',
+                    500 => '#D4920A', // Main gold
+                    600 => '#B07508',
+                    700 => '#8A5B06',
+                    800 => '#664304',
+                    900 => '#3F2902',
+                    950 => '#261800',
                 ],
-                'header' => [
-                    'background' => '#0f1ebe', // Header bg color
-                ],
-                'body' => [
-                    'background' => '#F9FAFB', // Main body background
+
+                // Deep navy — used for sidebar, header, focus rings
+                'gray' => [
+                    50  => '#F0F4FA',
+                    100 => '#DCE5F5',
+                    200 => '#B8CAEA',
+                    300 => '#8AAAD8',
+                    400 => '#5C87C4',
+                    500 => '#3A68AE',
+                    600 => '#1E3A6E', // Deep navy accent
+                    700 => '#162D56',
+                    800 => '#0E1F3D', // Sidebar background
+                    900 => '#080F1E', // Darkest navy
+                    950 => '#040810',
                 ],
             ])
-            
-
-            // Created by DK START
             ->maxContentWidth('full')
-            // ->viteTheme('resources/css/app.css')
-            // ->topNavigation()
             ->font('Poppins')
-            // ->favicon(fn () => view('filament.faviconlogo'))
             ->favicon(url('website/assets/logo/logo.png'))
-            ->brandLogo(fn () => view('filament.logo')) // Dashboard sidebar logo
+            ->brandLogo(fn () => view('filament.logo'))
+            ->brandName('G+ Services — Manager')
             ->sidebarCollapsibleOnDesktop()
-            ->userMenuItems([
-                // 'profile' => MenuItem::make('profile')
-                //     ->label(fn (): string => 'Profile')
-                //     ->url(fn (): string => Profile::getUrl()),
-
-                // 'change-password' => MenuItem::make('Change Password')
-                //     ->url(fn (): string => ChangePassword::getUrl())
-                //     ->label(fn (): string => 'Change Password')
-                //     ->icon('heroicon-s-lock-closed'),
-            ])
-            // ->databaseNotifications()
-            // ->databaseNotificationsPolling('30s')
-              // Created by DK END
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

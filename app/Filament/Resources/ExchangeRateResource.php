@@ -21,6 +21,21 @@ class ExchangeRateResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    public static function getNavigationLabel(): string
+    {
+        return __('message.Exchange rates');
+    }
+
+    public static function getModelLabel(): string
+    {
+        return __('message.Exchange rate');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('message.Exchange rates');
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -34,7 +49,7 @@ class ExchangeRateResource extends Resource
                 //             ->prefixIcon('heroicon-m-document-currency-dollar')
                 //     ->required(),
                 Forms\Components\Select::make('buy_or_sell')
-                    ->label(__('message.Buy/Sell'))
+                    ->label(__('message.Sale/Buy'))
                     ->options([
                                 'sell' => 'Sell',
                                 'buy' => 'Buy',
@@ -43,6 +58,7 @@ class ExchangeRateResource extends Resource
                     ->columnSpan('full')
                     ->required(),
                 Forms\Components\Select::make('from_currency')
+                    ->label(__('message.From currency'))
                      ->options([
                                 'Dollar' => 'Dollar',
                                 'Baht' => 'Baht',
@@ -51,6 +67,7 @@ class ExchangeRateResource extends Resource
                     ->prefixIcon('heroicon-m-document-currency-dollar')
                     ->required(),
                 Forms\Components\Select::make('to_currency')
+                    ->label(__('message.To currency'))
                      ->options([
                                 'Dollar' => 'Dollar',
                                 'Baht' => 'Baht',
@@ -59,13 +76,13 @@ class ExchangeRateResource extends Resource
                     ->prefixIcon('heroicon-m-document-currency-dollar')
                     ->required(),
                 Forms\Components\TextInput::make('normal_rate')
+                    ->label(__('message.Normal rate'))
                     ->maxLength(255)
                     ->default(null),
                 Forms\Components\TextInput::make('standard_rate')
+                    ->label(__('message.Standard rate'))
                     ->maxLength(255)
                     ->default(null),
-               
-              
                 Forms\Components\DatePicker::make('rate_date')
                     ->required()
                     ->label(__('message.Event date'))
@@ -86,30 +103,34 @@ class ExchangeRateResource extends Resource
                     ->label(__('message.Serial number'))
                     ->badge()
                     ->state(fn($column) => $column->getRowLoop()->iteration),
-                //  Tables\Columns\TextColumn::make('section')
-                //     ->searchable(),
                 Tables\Columns\TextColumn::make('buy_or_sell')
+                    ->label(__('message.Sale/Buy'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('from_currency')
+                    ->label(__('message.From currency'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('to_currency')
+                    ->label(__('message.From currency'))
                     ->searchable(),
-               
-                
                 Tables\Columns\TextColumn::make('normal_rate')
+                    ->label(__('message.Normal rate'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('standard_rate')
+                    ->label(__('message.Standard rate'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('rate_date')
+                    ->label(__('message.Date'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('ordering')
+                    ->label(__('message.Order'))
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label(__('message.Created at'))
+                    ->dateTime('d-M-Y')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label(__('message.Updated at'))
+                    ->dateTime('d-M-Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
