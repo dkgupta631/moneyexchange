@@ -1059,6 +1059,11 @@ return [
     "Standard rate" => "อัตรามาตรฐาน",
     "Exchange rates" => "อัตราแลกเปลี่ยน",
     "Exchange rate" => "อัตราแลกเปลี่ยน",
+    'transfer_in_report'       => 'รายงานการโอนเข้า',
+    'transfer_in_record'       => 'บันทึกการโอนเข้า',
+    'export_excel'             => 'ส่งออก Excel',
+    'export_success'           => 'Export Succeess',
+    'excel_downloading'        => 'Your Excel file downloded successfully!.',
     
     
     

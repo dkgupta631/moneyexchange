@@ -122,10 +122,11 @@ class TransferOutResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('Serial_number')
+                Tables\Columns\TextColumn::make('id')
                     ->label(__('message.Serial number'))
-                    ->badge()
-                    ->state(fn($column) => $column->getRowLoop()->iteration),
+                    ->rowIndex()
+                    ->searchable()
+                    ->badge(),
                 TextColumn::make('created_at')
                     ->label(__('message.Time'))
                     ->dateTime('d M Y h:i')
@@ -137,6 +138,7 @@ class TransferOutResource extends Resource
                     ->weight('bold')->color('primary'),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label(__('message.Status'))
+                    ->searchable()
                     ->colors([
                         'warning' => 'pending_bkk_approval',
                         'success' => 'accepted_bkk',
@@ -153,15 +155,17 @@ class TransferOutResource extends Resource
                         default                => $state,
                     })->searchable()
                     ->sortable(),
-                TextColumn::make('combinessd')
+                TextColumn::make('customer_name')
                     ->label(__('message.Customer name'))
+                    ->searchable()
                     ->html()
                     ->getStateUsing(fn ($record) =>
                         '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
                         Str::ucfirst($record->phone)
                     ),
-               TextColumn::make('bank_details')
+               TextColumn::make('bank_name')
                     ->label(__('message.Bank Details'))
+                    ->searchable()
                     ->html()
                     ->getStateUsing(fn ($record) =>
                         '<strong>' . Str::ucfirst($record->bank_name) . '</strong><br>' .
