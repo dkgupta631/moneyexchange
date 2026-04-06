@@ -1066,19 +1066,15 @@ return [
     "Standard rate" => "Standard rate",
     "Exchange rates" => "Exchange rates",
     "Exchange rate" => "Exchange rate",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
-    "Close" => "Close",
+   
+    // Navigation
+    'transfer_in_report'       => 'Transfer-IN Report',
+    'transfer_in_record'       => 'Transfer-IN Record',
+ 
+    // Export
+    'export_excel'             => 'Export Excel',
+    'export_success'           => 'Export Succeess',
+    'excel_downloading'        => 'Your Excel file downloded successfully!.',
   
 
     

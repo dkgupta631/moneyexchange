@@ -123,10 +123,11 @@ class TransferInResource extends Resource
                     ->orderBy('id', 'desc')
             )
             ->columns([
-                TextColumn::make('Serial_number')
+                TextColumn::make('id')
                     ->label(__('message.Serial number'))
-                    ->badge()
-                    ->state(fn($column) => $column->getRowLoop()->iteration),
+                    ->rowIndex()
+                    ->searchable()
+                    ->badge(),
                 TextColumn::make('created_at')
                     ->label(__('message.Time'))
                     ->dateTime('d M Y h:i')
@@ -140,9 +141,10 @@ class TransferInResource extends Resource
                     ->weight('bold')
                     ->color('primary'),
 
-               TextColumn::make('combinessd')
+               TextColumn::make('customer_name')
                     ->label(__('message.Customer name'))
                     ->html()
+                    ->searchable()
                     ->getStateUsing(fn ($record) =>
                         '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
                         Str::ucfirst($record->phone)
@@ -154,6 +156,7 @@ class TransferInResource extends Resource
                         ($record->bank_name ?? '—') . "\n" . ($record->acc_number ?? '')
                     )
                     ->html()
+                    ->searchable()
                     ->formatStateUsing(function ($state, $record) {
                         return '<div style="line-height:1.4">
                             <span style="font-weight:700">' . e($record->bank_name ?? '—') . '</span><br>
@@ -192,6 +195,7 @@ class TransferInResource extends Resource
 
                 Tables\Columns\BadgeColumn::make('status')
                     ->label(__('message.Status'))
+                    ->searchable()
                     ->colors([
                         'warning' => 'pending_bkk_approval',
                         'success' => 'accepted_bkk',

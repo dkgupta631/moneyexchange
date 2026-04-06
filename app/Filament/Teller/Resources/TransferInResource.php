@@ -15,6 +15,8 @@ use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Carbon;
 
+use Illuminate\Support\Str;
+
 class TransferInResource extends Resource
 {
     protected static ?string $model = MoneyTransferInvoice::class;
@@ -106,15 +108,17 @@ class TransferInResource extends Resource
                     ->orderBy('id', 'desc')
             )
             ->columns([
-                TextColumn::make('serial_number')
+                TextColumn::make('id')
                     ->label(__('message.Serial number'))
                     ->rowIndex()
+                    ->searchable()
                     ->badge()
                     ->color('gray'),
 
                 TextColumn::make('created_at')
                     ->label(__('message.Time'))
                     ->dateTime('d M Y H:i')
+                    ->searchable()
                     ->timezone('Asia/Bangkok')
                     ->sortable()
                     ->color('gray'),
@@ -128,6 +132,7 @@ class TransferInResource extends Resource
 
                 Tables\Columns\BadgeColumn::make('status')
                     ->label(__('message.Status'))
+                    ->searchable()
                     ->colors([
                         'warning' => 'pending_bkk_approval',
                         'success' => 'accepted_bkk',
@@ -144,15 +149,20 @@ class TransferInResource extends Resource
                         default                => $state,
                     }),
 
-                TextColumn::make('customer_name')
+                Tables\Columns\TextColumn::make('customer_name')
                     ->label(__('message.Customer name'))
+                    ->html()
                     ->searchable()
-                    ->default('—'),
+                    ->getStateUsing(fn ($record) =>
+                        '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
+                        Str::ucfirst($record->phone)
+                    ),
 
                 // ✅ Combined bank details
-                TextColumn::make('bank_name')
+                Tables\Columns\TextColumn::make('bank_name')
                     ->label(__('message.Bank Details'))
                     ->html()
+                    ->searchable()
                     ->formatStateUsing(function ($state, $record) {
                         return '<div style="line-height:1.5">
                             <strong>' . e($record->bank_name ?? '—') . '</strong><br>
@@ -165,22 +175,25 @@ class TransferInResource extends Resource
                     ->label(__('message.Amount'))
                     ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
                     ->color('warning')
+                    ->searchable()
                     ->weight('bold'),
 
                 TextColumn::make('trf_fee')
                     ->label(__('message.Transfer Fee'))
                     ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
+                    ->searchable()
                     ->color('gray'),
 
                 TextColumn::make('net_amount')
                     ->label(__('message.Net Amount'))
                     ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
+                    ->searchable()
                     ->color('success')
                     ->weight('bold'),
 
                 TextColumn::make('reject_reason')
                     ->label(__('message.Reject Reason'))
-                    ->default('—')
+                    ->searchable()
                     ->color('danger')
                     ->wrap(),
             ])
