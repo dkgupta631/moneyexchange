@@ -1062,8 +1062,16 @@ return [
     'transfer_in_report'       => 'รายงานการโอนเข้า',
     'transfer_in_record'       => 'บันทึกการโอนเข้า',
     'export_excel'             => 'ส่งออก Excel',
-    'export_success'           => 'Export Succeess',
-    'excel_downloading'        => 'Your Excel file downloded successfully!.',
+    'export_success'           => 'ความสำเร็จในการส่งออก',
+    'excel_downloading'        => 'ไฟล์ Excel ของคุณดาวน์โหลดสำเร็จแล้ว!',
+    'total_completed_records' => '★ ยอดรวม — เฉพาะรายการที่บันทึกเสร็จสมบูรณ์แล้ว',
+    "Completed Records" => "บันทึกที่เสร็จสมบูรณ์",
+    "Total Entered Amount" => "จำนวนเงินทั้งหมดที่ป้อน",
+    "Total Transfer Fee" => "รวมค่าธรรมเนียมการโอน",
+    "Total Net Amount" => "จำนวนเงินสุทธิทั้งหมด",
+    'Transfer-IN Report' => 'รายงานการโอนเข้า',
+    'All Records' => 'บันทึกทั้งหมด',
+    'Generated' => 'สร้างขึ้น',
     
     
     
