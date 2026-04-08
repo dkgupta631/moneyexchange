@@ -69,6 +69,7 @@ class TransferInReportResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->label(__('message.Serial number'))
                     ->sortable()
+                    ->rowIndex()
                     ->alignCenter()
                     ->badge()
                     ->color('gray'),
