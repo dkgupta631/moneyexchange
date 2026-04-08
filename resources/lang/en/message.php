@@ -1073,8 +1073,23 @@ return [
  
     // Export
     'export_excel'             => 'Export Excel',
-    'export_success'           => 'Export Succeess',
-    'excel_downloading'        => 'Your Excel file downloded successfully!.',
+    'export_success'           => 'Export Success',
+    'excel_downloading'        => 'Your Excel file downloaded successfully!.',
+    'total_completed_records' => '★ TOTALS — Completed Records Only',
+    "Completed Records" => "Completed Records",
+    "Total Entered Amount" => "Total Entered Amount",
+    "Total Transfer Fee" => "Total Transfer Fee",
+    "Total Net Amount" => "Total Net Amount",
+    'Transfer-IN Report' => 'Transfer-IN Report',
+    'All Records' => 'All Records',
+    'Generated' => 'Generated',
+    "Close" => "Close",
+    "Close" => "Close",
+    "Close" => "Close",
+    "Close" => "Close",
+    "Close" => "Close",
+    "Close" => "Close",
+    "Close" => "Close",
   
 
     

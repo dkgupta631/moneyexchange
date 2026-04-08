@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\Action;
 use Maatwebsite\Excel\Facades\Excel;
-
 use Illuminate\Support\Str;
 
 class TransferInReportResource extends Resource
@@ -66,12 +65,14 @@ class TransferInReportResource extends Resource
         return $table
             ->poll('5s')
             ->columns([
+                // ✅ Use sortable id — NO rowIndex() to avoid export crash
                 Tables\Columns\TextColumn::make('id')
                     ->label(__('message.Serial number'))
-                    ->rowIndex()
-                    ->searchable()
+                    ->sortable()
+                    ->alignCenter()
                     ->badge()
                     ->color('gray'),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label(__('message.Time'))
                     ->dateTime('d M Y H:i')
@@ -92,14 +93,14 @@ class TransferInReportResource extends Resource
                     ->badge()
                     ->searchable()
                     ->color(fn (string $state): string => match ($state) {
-                        'completed'            => 'success',
-                        'pending_bkk_approval' => 'warning',
-                        'accepted_bkk'         => 'info',
+                        'completed'             => 'success',
+                        'pending_bkk_approval'  => 'warning',
+                        'accepted_bkk'          => 'info',
                         'Rejected', 'cancelled' => 'danger',
-                        default                => 'gray',
+                        default                 => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                       'pending_bkk_approval' => '⏳ ' . __('message.Pending'),
+                        'pending_bkk_approval' => '⏳ ' . __('message.Pending'),
                         'accepted_bkk'         => '✅ ' . __('message.Accepted'),
                         'completed'            => '✔ '  . __('message.Completed'),
                         'Rejected'             => '❌ ' . __('message.Rejected'),
@@ -112,46 +113,54 @@ class TransferInReportResource extends Resource
                     ->html()
                     ->searchable()
                     ->getStateUsing(fn ($record) =>
-                        '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
-                        Str::ucfirst($record->phone)
+                        '<strong>' . e(Str::ucfirst($record->customer_name ?? '—')) . '</strong><br>' .
+                        '<span style="font-size:12px;color:#94a3b8">' . e($record->phone ?? '') . '</span>'
                     ),
 
-                // ✅ Combined bank details
                 Tables\Columns\TextColumn::make('bank_name')
                     ->label(__('message.Bank Details'))
                     ->html()
                     ->searchable()
-                    ->formatStateUsing(function ($state, $record) {
-                        return '<div style="line-height:1.5">
+                    ->formatStateUsing(fn ($state, $record) =>
+                        '<div style="line-height:1.6">
                             <strong>' . e($record->bank_name ?? '—') . '</strong><br>
                             <span style="font-size:12px;color:#94a3b8">' . e($record->acc_number ?? '') . '</span><br>
                             <span style="font-size:11px;color:#64748b">' . e($record->acc_name ?? '') . '</span>
-                        </div>';
-                    }),
+                        </div>'
+                    ),
 
                 Tables\Columns\TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
-                    ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
+                    ->formatStateUsing(fn ($state, $record) =>
+                        ($record->currency ?? '') . ' ' . number_format((float) $state, 2)
+                    )
                     ->color('warning')
                     ->searchable()
+                    ->sortable()
                     ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('trf_fee')
                     ->label(__('message.Transfer Fee'))
                     ->searchable()
-                    ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
+                    ->sortable()
+                    ->formatStateUsing(fn ($state, $record) =>
+                        ($record->currency ?? '') . ' ' . number_format((float) $state, 2)
+                    )
                     ->color('gray'),
 
                 Tables\Columns\TextColumn::make('net_amount')
                     ->label(__('message.Net Amount'))
                     ->searchable()
-                    ->formatStateUsing(fn ($state, $record) => ($record->currency ?? '') . ' ' . number_format($state, 2))
+                    ->formatStateUsing(fn ($state, $record) =>
+                        ($record->currency ?? '') . ' ' . number_format((float) $state, 2)
+                    )
                     ->color('success')
                     ->weight('bold'),
 
-               Tables\Columns\TextColumn::make('reject_reason')
+                Tables\Columns\TextColumn::make('reject_reason')
                     ->label(__('message.Reject Reason'))
                     ->searchable()
+                    ->default('—')
                     ->color('danger')
                     ->wrap(),
             ])
@@ -163,11 +172,12 @@ class TransferInReportResource extends Resource
                         'accepted_bkk'         => '✅ ' . __('message.Accepted'),
                         'completed'            => '✔ '  . __('message.Completed'),
                         'Rejected'             => '❌ ' . __('message.Rejected'),
+                        'cancelled'            => '🚫 ' . __('message.Cancelled'),
                     ])
                     ->placeholder(__('message.All Statuses')),
             ])
             ->actions([
-                // ✅ Action 1: View Invoice in new tab
+                // Action 1: View Invoice URL in new tab
                 Action::make('view_invoice')
                     ->label(__('message.View Invoice'))
                     ->icon('heroicon-o-document-text')
@@ -176,7 +186,7 @@ class TransferInReportResource extends Resource
                     ->openUrlInNewTab()
                     ->visible(fn (MoneyTransferInvoice $record) => ! empty($record->invoice_url)),
 
-                // ✅ Action 2: View / Download transaction slip
+                // Action 2: View Transaction Slip in new tab
                 Action::make('view_slip')
                     ->label(__('message.Transaction Slip'))
                     ->icon('heroicon-o-photo')
@@ -187,16 +197,18 @@ class TransferInReportResource extends Resource
                         $record->status === 'completed' && ! empty($record->transaction_slip)
                     ),
 
+                // Action 3: View popup with professional dark design
                 Action::make('view_details')
                     ->label(__('message.View'))
                     ->icon('heroicon-o-eye')
                     ->color('gray')
-                    ->tooltip(__('message.view_account_details'))
-                    ->modalHeading(fn ($record) => __('message.transfer_in_completed') . ' — ' . $record->invoice_number)
+                    ->modalHeading('')   // Empty — custom header is inside the blade itself
                     ->modalWidth('lg')
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel(__('message.close'))
-                    ->modalContent(fn ($record) => view('filament.modals.transfer-in-details', compact('record'))),
+                    ->modalCancelActionLabel('✕ ' . __('message.Close'))
+                    ->modalContent(fn ($record) =>
+                        view('filament.modals.transfer-in-details', compact('record'))
+                    ),
             ])
             ->headerActions([
                 Action::make('export_excel')

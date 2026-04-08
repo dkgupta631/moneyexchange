@@ -47,18 +47,18 @@ class TransferInReportExport implements FromQuery, WithHeadings, WithMapping, Wi
     public function headings(): array
     {
         return [
-            '#',
-            'Invoice Number',
-            'Date',
-            'Customer Name',
-            'Bank Name',
-            'Account Number',
-            'Account Name',
-            'Status',
-            'Entered Amount',
-            'Transfer Fee',
-            'Net Amount',
-            'Reject Reason',
+            __('message.Serial number'),
+            __('message.Invoice Number'),
+            __('message.Date'),
+            __('message.Customer name'),
+            __('message.Bank Name'),
+            __('message.Account Name'),
+            __('message.Account Number'),
+            __('message.Status'),
+            __('message.Amount'),
+            __('message.Transfer Fee'),
+            __('message.Net Amount'),
+            __('message.Reject Reason'),
         ];
     }
 
@@ -72,8 +72,8 @@ class TransferInReportExport implements FromQuery, WithHeadings, WithMapping, Wi
             $row->created_at?->format('d M Y H:i') ?? '—',
             $row->customer_name ?? '—',
             $row->bank_name ?? '—',
-            $row->acc_number ?? '—',
             $row->acc_name ?? '—',
+            $row->acc_number ?? '—',
             match($row->status) {
                 'pending_bkk_approval' => '⏳ ' . __('message.Pending'),
                 'accepted_bkk'         => '✅ ' . __('message.Accepted'),
@@ -127,7 +127,9 @@ class TransferInReportExport implements FromQuery, WithHeadings, WithMapping, Wi
                 // ── 2. Title row (row 1) ────────────────────────────────────
                 $sheet->setCellValue(
                     'A1',
-                    'Transfer-IN Report  |  All Records  |  Generated: ' . now()->format('d M Y H:i')
+                    __('message.Transfer-IN Report') . ' | ' .
+                    __('message.All Records') . ' | ' .
+                    __('message.Generated') . ': ' . now()->format('d M Y H:i')
                 );
                 $sheet->mergeCells("A1:{$numCols}1");
                 $sheet->getStyle('A1')->applyFromArray([
@@ -202,7 +204,7 @@ class TransferInReportExport implements FromQuery, WithHeadings, WithMapping, Wi
                 $valuesRow        = $sectionHeaderRow + 2;
 
                 // Section header banner
-                $sheet->setCellValue("A{$sectionHeaderRow}", '★  TOTALS — Completed Records Only');
+                $sheet->setCellValue("A{$sectionHeaderRow}", __('message.total_completed_records'));
                 $sheet->mergeCells("A{$sectionHeaderRow}:{$numCols}{$sectionHeaderRow}");
                 $sheet->getStyle("A{$sectionHeaderRow}")->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 11, 'color' => ['argb' => 'FFFFFFFF']],
@@ -213,9 +215,9 @@ class TransferInReportExport implements FromQuery, WithHeadings, WithMapping, Wi
 
                 // Column labels
                 $totalsMap = [
-                    'I' => ['label' => 'Total Entered Amount', 'value' => (float) ($totals->total_entered ?? 0)],
-                    'J' => ['label' => 'Total Transfer Fee',   'value' => (float) ($totals->total_fee ?? 0)],
-                    'K' => ['label' => 'Total Net Amount',     'value' => (float) ($totals->total_net ?? 0)],
+                    'I' => ['label' => __('message.Total Entered Amount'), 'value' => (float) ($totals->total_entered ?? 0)],
+                    'J' => ['label' => __('message.Total Transfer Fee'),   'value' => (float) ($totals->total_fee ?? 0)],
+                    'K' => ['label' => __('message.Total Net Amount'),     'value' => (float) ($totals->total_net ?? 0)],
                 ];
 
                 foreach ($totalsMap as $col => $data) {
@@ -228,7 +230,7 @@ class TransferInReportExport implements FromQuery, WithHeadings, WithMapping, Wi
                 }
 
                 // Count cell in labels row
-                $sheet->setCellValue("A{$labelsRow}", 'Completed Records');
+                $sheet->setCellValue("A{$labelsRow}", __('message.Completed Records'));
                 $sheet->mergeCells("A{$labelsRow}:H{$labelsRow}");
                 $sheet->getStyle("A{$labelsRow}")->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 9, 'color' => ['argb' => 'FF0E1F3D']],

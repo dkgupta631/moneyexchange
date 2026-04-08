@@ -1058,6 +1058,20 @@ return [
     "Standard rate" => "អត្រាស្តង់ដារ",
     "Exchange rates" => "អត្រាប្តូរប្រាក់",
     "Exchange rate" => "អត្រាប្តូរប្រាក់",
+    "Exchange rates" => "អត្រាប្តូរប្រាក់",
+    'transfer_in_report' => 'របាយការណ៍ផ្ទេរចូល',
+    'transfer_in_record' => 'កំណត់ត្រាផ្ទេរចូល',
+    'export_excel' => 'នាំចេញ Excel',
+    'export_success' => 'នាំចេញបានជោគជ័យ',
+    'excel_downloading' => 'ឯកសារ Excel របស់អ្នកត្រូវបានទាញយកដោយជោគជ័យ!',
+    'total_completed_records' => '★ សរុប — តែបញ្ជីដែលបានបញ្ចប់ប៉ុណ្ណោះ',
+    "Completed Records" => "បញ្ជីបានបញ្ចប់",
+    "Total Entered Amount" => "ចំនួនប្រាក់ទាំងអស់ដែលបានបញ្ចូល",
+    "Total Transfer Fee" => "សរុបថ្លៃផ្ទេរ",
+    "Total Net Amount" => "ចំនួនប្រាក់សុទ្ធសរុប",
+    'Transfer-IN Report' => 'របាយការណ៍ផ្ទេរចូល',
+    'All Records' => 'កំណត់ត្រាទាំងអស់',
+    'Generated' => 'បានបង្កើតនៅ',
 
 
     
