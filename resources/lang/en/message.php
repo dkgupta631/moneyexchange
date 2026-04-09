@@ -1083,6 +1083,8 @@ return [
     'Transfer-IN Report' => 'Transfer-IN Report',
     'All Records' => 'All Records',
     'Generated' => 'Generated',
+    'transfer_out_report' => 'Transfer-OUT Report',
+    'transfer_out_record' => 'Transfer-OUT Record',
     "Close" => "Close",
     "Close" => "Close",
     "Close" => "Close",

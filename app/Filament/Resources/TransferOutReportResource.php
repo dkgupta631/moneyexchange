@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources;
 
-use App\Exports\TransferInReportExport;
-use App\Filament\Resources\TransferInReportResource\Pages;
+use App\Exports\TransferOutReportExport;
+use App\Filament\Resources\TransferOutReportResource\Pages;
 use App\Models\MoneyTransferInvoice;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -15,34 +15,34 @@ use Filament\Tables\Actions\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Str;
 
-class TransferInReportResource extends Resource
+class TransferOutReportResource extends Resource
 {
     protected static ?string $model = MoneyTransferInvoice::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-arrow-down-left';
+    protected static ?string $navigationIcon = 'heroicon-o-arrow-up-right';
 
     protected static ?string $navigationGroup = 'Reports';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationLabel(): string
     {
-        return __('message.transfer_in_report');
+        return __('message.transfer_out_report');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('message.transfer_in_report');
+        return __('message.transfer_out_report');
     }
 
     public static function getModelLabel(): string
     {
-        return __('message.transfer_in_record');
+        return __('message.transfer_out_record');
     }
 
     public static function getNavigationBadge(): ?string
     {
-            $count = MoneyTransferInvoice::where('transfer_type', 'Transfer-IN')
+         $count = MoneyTransferInvoice::where('transfer_type', 'Transfer-OUT')
                         ->whereDate('created_at', today())
                         ->count();
 
@@ -57,7 +57,7 @@ class TransferInReportResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('transfer_type', 'Transfer-IN')
+            ->where('transfer_type', 'Transfer-OUT')
             ->orderBy('id', 'desc');
     }
 
@@ -66,11 +66,10 @@ class TransferInReportResource extends Resource
         return $table
             ->poll('5s')
             ->columns([
-                // ✅ Use sortable id — NO rowIndex() to avoid export crash
+                // ✅ sortable id — NO rowIndex() to avoid export crash
                 Tables\Columns\TextColumn::make('id')
                     ->label(__('message.Serial number'))
                     ->sortable()
-                    ->rowIndex()
                     ->alignCenter()
                     ->badge()
                     ->color('gray'),
@@ -179,7 +178,7 @@ class TransferInReportResource extends Resource
                     ->placeholder(__('message.All Statuses')),
             ])
             ->actions([
-                // Action 1: View Invoice URL in new tab
+                // Action 1: View Invoice URL — opens in new tab
                 Action::make('view_invoice')
                     ->label(__('message.View Invoice'))
                     ->icon('heroicon-o-document-text')
@@ -188,7 +187,7 @@ class TransferInReportResource extends Resource
                     ->openUrlInNewTab()
                     ->visible(fn (MoneyTransferInvoice $record) => ! empty($record->invoice_url)),
 
-                // Action 2: View Transaction Slip in new tab
+                // Action 2: View Transaction Slip URL — opens in new tab
                 Action::make('view_slip')
                     ->label(__('message.Transaction Slip'))
                     ->icon('heroicon-o-photo')
@@ -199,17 +198,17 @@ class TransferInReportResource extends Resource
                         $record->status === 'completed' && ! empty($record->transaction_slip)
                     ),
 
-                // Action 3: View popup with professional dark design
+                // Action 3: View popup — professional dark design
                 Action::make('view_details')
                     ->label(__('message.View'))
                     ->icon('heroicon-o-eye')
                     ->color('gray')
-                    ->modalHeading('')   // Empty — custom header is inside the blade itself
+                    ->modalHeading('')
                     ->modalWidth('lg')
                     ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('✕ ' . __('message.Close'))
+                    ->modalCancelActionLabel('✕  ' . __('message.Close'))
                     ->modalContent(fn ($record) =>
-                        view('filament.modals.transfer-in-details', compact('record'))
+                        view('filament.modals.transfer-out-details', compact('record'))
                     ),
             ])
             ->headerActions([
@@ -225,8 +224,8 @@ class TransferInReportResource extends Resource
                             ->send();
 
                         return Excel::download(
-                            new TransferInReportExport(),
-                            'transfer-in-report-' . now()->format('Y-m-d-His') . '.xlsx'
+                            new TransferOutReportExport(),
+                            'transfer-out-report-' . now()->format('Y-m-d-His') . '.xlsx'
                         );
                     }),
             ])
@@ -238,7 +237,7 @@ class TransferInReportResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTransferInReports::route('/'),
+            'index' => Pages\ListTransferOutReports::route('/'),
         ];
     }
 }
