@@ -157,22 +157,23 @@ class TransferOutResource extends Resource
                     ->sortable(),
                 TextColumn::make('customer_name')
                     ->label(__('message.Customer name'))
-                    ->searchable()
                     ->html()
+                    ->searchable()
                     ->getStateUsing(fn ($record) =>
-                        '<strong>' . Str::ucfirst($record->customer_name) . '</strong><br>' .
-                        Str::ucfirst($record->phone)
+                        '<strong>' . e(Str::ucfirst($record->customer_name ?? '')) . '</strong><br>' .
+                        '<span style="font-size:12px;color:#94a3b8">' . e($record->phone ?? '') . '</span>'
                     ),
-               TextColumn::make('bank_name')
+                TextColumn::make('bank_name')
                     ->label(__('message.Bank Details'))
-                    ->searchable()
                     ->html()
-                    ->getStateUsing(fn ($record) =>
-                        '<strong>' . Str::ucfirst($record->bank_name) . '</strong><br>' .
-                        Str::ucfirst($record->acc_number) . '<br>' .
-                        Str::ucfirst($record->acc_name)
-                    )
-                    ->copyable(),
+                    ->searchable()
+                    ->formatStateUsing(fn ($state, $record) =>
+                        '<div style="line-height:1.6">
+                            <strong>' . e($record->bank_name ?? '—') . '</strong><br>
+                            <span style="font-size:12px;color:#94a3b8">' . e($record->acc_number ?? '') . '</span><br>
+                            <span style="font-size:11px;color:#64748b">' . e($record->acc_name ?? '') . '</span>
+                        </div>'
+                    ),
                 TextColumn::make('entered_amount')
                     ->label(__('message.Amount'))
                     ->formatStateUsing(function ($state, $record) {

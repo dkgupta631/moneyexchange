@@ -70,6 +70,7 @@ class TransferOutReportResource extends Resource
                 Tables\Columns\TextColumn::make('id')
                     ->label(__('message.Serial number'))
                     ->sortable()
+                    ->rowIndex()
                     ->alignCenter()
                     ->badge()
                     ->color('gray'),
@@ -114,7 +115,7 @@ class TransferOutReportResource extends Resource
                     ->html()
                     ->searchable()
                     ->getStateUsing(fn ($record) =>
-                        '<strong>' . e(Str::ucfirst($record->customer_name ?? '—')) . '</strong><br>' .
+                        '<strong>' . e(Str::ucfirst($record->customer_name ?? '')) . '</strong><br>' .
                         '<span style="font-size:12px;color:#94a3b8">' . e($record->phone ?? '') . '</span>'
                     ),
 
@@ -161,7 +162,6 @@ class TransferOutReportResource extends Resource
                 Tables\Columns\TextColumn::make('reject_reason')
                     ->label(__('message.Reject Reason'))
                     ->searchable()
-                    ->default('—')
                     ->color('danger')
                     ->wrap(),
             ])

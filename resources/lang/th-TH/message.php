@@ -1072,6 +1072,8 @@ return [
     'Transfer-IN Report' => 'รายงานการโอนเข้า',
     'All Records' => 'บันทึกทั้งหมด',
     'Generated' => 'สร้างขึ้น',
+    'transfer_out_report' => 'รายงานการโอนออก',
+    'transfer_out_record' => 'บันทึกการโอนออก',
     
     
     

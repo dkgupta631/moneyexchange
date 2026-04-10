@@ -1072,6 +1072,9 @@ return [
     'Transfer-IN Report' => 'របាយការណ៍ផ្ទេរចូល',
     'All Records' => 'កំណត់ត្រាទាំងអស់',
     'Generated' => 'បានបង្កើតនៅ',
+    'transfer_out_report' => 'របាយការណ៍ផ្ទេរ-ចេញ',
+    'transfer_out_record' => 'កំណត់ត្រាផ្ទេរ-ចេញ',
+    
 
 
     
