@@ -43,18 +43,18 @@ class TransferOutReportExport implements FromQuery, WithHeadings, WithMapping, W
     public function headings(): array
     {
         return [
-            '#',
-            'Invoice Number',
-            'Date & Time',
-            'Customer Name',
-            'Bank Name',
-            'Account Name',
-            'Account Number',
-            'Status',
-            'Entered Amount',
-            'Transfer Fee',
-            'Net Amount',
-            'Reject Reason',
+            __('message.Serial number'),
+            __('message.Invoice Number'),
+            __('message.Date'),
+            __('message.Customer name'),
+            __('message.Bank Name'),
+            __('message.Account Name'),
+            __('message.Account Number'),
+            __('message.Status'),
+            __('message.Amount'),
+            __('message.Transfer Fee'),
+            __('message.Net Amount'),
+            __('message.Reject Reason'),
         ];
     }
 
@@ -118,12 +118,14 @@ class TransferOutReportExport implements FromQuery, WithHeadings, WithMapping, W
 
                 // 1. Insert title row
                 $sheet->insertNewRowBefore(1, 1);
-                $lastRow += 1;
+                $lastRow += 1;  
 
                 // 2. Gold title banner
                 $sheet->setCellValue(
                     'A1',
-                    'Transfer-OUT Report  |  All Records  |  Generated: ' . now()->format('d M Y  H:i')
+                    __('message.transfer_out_report') . ' | ' .
+                    __('message.All Records') . ' | ' .
+                    __('message.Generated') . ': ' . now()->format('d M Y H:i')
                 );
                 $sheet->mergeCells("A1:{$numCols}1");
                 $sheet->getStyle('A1')->applyFromArray([
@@ -189,7 +191,7 @@ class TransferOutReportExport implements FromQuery, WithHeadings, WithMapping, W
                 $labelRow  = $bannerRow + 1;
                 $valueRow  = $bannerRow + 2;
 
-                $sheet->setCellValue("A{$bannerRow}", '★  TOTALS  —  Completed Records Only (Transfer-OUT)');
+                $sheet->setCellValue("A{$bannerRow}",  __('message.total_completed_records'));
                 $sheet->mergeCells("A{$bannerRow}:{$numCols}{$bannerRow}");
                 $sheet->getStyle("A{$bannerRow}")->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 11, 'color' => ['argb' => 'FFFFFFFF']],
@@ -198,7 +200,7 @@ class TransferOutReportExport implements FromQuery, WithHeadings, WithMapping, W
                 ]);
                 $sheet->getRowDimension($bannerRow)->setRowHeight(24);
 
-                $sheet->setCellValue("A{$labelRow}", 'Completed Records');
+                $sheet->setCellValue("A{$labelRow}", __('message.Completed Records'));
                 $sheet->mergeCells("A{$labelRow}:H{$labelRow}");
                 $sheet->getStyle("A{$labelRow}")->applyFromArray([
                     'font'      => ['bold' => true, 'size' => 9, 'color' => ['argb' => 'FF0E1F3D']],
@@ -207,9 +209,9 @@ class TransferOutReportExport implements FromQuery, WithHeadings, WithMapping, W
                 ]);
 
                 $totalsMap = [
-                    'I' => ['label' => 'Total Entered Amount', 'value' => (float) ($totals->total_entered ?? 0)],
-                    'J' => ['label' => 'Total Transfer Fee',   'value' => (float) ($totals->total_fee ?? 0)],
-                    'K' => ['label' => 'Total Net Amount',     'value' => (float) ($totals->total_net ?? 0)],
+                    'I' => ['label' =>  __('message.Total Entered Amount'), 'value' => (float) ($totals->total_entered ?? 0)],
+                    'J' => ['label' => __('message.Total Transfer Fee'),   'value' => (float) ($totals->total_fee ?? 0)],
+                    'K' => ['label' => __('message.Total Net Amount'),     'value' => (float) ($totals->total_net ?? 0)],
                 ];
 
                 foreach ($totalsMap as $col => $data) {
