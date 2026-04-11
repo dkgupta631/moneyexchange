@@ -105,7 +105,7 @@
         </div>
 
         <div style="font-size:11px; color:#8aaad8; white-space:nowrap;">
-            {{ __('message.Received at') }}:
+            {{ __('message.Created at') }}:
             <strong style="color:#b8caea;">{{ $record->created_at?->format('d M Y H:i') }}</strong>
         </div>
     </div>
