@@ -21,10 +21,10 @@
         </div>
         <div style="flex:1;min-width:0;">
             <div style="font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                Transfer-OUT Details
-                <span style="background:#3a68ae;color:#fff;font-size:9px;font-weight:700;letter-spacing:.09em;padding:2px 8px;border-radius:20px;">LIVE</span>
+                {{ __('message.Transfer-OUT') }}
+                {{-- <span style="background:#3a68ae;color:#fff;font-size:9px;font-weight:700;letter-spacing:.09em;padding:2px 8px;border-radius:20px;">LIVE</span> --}}
             </div>
-            <div style="font-size:11px;color:#8aaad8;margin-top:3px;">Transfer-OUT — Bank Details</div>
+            <div style="font-size:11px;color:#8aaad8;margin-top:3px;">{{ __('message.Transfer-OUT') }} — {{ __('message.Bank Details') }}</div>
         </div>
     </div>
 
@@ -32,14 +32,14 @@
     <div style="background:#050c1a;padding:11px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid rgba(255,255,255,0.04);">
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <span style="display:inline-flex;align-items:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);padding:4px 13px;border-radius:20px;font-size:11px;font-weight:600;color:#d4920a;font-family:'Courier New',monospace;">
-                ##{{ $record->invoice_number }}
+                {{ $record->invoice_number }}
             </span>
             <span style="display:inline-block;background:{{ $statusConfig['bg'] }};color:#fff;font-size:10px;font-weight:700;letter-spacing:.1em;padding:4px 13px;border-radius:20px;box-shadow:0 0 0 3px {{ $statusConfig['glow'] }};">
                 {{ $statusConfig['label'] }}
             </span>
         </div>
         <div style="font-size:11px;color:#5c87c4;white-space:nowrap;">
-            Created at: <strong style="color:#8aaad8;">{{ $record->created_at?->format('H:i A') }}</strong>
+             {{ __('message.Created at') }}: <strong style="color:#8aaad8;">{{ $record->created_at?->format('H:i A') }}</strong>
         </div>
     </div>
 
@@ -47,28 +47,28 @@
     <div style="padding:18px 20px 8px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
 
         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;">
-            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">Invoice Number</p>
+            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">{{ __('message.Invoice Number') }}</p>
             <p style="font-size:13px;font-weight:700;color:#d4920a;margin:0;font-family:monospace;">{{ $record->invoice_number ?? '—' }}</p>
         </div>
 
         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;">
-            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">Account Name</p>
+            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">{{ __('message.Account Name') }}</p>
             <p style="font-size:13px;font-weight:700;color:#e2e8f0;margin:0;">{{ $record->acc_name ?? '—' }}</p>
         </div>
 
         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;">
-            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">Bank Name</p>
+            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">{{ __('message.Bank Name') }}</p>
             <p style="font-size:13px;font-weight:700;color:#e2e8f0;margin:0;">{{ $record->bank_name ?? '—' }}</p>
         </div>
 
         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;">
-            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">Account Number</p>
+            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">{{ __('message.Account Number') }}</p>
             <p style="font-size:14px;font-weight:700;color:#e2e8f0;margin:0;font-family:monospace;letter-spacing:.07em;">{{ $record->acc_number ?? '—' }}</p>
         </div>
 
         {{-- Amount gold --}}
         <div style="background:linear-gradient(135deg,rgba(212,146,10,0.13) 0%,rgba(245,176,20,0.05) 100%);border:1px solid rgba(212,146,10,0.40);border-radius:12px;padding:16px 16px 14px;">
-            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#d4920a;margin:0 0 8px;">Amount</p>
+            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#d4920a;margin:0 0 8px;">{{ __('message.Amount') }}</p>
             <p style="font-size:24px;font-weight:900;color:#f5b014;margin:0;line-height:1.1;letter-spacing:-.02em;">
                 ฿ {{ number_format((float) $record->entered_amount, 2) }}
             </p>
@@ -76,7 +76,7 @@
 
         {{-- Net Amount green --}}
         <div style="background:linear-gradient(135deg,rgba(22,163,74,0.13) 0%,rgba(34,197,94,0.05) 100%);border:1px solid rgba(22,163,74,0.40);border-radius:12px;padding:16px 16px 14px;">
-            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#16a34a;margin:0 0 8px;">Net Amount</p>
+            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#16a34a;margin:0 0 8px;">{{ __('message.Net Amount') }}</p>
             <p style="font-size:24px;font-weight:900;color:#22c55e;margin:0;line-height:1.1;letter-spacing:-.02em;">
                 ฿ {{ number_format((float) $record->net_amount, 2) }}
             </p>
@@ -88,7 +88,7 @@
     <div style="padding:0 20px 18px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
 
         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;">
-            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">Transfer Fee</p>
+            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">{{ __('message.Transfer Fee') }}</p>
             <p style="font-size:15px;font-weight:700;color:#f87171;margin:0;">
                 ฿ {{ number_format((float) $record->trf_fee, 2) }}
                 @if($record->trf_fee_in_persentage)
@@ -98,7 +98,7 @@
         </div>
 
         <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:14px 16px;">
-            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">Customer</p>
+            <p style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:#3a68ae;margin:0 0 7px;">{{ __('message.Customer') }}</p>
             <p style="font-size:13px;font-weight:700;color:#e2e8f0;margin:0;">{{ $record->customer_name ?? '—' }}</p>
             @if($record->phone)
                 <p style="font-size:11px;color:#6b7280;margin:4px 0 0;">{{ $record->phone }}</p>
@@ -117,7 +117,7 @@
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                 <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            View Invoice
+            {{ __('message.View Invoice') }}
         </a>
         @endif
         @if($record->transaction_slip)
@@ -127,7 +127,7 @@
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                 <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
-            Transaction Slip
+            {{ __('message.Transaction Slip') }}
         </a>
         @endif
     </div>
