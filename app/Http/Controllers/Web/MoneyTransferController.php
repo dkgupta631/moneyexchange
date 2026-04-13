@@ -15,7 +15,7 @@ class MoneyTransferController extends Controller
      */
     public function moneyTransferINForm()
     {
-        $gettransferchanges = MoneyTransferCharge::select('trf_fee_in_persentage')->where('transfer_type', 'Transfer-IN')->first();
+        $gettransferchanges = MoneyTransferCharge::select('trf_fee_in_persentage')->where('transfer_type', 'big_amount')->first();
         // dd($gettransferchanges);
         return Inertia::render('MoneyTransferINForm', [
             'gettransferchanges' => $gettransferchanges,
@@ -24,7 +24,7 @@ class MoneyTransferController extends Controller
 
     public function moneyTransferOUTForm()
     {
-        $gettransferchanges = MoneyTransferCharge::select('trf_fee_in_persentage')->where('transfer_type', 'Transfer-OUT')->first();
+        $gettransferchanges = MoneyTransferCharge::select('trf_fee_in_persentage')->where('transfer_type', 'big_amount')->first();
         return Inertia::render('MoneyTransferOUTForm', [
             'gettransferchanges' => $gettransferchanges,
         ]);
