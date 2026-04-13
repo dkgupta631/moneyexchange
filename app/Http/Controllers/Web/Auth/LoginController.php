@@ -45,18 +45,21 @@ class LoginController extends Controller
         }
 
         // Only staff / admin roles allowed here
-        if (! in_array(Auth::user()->role, ['staff', 'teller', 'admin'])) {
+        $user = Auth::user();
+        if (!in_array($user->role, ['staff', 'teller', 'admin'])) {
             Auth::logout();
+
             throw ValidationException::withMessages([
                 'name' => __('message.Access Denied!'),
             ]);
-        }elseif(Auth::user()->email_verified_at == '0'){
+        }
+        // dd(Auth::user());
+        if ((int) $user->email_verified_at === 0) {
             Auth::logout();
+
             throw ValidationException::withMessages([
                 'name' => __('message.Your account have been disabled!'),
             ]);
-        }else{
-
         }
 
         RateLimiter::clear($throttleKey);
