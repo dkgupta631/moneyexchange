@@ -44,6 +44,31 @@ function BankImg({ bank, size = 34, appUrl }) {
     );
 }
 
+/* ── Fee Tier Badge ── */
+function FeeTierBadge({ amount, bigFee, littleFee, t }) {
+    const num = parseFloat(amount);
+    if (!num || num <= 0) return null;
+    const isBig = num >= 100000;
+    return (
+        <div style={{
+            display: "inline-flex", alignItems: "center", gap: "6px",
+            background: isBig ? "rgba(13,148,136,.10)" : "rgba(220,38,38,.08)",
+            color: isBig ? "#0d9488" : "#dc2626",
+            borderWidth: "1px", borderStyle: "solid",
+            borderColor: isBig ? "rgba(13,148,136,.25)" : "rgba(220,38,38,.20)",
+            borderRadius: "999px", padding: "3px 11px", fontSize: "10.5px", fontWeight: "700"
+        }}>
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            {isBig
+                ? `${bigFee}% ${t('fee')} (≥ ฿100,000)`
+                : `${littleFee}% ${t('fee')} (< ฿100,000)`
+            }
+        </div>
+    );
+}
+
 /* ── Confirmation Popup (green theme) ── */
 function ConfirmPopup({ data, summary, feeMode, feePercentage, selectedBank, formatAccNumber, fmt, t, appUrl, onConfirm, onBack, processing }) {
     const noFee = feeMode === "no-fee";
@@ -127,6 +152,19 @@ function ConfirmPopup({ data, summary, feeMode, feePercentage, selectedBank, for
                                 <span style={P.rowLabel}>{t('Entered Amount')}</span>
                                 <span style={P.rowVal}>฿{fmt(summary.entered)} THB</span>
                             </div>
+                            {/* Fee Tier indicator */}
+                            <div style={{ ...P.row, justifyContent: "flex-start", gap: "8px" }}>
+                                <span style={P.rowLabel}>{t('Fee Tier')}</span>
+                                <span style={{
+                                    fontSize: "10.5px", fontWeight: "700", padding: "2px 10px", borderRadius: "999px",
+                                    background: summary.entered >= 100000 ? "rgba(13,148,136,.10)" : "rgba(220,38,38,.08)",
+                                    color: summary.entered >= 100000 ? "#0d9488" : "#dc2626",
+                                    borderWidth: "1px", borderStyle: "solid",
+                                    borderColor: summary.entered >= 100000 ? "rgba(13,148,136,.25)" : "rgba(220,38,38,.20)"
+                                }}>
+                                    {summary.entered >= 100000 ? `≥ ฿100,000 → ${feePercentage}%` : `< ฿100,000 → ${feePercentage}%`}
+                                </span>
+                            </div>
                             <div style={P.divider} />
                             <div style={P.row}>
                                 <span style={P.rowLabel}>{t('Fee Mode')}</span>
@@ -193,9 +231,18 @@ function ConfirmPopup({ data, summary, feeMode, feePercentage, selectedBank, for
 export default function MoneyTransferINForm({ gettransferchanges }) {
     const { appUrl, translations } = usePage().props;
     const t = (key) => translations?.[key] ?? key;
-    const feePercentage = gettransferchanges.trf_fee_in_persentage ?? 0;
-    const [feeMode, setFeeMode] = useState("with-fee");
+
+    // ── Fee tiers from DB ──────────────────────────────────────────────
+    // gettransferchanges is now an array/object with both tiers
+    // Controller passes: { big_amount: 1, little_amount: 2 }
+    const bigAmountFee    = parseFloat(gettransferchanges?.big_amount    ?? 1);
+    const littleAmountFee = parseFloat(gettransferchanges?.little_amount ?? 2);
+
+    const [feeMode, setFeeMode]     = useState("with-fee");
     const [showConfirm, setShowConfirm] = useState(false);
+
+    // Dynamically computed fee percentage based on entered amount
+    const [feePercentage, setFeePercentage] = useState(littleAmountFee);
 
     const { data, setData, post, processing, errors } = useForm({
         customer_name: "", phone: "", bank_name: "", bank_symbol: "",
@@ -221,25 +268,31 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
         return () => document.removeEventListener("mousedown", fn);
     }, []);
 
+    // ── Recalculate whenever amount or feeMode changes ─────────────────
     useEffect(() => {
         const amount = parseFloat(data.entered_amount);
         if (!isNaN(amount) && amount > 0) {
-            const feeAmount = parseFloat(((amount * feePercentage) / 100).toFixed(2));
+            // Determine tier
+            const activeFee = amount >= 100000 ? bigAmountFee : littleAmountFee;
+            setFeePercentage(activeFee);
+
+            const feeAmount = parseFloat(((amount * activeFee) / 100).toFixed(2));
             const net = feeMode === "no-fee" ? amount : parseFloat((amount - feeAmount).toFixed(2));
-            setSummary({ entered: amount, fee: feeAmount, net, feePercentage, noFeeMode: feeMode === "no-fee" });
-            setData(prev => ({ ...prev, trf_fee_in_persentage: feePercentage, trf_fee: feeAmount.toFixed(2), net_amount: net.toFixed(2) }));
+            setSummary({ entered: amount, fee: feeAmount, net, feePercentage: activeFee, noFeeMode: feeMode === "no-fee" });
+            setData(prev => ({ ...prev, trf_fee_in_persentage: activeFee, trf_fee: feeAmount.toFixed(2), net_amount: net.toFixed(2) }));
         } else {
+            setFeePercentage(littleAmountFee);
             setSummary(null);
-            setData(prev => ({ ...prev, trf_fee_in_persentage: feePercentage, trf_fee: "0.00", net_amount: "" }));
+            setData(prev => ({ ...prev, trf_fee_in_persentage: littleAmountFee, trf_fee: "0.00", net_amount: "" }));
         }
     }, [data.entered_amount, feeMode]);
 
     const validateAmount = (val) => {
         const num = parseFloat(val);
         if (isNaN(num) || val === "") { setAmountError(""); return; }
-        if (num < 500) setAmountError("Minimum amount is ฿500 THB");
+        if (num < 500)      setAmountError("Minimum amount is ฿500 THB");
         else if (num > 100000) setAmountError("Maximum amount is ฿100,000 THB");
-        else setAmountError("");
+        else                setAmountError("");
     };
 
     const handleAccNameChange = (val) => {
@@ -284,6 +337,8 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
     const handleReconfirm = () => {
         post("/money-transfer-in/store");
     };
+
+    const enteredNum = parseFloat(data.entered_amount) || 0;
 
     return (
         <>
@@ -494,6 +549,44 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
                         {/* Amount section label */}
                         <div style={S.sectionLabel}><span>{t('Transfer Amount')}</span></div>
 
+                        {/* ── Fee Tier Info Box ── */}
+                        <div style={S.feeTierBox}>
+                            <div style={S.feeTierHeader}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a7a47" strokeWidth="2.2">
+                                    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                                <span style={S.feeTierTitle}>{t('Fee Structure')}</span>
+                            </div>
+                            <div style={S.feeTierGrid}>
+                                <div style={{ ...S.feeTierItem, ...(enteredNum > 0 && enteredNum < 100000 ? S.feeTierItemActive : {}) }}>
+                                    <div style={S.feeTierRange}>{"< ฿100,000"}</div>
+                                    <div style={S.feeTierPct}>{littleAmountFee}%</div>
+                                    <div style={S.feeTierLabel}>{t('fee applied')}</div>
+                                    {enteredNum > 0 && enteredNum < 100000 && (
+                                        <div style={S.feeTierActiveDot} />
+                                    )}
+                                </div>
+                                <div style={S.feeTierDivider}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c8e6d0" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                </div>
+                                <div style={{ ...S.feeTierItem, ...(enteredNum >= 100000 ? S.feeTierItemBigActive : {}) }}>
+                                    <div style={S.feeTierRange}>{"≥ ฿100,000"}</div>
+                                    <div style={{ ...S.feeTierPct, color: enteredNum >= 100000 ? "#0d9488" : "#1a7a47" }}>{bigAmountFee}%</div>
+                                    <div style={S.feeTierLabel}>{t('fee applied')}</div>
+                                    {enteredNum >= 100000 && (
+                                        <div style={{ ...S.feeTierActiveDot, background: "#0d9488" }} />
+                                    )}
+                                </div>
+                            </div>
+                            {/* Active tier indicator */}
+                            {enteredNum > 0 && !amountError && (
+                                <div style={S.feeTierActive}>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                    {t('Current fee')}: <strong>{feePercentage}%</strong> ({enteredNum >= 100000 ? `≥ ฿100,000` : `< ฿100,000`})
+                                </div>
+                            )}
+                        </div>
+
                         {/* Fee toggle */}
                         <div style={S.feeToggleBox}>
                             <div style={S.feeToggleHeader}>
@@ -525,7 +618,14 @@ export default function MoneyTransferINForm({ gettransferchanges }) {
 
                         {/* Amount input */}
                         <div style={S.fieldGroup}>
-                            <label style={S.label}>{t('Amount')} (THB) <span style={S.req}>*</span></label>
+                            <label style={S.label}>
+                                {t('Amount')} (THB) <span style={S.req}>*</span>
+                                {enteredNum > 0 && !amountError && (
+                                    <span style={{ marginLeft: "auto" }}>
+                                        <FeeTierBadge amount={data.entered_amount} bigFee={bigAmountFee} littleFee={littleAmountFee} t={t} />
+                                    </span>
+                                )}
+                            </label>
                             <div style={S.amtWrap}>
                                 <span style={S.amtPfx}>฿</span>
                                 <input type="number" list="amt-list" value={data.entered_amount} onChange={e => { setData("entered_amount", e.target.value); validateAmount(e.target.value); }} placeholder="500 – 100,000" min="500" max="100000" step="0.01" style={{ ...S.input, ...S.amtInput, ...(errors.entered_amount || amountError ? S.inputErr : {}) }} />
@@ -725,6 +825,21 @@ const S = {
     bankCd: { fontSize: "10.5px", color: "#27ae60", marginTop: "1px" },
     tickCircle: { width: "22px", height: "22px", borderRadius: "50%", background: "linear-gradient(135deg,#1a7a47,#27ae60)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
     noResult: { padding: "24px 16px", textAlign: "center", color: "#a8d5b5", fontSize: "13px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" },
+    // ── Fee Tier Box ──
+    feeTierBox: { background: "linear-gradient(145deg, #f0faf4 0%, #e6f5ec 100%)", borderRadius: "16px", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(39,174,96,.16)", overflow: "hidden" },
+    feeTierHeader: { display: "flex", alignItems: "center", gap: "7px", padding: "10px 16px 9px", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "rgba(39,174,96,.10)", background: "rgba(26,122,71,.04)" },
+    feeTierTitle: { fontSize: "11px", fontWeight: "800", color: "#1a7a47", textTransform: "uppercase", letterSpacing: ".5px" },
+    feeTierGrid: { display: "flex", alignItems: "center", padding: "12px 16px", gap: "4px" },
+    feeTierItem: { flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: "10px", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(39,174,96,.12)", background: "#fff", position: "relative", transition: "all .2s" },
+    feeTierItemActive: { background: "rgba(220,38,38,.05)", borderColor: "rgba(220,38,38,.25)", boxShadow: "0 2px 10px rgba(220,38,38,.10)" },
+    feeTierItemBigActive: { background: "rgba(13,148,136,.07)", borderColor: "rgba(13,148,136,.30)", boxShadow: "0 2px 10px rgba(13,148,136,.12)" },
+    feeTierRange: { fontSize: "11px", fontWeight: "700", color: "#3a8a58", marginBottom: "4px" },
+    feeTierPct: { fontSize: "22px", fontWeight: "800", color: "#1a7a47", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.1 },
+    feeTierLabel: { fontSize: "10px", color: "#a8d5b5", marginTop: "2px", fontWeight: "600" },
+    feeTierActiveDot: { position: "absolute", top: "6px", right: "6px", width: "7px", height: "7px", borderRadius: "50%", background: "#dc2626" },
+    feeTierDivider: { display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px", flexShrink: 0 },
+    feeTierActive: { margin: "0 16px 12px", fontSize: "11.5px", fontWeight: "600", color: "#1a7a47", background: "rgba(26,122,71,.07)", borderRadius: "8px", padding: "7px 12px", display: "flex", alignItems: "center", gap: "6px", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(26,122,71,.15)" },
+    // ──
     feeToggleBox: { background: "linear-gradient(145deg, #f4fbf6 0%, #ebf7ee 100%)", borderRadius: "16px", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(39,174,96,.16)", overflow: "hidden", boxShadow: "0 2px 12px rgba(26,122,71,.07)" },
     feeToggleHeader: { display: "flex", alignItems: "center", gap: "7px", padding: "11px 16px 10px", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "rgba(39,174,96,.12)", background: "linear-gradient(135deg, rgba(26,122,71,.05) 0%, rgba(39,174,96,.05) 100%)" },
     feeToggleTitle: { fontSize: "11.5px", fontWeight: "700", color: "#1a7a47", letterSpacing: ".3px", textTransform: "uppercase" },
