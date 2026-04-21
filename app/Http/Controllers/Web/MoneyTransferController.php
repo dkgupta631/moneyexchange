@@ -12,11 +12,22 @@ class MoneyTransferController extends Controller
 {
     /**
      * Show the Transfer-IN form.
+     * Passes BOTH fee tiers to the front-end so the React component can
+     * switch automatically based on the entered amount:
+     *   - little_amount tier  →  fee for amounts < 100,000
+     *   - big_amount    tier  →  fee for amounts >= 100,000
      */
     public function moneyTransferINForm()
     {
-        $gettransferchanges = MoneyTransferCharge::select('trf_fee_in_persentage')->where('transfer_type', 'big_amount')->first();
-        // dd($gettransferchanges);
+        $charges = MoneyTransferCharge::whereIn('transfer_type', ['little_amount', 'big_amount'])
+            ->pluck('trf_fee_in_persentage', 'transfer_type');
+
+        // Shape: { "little_amount": 2, "big_amount": 1 }
+        $gettransferchanges = [
+            'little_amount' => (float) ($charges['little_amount'] ?? 2),
+            'big_amount'    => (float) ($charges['big_amount']    ?? 1),
+        ];
+
         return Inertia::render('MoneyTransferINForm', [
             'gettransferchanges' => $gettransferchanges,
         ]);
@@ -24,7 +35,14 @@ class MoneyTransferController extends Controller
 
     public function moneyTransferOUTForm()
     {
-        $gettransferchanges = MoneyTransferCharge::select('trf_fee_in_persentage')->where('transfer_type', 'big_amount')->first();
+        $charges = MoneyTransferCharge::whereIn('transfer_type', ['little_amount', 'big_amount'])
+            ->pluck('trf_fee_in_persentage', 'transfer_type');
+
+        $gettransferchanges = [
+            'little_amount' => (float) ($charges['little_amount'] ?? 2),
+            'big_amount'    => (float) ($charges['big_amount']    ?? 1),
+        ];
+
         return Inertia::render('MoneyTransferOUTForm', [
             'gettransferchanges' => $gettransferchanges,
         ]);
@@ -99,19 +117,18 @@ class MoneyTransferController extends Controller
     }
 
     /**
-     * Store a new Transfer-IN invoice.
+     * Store a new Transfer-OUT invoice.
+     * Same tier logic applied.
      */
     public function storeTransferOUT(Request $request)
     {
-        // Validation
-        // dd($request->all());
         $validated = $request->validate([
-            'customer_name'       => 'nullable|string|max:255',
-            'phone'               => 'nullable|string|max:13',
-            'bank_name'           => 'required|string|max:255',
-            'acc_name'            => 'required|string|max:255',
-            'acc_number'          => 'required|string|max:255',
-            'entered_amount'      => [
+            'customer_name'  => 'nullable|string|max:255',
+            'phone'          => 'nullable|string|max:13',
+            'bank_name'      => 'required|string|max:255',
+            'acc_name'       => 'required|string|max:255',
+            'acc_number'     => 'required|string|max:255',
+            'entered_amount' => [
                 'required',
                 'numeric',
                 'min:500',
@@ -127,23 +144,30 @@ class MoneyTransferController extends Controller
             'entered_amount.max'      => 'Maximum transfer amount is ฿100,000 THB.',
         ]);
 
-        // Re-calculate server-side (never trust client values)
-        // $charge        = MoneyTransferCharge::where('transfer_type', 'Transfer-OUT')->first();
-        // $feePercent    = $charge ? (float) $charge->trf_fee_in_persentage : 0;
         $enteredAmount = (float) $validated['entered_amount'];
-        // $trfFee        = round($enteredAmount * $feePercent / 100, 2);
-        // $netAmount     = round($enteredAmount - $trfFee, 2);
+
+        // ── Server-side fee tier logic ─────────────────────────────────
+        $tierKey    = $enteredAmount >= 100000 ? 'big_amount' : 'little_amount';
+        $chargeRow  = MoneyTransferCharge::where('transfer_type', $tierKey)->first();
+        $feePercent = $chargeRow ? (float) $chargeRow->trf_fee_in_persentage : ($enteredAmount >= 100000 ? 1 : 2);
+
+        $feeModeFromClient = $request->input('trf_fee_mode', 'with-fee');
+        $isNoFee           = ($feeModeFromClient === 'no-fee');
+
+        $trfFee    = round($enteredAmount * $feePercent / 100, 2);
+        $netAmount = $isNoFee
+            ? $enteredAmount
+            : round($enteredAmount - $trfFee, 2);
 
         // Generate invoice number
         $now           = now()->setTimezone('Asia/Bangkok');
         $invoiceNumber = '#TO' . $now->format('dmyHis');
 
-         // Get logged-in user ID
-        $user = Auth::user();
-        $authId = $user ? $user->id : null;
-        $invoice_url = URL('/money-transfer/invoice' . '/' . base64_encode($invoiceNumber));
+        $user    = Auth::user();
+        $authId  = $user ? $user->id : null;
 
-        // Persist
+        $invoice_url = url('/money-transfer/invoice/' . base64_encode($invoiceNumber));
+
         MoneyTransferInvoice::create([
             'invoice_number'        => $invoiceNumber,
             'customer_name'         => $validated['customer_name'],
@@ -154,32 +178,27 @@ class MoneyTransferController extends Controller
             'acc_number'            => $validated['acc_number'],
             'currency'              => $request->currency ?? 'THB',
             'entered_amount'        => $enteredAmount,
-            'trf_fee_in_persentage' => $request->trf_fee_in_persentage,
-            'trf_fee'               => $request->trf_fee,
-            'net_amount'            => $request->net_amount,
-            'invoice_url'         => $invoice_url,
-            // 'invoice_slip'         => '',
-            'createdBy'         => $authId,
-            'created_at'         => $now,
+            'trf_fee_in_persentage' => $feePercent,
+            'trf_fee'               => $trfFee,
+            'net_amount'            => $netAmount,
+            'invoice_url'           => $invoice_url,
+            'createdBy'             => $authId,
+            'created_at'            => $now,
         ]);
 
         $msg = __('message.Invoice Generated Successfully!');
-        return redirect('/money-transfer/invoice' . '/' . base64_encode($invoiceNumber))->with('greet', $msg);
+        return redirect('/money-transfer/invoice/' . base64_encode($invoiceNumber))->with('greet', $msg);
     }
 
     public function showTransferINInvoice(string $encodedInvoice)
     {
         $invoiceNumber = base64_decode($encodedInvoice);
- 
+
         $invoice = MoneyTransferInvoice::where('invoice_number', $invoiceNumber)->firstOrFail();
- 
+
         return Inertia::render('MoneyTransferInvoice', [
             'invoice' => $invoice,
             'appUrl'  => config('app.url'),
         ]);
     }
-
-    
-
-
 }
