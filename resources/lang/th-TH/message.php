@@ -807,7 +807,7 @@ return [
     "Bank to Cash" => "ธนาคารเป็นเงินสด",
     "Cash to Bank" => "เงินสดเข้าธนาคาร",
     "Exchange your money with confidence. Our rates are updated daily based on the international market to ensure fair and transparent transactions" => "แลกเปลี่ยนเงินของคุณได้อย่างมั่นใจ อัตราแลกเปลี่ยนของเราอัปเดตทุกวันตามตลาดระหว่างประเทศ เพื่อให้มั่นใจได้ว่าการทำธุรกรรมมีความยุติธรรมและโปร่งใส",
-    "Live Exchange Rates – USD | THB | KHR" => "อัตราแลกเปลี่ยนแบบเรียลไทม์ – ดอลลาร์สหรัฐ | บาท | เรียลเกาหลี",
+    "Live Exchange Rates – USD | THB | KHR" => "อัตราแลกเปลี่ยนแบบเรียลไทม์ – USD | THB | KHR",
     "Generating..." => "กำลังสร้าง...",
     "Generate invoice" => "สร้างใบแจ้งหนี้",
     "Secure and fast currency exchange with the best daily rates" => "บริการแลกเปลี่ยนเงินตราที่ปลอดภัยและรวดเร็ว พร้อมอัตราแลกเปลี่ยนที่ดีที่สุดในแต่ละวัน",
