@@ -76,13 +76,7 @@ class MoneyTransferController extends Controller
             'entered_amount.max'      => 'Maximum transfer amount is ฿100,000 THB.',
         ]);
 
-        // Re-calculate server-side (never trust client values)
-        // $charge        = MoneyTransferCharge::where('transfer_type', 'Transfer-IN')->first();
-        // $feePercent    = $charge ? (float) $charge->trf_fee_in_persentage : 0;
         $enteredAmount = (float) $validated['entered_amount'];
-        // $trfFee        = round($enteredAmount * $feePercent / 100, 2);
-        // $netAmount     = round($enteredAmount - $trfFee, 2);
-
         // Generate invoice number
         $now           = now()->setTimezone('Asia/Bangkok');
         $invoiceNumber = '#TI' . $now->format('dmyhis');
@@ -145,20 +139,6 @@ class MoneyTransferController extends Controller
         ]);
 
         $enteredAmount = (float) $validated['entered_amount'];
-
-        // ── Server-side fee tier logic ─────────────────────────────────
-        $tierKey    = $enteredAmount >= 100000 ? 'big_amount' : 'little_amount';
-        $chargeRow  = MoneyTransferCharge::where('transfer_type', $tierKey)->first();
-        $feePercent = $chargeRow ? (float) $chargeRow->trf_fee_in_persentage : ($enteredAmount >= 100000 ? 1 : 2);
-
-        $feeModeFromClient = $request->input('trf_fee_mode', 'with-fee');
-        $isNoFee           = ($feeModeFromClient === 'no-fee');
-
-        $trfFee    = round($enteredAmount * $feePercent / 100, 2);
-        $netAmount = $isNoFee
-            ? $enteredAmount
-            : round($enteredAmount - $trfFee, 2);
-
         // Generate invoice number
         $now           = now()->setTimezone('Asia/Bangkok');
         $invoiceNumber = '#TO' . $now->format('dmyHis');
@@ -178,9 +158,9 @@ class MoneyTransferController extends Controller
             'acc_number'            => $validated['acc_number'],
             'currency'              => $request->currency ?? 'THB',
             'entered_amount'        => $enteredAmount,
-            'trf_fee_in_persentage' => $feePercent,
-            'trf_fee'               => $trfFee,
-            'net_amount'            => $netAmount,
+            'trf_fee_in_persentage' => $request->trf_fee_in_persentage,
+            'trf_fee'               => $request->trf_fee,
+            'net_amount'            => $request->net_amount,
             'invoice_url'           => $invoice_url,
             'createdBy'             => $authId,
             'created_at'            => $now,

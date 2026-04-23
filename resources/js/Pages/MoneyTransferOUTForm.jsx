@@ -66,6 +66,31 @@ function BankImg({ bank, size, appUrl }) {
     );
 }
 
+/* ── Fee Tier Badge ── */
+function FeeTierBadge({ amount, bigFee, littleFee, t }) {
+    const num = parseFloat(amount);
+    if (!num || num <= 0) return null;
+    const isBig = num >= 100000;
+    return (
+        <div style={{
+            display: "inline-flex", alignItems: "center", gap: "6px",
+            background: isBig ? "rgba(22,163,74,.09)" : "rgba(220,38,38,.08)",
+            color: isBig ? "#16a34a" : "#dc2626",
+            borderWidth: "1px", borderStyle: "solid",
+            borderColor: isBig ? "rgba(22,163,74,.25)" : "rgba(220,38,38,.20)",
+            borderRadius: "999px", padding: "3px 11px", fontSize: "10.5px", fontWeight: "700"
+        }}>
+            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            {isBig
+                ? `${bigFee}% ${t('fee')} (≥ ฿100,000)`
+                : `${littleFee}% ${t('fee')} (< ฿100,000)`
+            }
+        </div>
+    );
+}
+
 /* ══════════════════════════════════════════════
    CONFIRMATION POPUP
 ══════════════════════════════════════════════ */
@@ -161,7 +186,6 @@ function ConfirmPopup({ data, summary, selectedBank, feeMode, feePercentage, onR
                             <span style={P.sectionTitle}>{t("Recipient Details")}</span>
                         </div>
                         <div style={P.sectionBody}>
-                            {/* Bank preview row */}
                             {selectedBank && (
                                 <div style={P.bankPreviewRow}>
                                     <BankImg bank={selectedBank} size={46} appUrl={appUrl} />
@@ -199,6 +223,19 @@ function ConfirmPopup({ data, summary, selectedBank, feeMode, feePercentage, onR
                                         <span style={P.rowLabel}>{t("Entered Amount")}</span>
                                         <span style={P.rowValue}>{"฿" + fmt(summary.entered) + " THB"}</span>
                                     </div>
+                                    {/* Fee Tier indicator */}
+                                    <div style={{ ...P.row, justifyContent: "flex-start", gap: "8px" }}>
+                                        <span style={P.rowLabel}>{t("Fee Tier")}</span>
+                                        <span style={{
+                                            fontSize: "10.5px", fontWeight: "700", padding: "2px 10px", borderRadius: "999px",
+                                            background: summary.entered >= 100000 ? "rgba(22,163,74,.09)" : "rgba(220,38,38,.08)",
+                                            color: summary.entered >= 100000 ? "#16a34a" : "#dc2626",
+                                            borderWidth: "1px", borderStyle: "solid",
+                                            borderColor: summary.entered >= 100000 ? "rgba(22,163,74,.25)" : "rgba(220,38,38,.20)"
+                                        }}>
+                                            {summary.entered >= 100000 ? `≥ ฿100,000 → ${feePercentage}%` : `< ฿100,000 → ${feePercentage}%`}
+                                        </span>
+                                    </div>
                                     <div style={P.row}>
                                         <span style={P.rowLabel}>{t("Transfer Fee") + " (" + summary.feePercentage + "%)"}</span>
                                         <span style={noFee ? P.rowValueGreen : P.rowValueRed}>
@@ -234,7 +271,7 @@ function ConfirmPopup({ data, summary, selectedBank, feeMode, feePercentage, onR
                                 </>
                             )}
                         </div>
-                         {/* Warning note */}
+                        {/* Warning note */}
                         <div style={P.warningNote}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" strokeWidth="2.2">
                                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -282,10 +319,16 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
     const { appUrl, translations } = usePage().props;
     const t = (key) => translations?.[key] ?? key;
 
-    const feePercentage = gettransferchanges.trf_fee_in_persentage ?? 0;
+    // ── Fee tiers from DB ──────────────────────────────────────────────
+    // Controller passes: { big_amount: 1, little_amount: 2 }
+    const bigAmountFee    = parseFloat(gettransferchanges?.big_amount    ?? 1);
+    const littleAmountFee = parseFloat(gettransferchanges?.little_amount ?? 2);
 
-    const [feeMode, setFeeMode] = useState("with-fee");
+    const [feeMode, setFeeMode]         = useState("with-fee");
     const [showConfirm, setShowConfirm] = useState(false);
+
+    // Dynamically computed fee percentage based on entered amount
+    const [feePercentage, setFeePercentage] = useState(littleAmountFee);
 
     const { data, setData, post, processing, errors } = useForm({
         customer_name:         "",
@@ -324,23 +367,29 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
         return () => document.removeEventListener("mousedown", fn);
     }, []);
 
+    // ── Recalculate whenever amount or feeMode changes ─────────────────
     useEffect(() => {
         const amount = parseFloat(data.entered_amount);
         if (!isNaN(amount) && amount > 0) {
-            const feeAmount = parseFloat(((amount * feePercentage) / 100).toFixed(2));
+            // Determine tier: >= 100,000 → big (1%), < 100,000 → little (2%)
+            const activeFee = amount >= 100000 ? bigAmountFee : littleAmountFee;
+            setFeePercentage(activeFee);
+
+            const feeAmount = parseFloat(((amount * activeFee) / 100).toFixed(2));
             const net = feeMode === "no-fee"
                 ? amount
                 : parseFloat((amount - feeAmount).toFixed(2));
-            setSummary({ entered: amount, fee: feeAmount, net, feePercentage, noFeeMode: feeMode === "no-fee" });
+            setSummary({ entered: amount, fee: feeAmount, net, feePercentage: activeFee, noFeeMode: feeMode === "no-fee" });
             setData(prev => ({
                 ...prev,
-                trf_fee_in_persentage: feePercentage,
+                trf_fee_in_persentage: activeFee,
                 trf_fee:               feeAmount.toFixed(2),
                 net_amount:            net.toFixed(2),
             }));
         } else {
+            setFeePercentage(littleAmountFee);
             setSummary(null);
-            setData(prev => ({ ...prev, trf_fee_in_persentage: feePercentage, trf_fee: "0.00", net_amount: "" }));
+            setData(prev => ({ ...prev, trf_fee_in_persentage: littleAmountFee, trf_fee: "0.00", net_amount: "" }));
         }
     }, [data.entered_amount, feeMode]);
 
@@ -380,7 +429,7 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
 
     const handleConfirmClick = (e) => {
         e.preventDefault();
-        setShowConfirm(true);
+        if (canSubmit) setShowConfirm(true);
     };
 
     const handleReconfirm = () => {
@@ -402,6 +451,8 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
         && data.entered_amount && data.bank_name
         && data.acc_name.trim().length > 0
         && data.acc_number.trim().length > 0;
+
+    const enteredNum = parseFloat(data.entered_amount) || 0;
 
     return (
         <>
@@ -645,6 +696,39 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
                         {/* ── Transfer Amount Section ── */}
                         <div style={S.sectionLabel}><span>{t("Transfer Amount")}</span></div>
 
+                        {/* ── Fee Tier Info Box ── */}
+                        <div style={S.feeTierBox}>
+                            <div style={S.feeTierHeader}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5B2D8E" strokeWidth="2.2">
+                                    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                                <span style={S.feeTierTitle}>{t("Fee Structure")}</span>
+                            </div>
+                            <div style={S.feeTierGrid}>
+                                <div style={{ ...S.feeTierItem, ...(enteredNum > 0 && enteredNum < 100000 ? S.feeTierItemActive : {}) }}>
+                                    <div style={S.feeTierRange}>{"< ฿100,000"}</div>
+                                    <div style={S.feeTierPct}>{littleAmountFee}%</div>
+                                    <div style={S.feeTierLabel}>{t("fee applied")}</div>
+                                    {enteredNum > 0 && enteredNum < 100000 && <div style={S.feeTierActiveDot} />}
+                                </div>
+                                <div style={S.feeTierDivider}>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c4b3d9" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+                                </div>
+                                <div style={{ ...S.feeTierItem, ...(enteredNum >= 100000 ? S.feeTierItemBigActive : {}) }}>
+                                    <div style={S.feeTierRange}>{"≥ ฿100,000"}</div>
+                                    <div style={{ ...S.feeTierPct, color: enteredNum >= 100000 ? "#16a34a" : "#5B2D8E" }}>{bigAmountFee}%</div>
+                                    <div style={S.feeTierLabel}>{t("fee applied")}</div>
+                                    {enteredNum >= 100000 && <div style={{ ...S.feeTierActiveDot, background: "#16a34a" }} />}
+                                </div>
+                            </div>
+                            {enteredNum > 0 && !amountError && (
+                                <div style={S.feeTierActive}>
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                                    {t("Current fee")}: <strong>{feePercentage}%</strong> ({enteredNum >= 100000 ? `≥ ฿100,000` : `< ฿100,000`})
+                                </div>
+                            )}
+                        </div>
+
                         {/* ══ TRANSFER CHARGE TOGGLE ══ */}
                         <div style={S.feeToggleBox}>
                             <div style={S.feeToggleHeader}>
@@ -703,7 +787,14 @@ export default function MoneyTransferOUTForm({ gettransferchanges }) {
 
                         {/* ── Amount Input ── */}
                         <div style={S.fieldGroup}>
-                            <label style={S.label}>{t("Amount")} (THB) <span style={S.req}>*</span></label>
+                            <label style={S.label}>
+                                {t("Amount")} (THB) <span style={S.req}>*</span>
+                                {enteredNum > 0 && !amountError && (
+                                    <span style={{ marginLeft: "auto" }}>
+                                        <FeeTierBadge amount={data.entered_amount} bigFee={bigAmountFee} littleFee={littleAmountFee} t={t} />
+                                    </span>
+                                )}
+                            </label>
                             <div style={S.amtWrap}>
                                 <span style={S.amtPfx}>฿</span>
                                 <input type="number" list="amt-list" value={data.entered_amount} onChange={e => { setData("entered_amount", e.target.value); validateAmount(e.target.value); }} placeholder="500 – 100,000" min="500" max="100000" step="0.01" style={{ ...S.input, ...S.amtInput, ...(errors.entered_amount || amountError ? S.inputErr : {}) }} />
@@ -826,7 +917,6 @@ const P = {
     backdrop: { position: "absolute", inset: 0, background: "rgba(5,1,15,.90)", backdropFilter: "blur(18px) brightness(0.2) saturate(0.5)", WebkitBackdropFilter: "blur(18px) brightness(0.2) saturate(0.5)", cursor: "pointer" },
     modal: { position: "relative", background: "#fff", borderRadius: "24px", width: "100%", maxWidth: "520px", maxHeight: "92vh", display: "flex", flexDirection: "column", overflow: "hidden", boxShadow: "0 32px 80px rgba(45,16,96,.28), 0 8px 24px rgba(0,0,0,.12)", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(91,45,142,.12)", animation: "modalIn .3s cubic-bezier(.22,.68,0,1.2) both" },
     modalGlow: { position: "absolute", top: "-60px", right: "-60px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, rgba(155,89,182,.18) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 },
-
     modalHeader: { background: "linear-gradient(140deg, #2d1060 0%, #4a2280 45%, #7B3FBE 80%, #9B59B6 100%)", borderTopLeftRadius: "22px", borderTopRightRadius: "22px", padding: "28px 28px 24px", textAlign: "center", position: "relative", overflow: "hidden" },
     modalHeaderGlow: { position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 0%, rgba(200,150,255,.22) 0%, transparent 60%)", pointerEvents: "none" },
     modalIconWrap: { position: "relative", zIndex: 1, marginBottom: "10px" },
@@ -834,26 +924,20 @@ const P = {
     modalTitle: { fontFamily: "'DM Sans', sans-serif", fontSize: "20px", fontWeight: "800", color: "#fff", marginBottom: "5px", position: "relative", zIndex: 1 },
     modalSubtitle: { fontSize: "12px", color: "rgba(255,255,255,.68)", position: "relative", zIndex: 1, lineHeight: "1.5" },
     closeBtn: { position: "absolute", top: "14px", right: "14px", background: "rgba(255,255,255,.15)", border: "none", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,.85)", cursor: "pointer", zIndex: 2, transition: "background .15s" },
-
     modalBody: { padding: "20px 22px", display: "flex", flexDirection: "column", gap: "14px", overflowY: "auto", flex: 1, scrollbarWidth: "none", msOverflowStyle: "none" },
-
     typeBadgeRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" },
     typeBadge: { display: "inline-flex", alignItems: "center", gap: "5px", background: "rgba(91,45,142,.09)", color: "#5B2D8E", borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: "700", letterSpacing: ".5px", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(91,45,142,.2)" },
     feeBadgePurple: { display: "inline-flex", alignItems: "center", gap: "5px", background: "rgba(91,45,142,.09)", color: "#5B2D8E", borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: "700", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(91,45,142,.2)" },
     feeBadgeGreen:  { display: "inline-flex", alignItems: "center", gap: "5px", background: "rgba(22,163,74,.09)", color: "#16a34a", borderRadius: "999px", padding: "4px 12px", fontSize: "11px", fontWeight: "700", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(22,163,74,.2)" },
-
-    section: { background: "linear-gradient(145deg, #faf7ff 0%, #f5f0fc 100%)", borderRadius: "14px", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(91,45,142,.11)"},
+    section: { background: "linear-gradient(145deg, #faf7ff 0%, #f5f0fc 100%)", borderRadius: "14px", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(91,45,142,.11)" },
     sectionHead: { display: "flex", alignItems: "center", gap: "7px", padding: "10px 14px 9px", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "rgba(91,45,142,.09)", background: "linear-gradient(135deg, rgba(74,34,128,.05) 0%, rgba(155,89,182,.05) 100%)" },
     sectionTitle: { fontSize: "11px", fontWeight: "800", color: "#4a2280", letterSpacing: ".4px", textTransform: "uppercase" },
     sectionBody: { padding: "12px 14px", display: "flex", flexDirection: "column", gap: "9px" },
-
     bankPreviewRow: { display: "flex", alignItems: "center", gap: "12px", padding: "8px 0 4px" },
     bankPreviewInfo: { display: "flex", flexDirection: "column", gap: "2px" },
     bankPreviewName: { fontSize: "14px", fontWeight: "700", color: "#1A0A2E" },
     bankPreviewCode: { fontSize: "11px", color: "#9B59B6" },
-
     rowDivider: { height: "1px", background: "rgba(91,45,142,.10)", margin: "2px 0" },
-
     row: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" },
     rowLabel: { fontSize: "12px", color: "#7a5a9a", fontWeight: "600", flexShrink: 0 },
     rowValue: { fontSize: "13px", fontWeight: "700", color: "#1A0A2E", textAlign: "right" },
@@ -862,16 +946,12 @@ const P = {
     rowValueGreen: { fontSize: "13px", fontWeight: "700", color: "#16a34a", textAlign: "right" },
     modeBadgePurple: { fontSize: "11px", fontWeight: "700", padding: "2px 10px", borderRadius: "999px", background: "rgba(91,45,142,.09)", color: "#5B2D8E", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(91,45,142,.2)" },
     modeBadgeGreen:  { fontSize: "11px", fontWeight: "700", padding: "2px 10px", borderRadius: "999px", background: "rgba(22,163,74,.09)", color: "#16a34a", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(22,163,74,.2)" },
-
     amountDivider: { height: "1px", background: "rgba(91,45,142,.13)", margin: "4px 0" },
     netRow: { display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "2px" },
     netLabel: { fontSize: "13.5px", fontWeight: "800", color: "#1A0A2E" },
     netValue: { fontSize: "22px", fontWeight: "800", color: "#5B2D8E", letterSpacing: "-.5px" },
-
     cashNote: { display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#16a34a", fontWeight: "600", background: "rgba(22,163,74,.07)", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(22,163,74,.18)", borderRadius: "8px", padding: "6px 10px" },
-
     warningNote: { display: "flex", alignItems: "flex-start", gap: "8px", background: "rgba(251,191,36,.08)", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(180,83,9,.18)", borderRadius: "10px", padding: "10px 12px", fontSize: "11.5px", color: "#92400e", fontWeight: "600", lineHeight: "1.5" },
-
     modalFooter: { padding: "0 22px 22px", display: "flex", gap: "10px" },
     backBtn: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "7px", background: "#f5f0fc", color: "#5B2D8E", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(91,45,142,.25)", borderRadius: "13px", padding: "13px 20px", fontSize: "13.5px", fontWeight: "700", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", transition: "background .15s" },
     reconfirmBtn: { flex: 2, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "linear-gradient(135deg,#3d1a72 0%,#5B2D8E 50%,#9B59B6 100%)", color: "#fff", border: "none", borderRadius: "13px", padding: "13px 20px", fontSize: "13.5px", fontWeight: "700", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: "0 6px 20px rgba(91,45,142,.38)", transition: "opacity .2s, box-shadow .2s" },
@@ -887,7 +967,6 @@ const S = {
     orb1: { position: "fixed", top: "-180px", right: "-120px", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, rgba(91,45,142,.14) 0%, transparent 70%)", pointerEvents: "none" },
     orb2: { position: "fixed", bottom: "-150px", left: "-100px", width: "440px", height: "440px", borderRadius: "50%", background: "radial-gradient(circle, rgba(155,89,182,.10) 0%, transparent 70%)", pointerEvents: "none" },
     orb3: { position: "fixed", top: "40%", left: "60%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, rgba(120,60,200,.07) 0%, transparent 70%)", pointerEvents: "none" },
-
     card: { background: "#fff", borderRadius: "28px", boxShadow: "0 20px 60px rgba(91,45,142,.16), 0 4px 16px rgba(0,0,0,.06)", width: "100%", maxWidth: "660px", animation: "fadeUp .5s cubic-bezier(.22,.68,0,1.2) both", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(91,45,142,.08)", marginTop: "80px", overflow: "hidden" },
     header: { background: "linear-gradient(140deg, #2d1060 0%, #4a2280 40%, #7B3FBE 80%, #9B59B6 100%)", padding: "32px 36px 28px", textAlign: "center", position: "relative", overflow: "hidden" },
     headerGlow: { position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 0%, rgba(200,150,255,.25) 0%, transparent 60%)", pointerEvents: "none" },
@@ -896,7 +975,6 @@ const S = {
     hTitle: { fontFamily: "'DM Sans', sans-serif", fontSize: "24px", fontWeight: "700", color: "#fff", letterSpacing: "2.5px", marginBottom: "4px", position: "relative", zIndex: 1 },
     hSub: { color: "rgba(255,255,255,.7)", fontSize: "12.5px", letterSpacing: ".5px", marginBottom: "12px", position: "relative", zIndex: 1 },
     hBadge: { display: "inline-flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,.18)", color: "#fff", borderRadius: "999px", padding: "4px 14px", fontSize: "11px", fontWeight: "700", letterSpacing: ".7px", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(255,255,255,.3)", position: "relative", zIndex: 1 },
-
     form: { padding: "24px 26px 32px", display: "flex", flexDirection: "column", gap: "16px" },
     row: { display: "flex", gap: "12px" },
     fieldGroup: { display: "flex", flexDirection: "column", gap: "5px", position: "relative" },
@@ -906,9 +984,7 @@ const S = {
     input: { borderTopWidth: "1.5px", borderTopStyle: "solid", borderTopColor: "#E0D4EF", borderRightWidth: "1.5px", borderRightStyle: "solid", borderRightColor: "#E0D4EF", borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#E0D4EF", borderLeftWidth: "1.5px", borderLeftStyle: "solid", borderLeftColor: "#E0D4EF", borderTopLeftRadius: "11px", borderTopRightRadius: "11px", borderBottomLeftRadius: "11px", borderBottomRightRadius: "11px", padding: "11px 14px", fontSize: "13.5px", color: "#1A0A2E", background: "#FDFBFF", transition: "border-top-color .2s, border-right-color .2s, border-bottom-color .2s, border-left-color .2s, box-shadow .2s", width: "100%", fontFamily: "'DM Sans', sans-serif" },
     inputErr: { borderTopColor: "#ef4444", borderRightColor: "#ef4444", borderBottomColor: "#ef4444", borderLeftColor: "#ef4444", background: "#fef2f2" },
     err: { fontSize: "11.5px", color: "#ef4444", fontWeight: "700", display: "flex", alignItems: "center", gap: "4px" },
-
     sectionLabel: { display: "flex", alignItems: "center", gap: "7px", fontSize: "11.5px", fontWeight: "700", color: "#7c5cbf", letterSpacing: ".4px", textTransform: "uppercase", marginBottom: "-4px" },
-
     toSection: { background: "linear-gradient(145deg, #faf7ff 0%, #f5f0fc 100%)", borderRadius: "18px", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(91,45,142,.14)", overflow: "hidden", boxShadow: "0 4px 20px rgba(91,45,142,.08), inset 0 1px 0 rgba(255,255,255,.8)" },
     toHeader: { background: "linear-gradient(135deg, rgba(74,34,128,.06) 0%, rgba(155,89,182,.06) 100%)", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "rgba(91,45,142,.10)" },
     toHeaderLeft: { display: "flex", alignItems: "center", gap: "10px" },
@@ -931,7 +1007,6 @@ const S = {
     toDivider: { display: "flex", alignItems: "center", gap: "10px", padding: "0 4px" },
     toDivLine: { flex: 1, height: "1px", background: "rgba(91,45,142,.12)" },
     toDivIcon: { width: "24px", height: "24px", borderRadius: "50%", background: "rgba(91,45,142,.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-
     recipientCard: { display: "flex", alignItems: "center", gap: "12px", background: "linear-gradient(135deg, #4a2280 0%, #7B3FBE 100%)", borderRadius: "14px", padding: "14px 16px", position: "relative", overflow: "hidden", animation: "cardIn .3s cubic-bezier(.22,.68,0,1.2) both", boxShadow: "0 6px 24px rgba(74,34,128,.30)" },
     recipientCardGlow: { position: "absolute", top: "-30px", right: "-30px", width: "100px", height: "100px", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,255,255,.12) 0%, transparent 70%)", pointerEvents: "none" },
     recipientLeft: { flexShrink: 0 },
@@ -940,7 +1015,6 @@ const S = {
     recipientBank: { fontSize: "11px", color: "rgba(255,255,255,.65)" },
     recipientNum: { fontSize: "12px", color: "rgba(255,255,255,.85)", fontFamily: "'IBM Plex Mono', monospace", letterSpacing: ".8px", marginTop: "2px" },
     recipientCheck: { width: "28px", height: "28px", borderRadius: "50%", background: "rgba(255,255,255,.15)", display: "flex", alignItems: "center", justifyContent: "center", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(34,197,94,.5)", flexShrink: 0 },
-
     dropTrigger: { borderTopWidth: "1.5px", borderTopStyle: "solid", borderTopColor: "#ddd5ef", borderRightWidth: "1.5px", borderRightStyle: "solid", borderRightColor: "#ddd5ef", borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "#ddd5ef", borderLeftWidth: "1.5px", borderLeftStyle: "solid", borderLeftColor: "#ddd5ef", borderTopLeftRadius: "11px", borderTopRightRadius: "11px", borderBottomLeftRadius: "11px", borderBottomRightRadius: "11px", padding: "8px 12px", background: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "border-top-color .2s, border-right-color .2s, border-bottom-color .2s, border-left-color .2s, box-shadow .2s", userSelect: "none", minHeight: "50px" },
     dropTriggerOpen: { borderTopColor: "#5B2D8E", borderRightColor: "#5B2D8E", borderBottomColor: "#5B2D8E", borderLeftColor: "#5B2D8E", boxShadow: "0 0 0 3px rgba(91,45,142,.12)", borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
     dropInner: { display: "flex", alignItems: "center", gap: "10px", flex: 1 },
@@ -962,7 +1036,21 @@ const S = {
     bankCd: { fontSize: "10.5px", color: "#9B59B6", marginTop: "1px" },
     tickCircle: { width: "22px", height: "22px", borderRadius: "50%", background: "linear-gradient(135deg,#4a2280,#9B59B6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
     noResult: { padding: "24px 16px", textAlign: "center", color: "#b8a8ce", fontSize: "13px", display: "flex", flexDirection: "column", alignItems: "center", gap: "8px" },
-
+    // ── Fee Tier Box (purple-themed) ──
+    feeTierBox: { background: "linear-gradient(145deg, #faf7ff 0%, #f5f0fc 100%)", borderRadius: "16px", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(91,45,142,.14)", overflow: "hidden" },
+    feeTierHeader: { display: "flex", alignItems: "center", gap: "7px", padding: "10px 16px 9px", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "rgba(91,45,142,.10)", background: "rgba(74,34,128,.04)" },
+    feeTierTitle: { fontSize: "11px", fontWeight: "800", color: "#4a2280", textTransform: "uppercase", letterSpacing: ".5px" },
+    feeTierGrid: { display: "flex", alignItems: "center", padding: "12px 16px", gap: "4px" },
+    feeTierItem: { flex: 1, textAlign: "center", padding: "10px 8px", borderRadius: "10px", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(91,45,142,.10)", background: "#fff", position: "relative", transition: "all .2s" },
+    feeTierItemActive: { background: "rgba(220,38,38,.05)", borderColor: "rgba(220,38,38,.25)", boxShadow: "0 2px 10px rgba(220,38,38,.10)" },
+    feeTierItemBigActive: { background: "rgba(22,163,74,.07)", borderColor: "rgba(22,163,74,.30)", boxShadow: "0 2px 10px rgba(22,163,74,.12)" },
+    feeTierRange: { fontSize: "11px", fontWeight: "700", color: "#7a5a9a", marginBottom: "4px" },
+    feeTierPct: { fontSize: "22px", fontWeight: "800", color: "#5B2D8E", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.1 },
+    feeTierLabel: { fontSize: "10px", color: "#b8a8ce", marginTop: "2px", fontWeight: "600" },
+    feeTierActiveDot: { position: "absolute", top: "6px", right: "6px", width: "7px", height: "7px", borderRadius: "50%", background: "#dc2626" },
+    feeTierDivider: { display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px", flexShrink: 0 },
+    feeTierActive: { margin: "0 16px 12px", fontSize: "11.5px", fontWeight: "600", color: "#5B2D8E", background: "rgba(91,45,142,.07)", borderRadius: "8px", padding: "7px 12px", display: "flex", alignItems: "center", gap: "6px", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(91,45,142,.15)" },
+    // ──
     feeToggleBox: { background: "linear-gradient(145deg, #faf7ff 0%, #f5f0fc 100%)", borderRadius: "16px", borderWidth: "1.5px", borderStyle: "solid", borderColor: "rgba(91,45,142,.14)", overflow: "hidden", boxShadow: "0 2px 12px rgba(91,45,142,.07)" },
     feeToggleHeader: { display: "flex", alignItems: "center", gap: "7px", padding: "11px 16px 10px", borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "rgba(91,45,142,.10)", background: "linear-gradient(135deg, rgba(74,34,128,.05) 0%, rgba(155,89,182,.05) 100%)" },
     feeToggleTitle: { fontSize: "11.5px", fontWeight: "700", color: "#4a2280", letterSpacing: ".3px", textTransform: "uppercase" },
@@ -981,14 +1069,12 @@ const S = {
     feeRadioMain: { fontSize: "13px", fontWeight: "700", color: "#1A0A2E" },
     feeRadioSub:  { fontSize: "11px", fontWeight: "500", transition: "color .15s" },
     feeBadge: { fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "999px", borderTopWidth: "1px", borderTopStyle: "solid", borderRightWidth: "1px", borderRightStyle: "solid", borderBottomWidth: "1px", borderBottomStyle: "solid", borderLeftWidth: "1px", borderLeftStyle: "solid", transition: "all .15s", flexShrink: 0 },
-
     amtWrap: { position: "relative" },
     amtPfx: { position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#5B2D8E", fontWeight: "800", fontSize: "16px", zIndex: 1 },
     amtInput: { paddingLeft: "30px" },
     pills: { display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" },
     pill: { padding: "5px 12px", borderRadius: "999px", borderWidth: "1.5px", borderStyle: "solid", borderColor: "#ddd5ef", background: "#FDFBFF", color: "#5B2D8E", fontSize: "11.5px", fontWeight: "700", cursor: "pointer", transition: "all .15s", fontFamily: "'DM Sans', sans-serif" },
     pillOn: { background: "#5B2D8E", color: "#fff", borderColor: "#5B2D8E" },
-
     summary: { background: "linear-gradient(135deg, #F8F4FD 0%, #EDE0F7 100%)", borderTopLeftRadius: "14px", borderTopRightRadius: "14px", borderBottomLeftRadius: "14px", borderBottomRightRadius: "14px", padding: "16px 18px", borderTopWidth: "1.5px", borderTopStyle: "solid", borderTopColor: "rgba(91,45,142,.14)", borderRightWidth: "1.5px", borderRightStyle: "solid", borderRightColor: "rgba(91,45,142,.14)", borderBottomWidth: "1.5px", borderBottomStyle: "solid", borderBottomColor: "rgba(91,45,142,.14)", borderLeftWidth: "1.5px", borderLeftStyle: "solid", borderLeftColor: "rgba(91,45,142,.14)", animation: "fadeUp .3s ease both" },
     sumHead: { display: "flex", alignItems: "center", gap: "7px", marginBottom: "9px" },
     sumTitle: { fontWeight: "800", color: "#5B2D8E", fontSize: "13px" },
@@ -998,9 +1084,7 @@ const S = {
     sVal: { fontSize: "12.5px", color: "#1A0A2E", fontWeight: "600" },
     sumTotalLbl: { fontSize: "13.5px", fontWeight: "800", color: "#1A0A2E" },
     sumTotal: { fontSize: "20px", fontWeight: "800", color: "#5B2D8E", letterSpacing: "-.5px" },
-
     cashFeeNote: { display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", color: "#16a34a", fontWeight: "600", background: "rgba(22,163,74,.07)", borderWidth: "1px", borderStyle: "solid", borderColor: "rgba(22,163,74,.18)", borderRadius: "8px", padding: "6px 10px", marginTop: "2px" },
-
     btn: { marginTop: "4px", background: "linear-gradient(135deg,#3d1a72 0%,#5B2D8E 50%,#9B59B6 100%)", color: "#fff", border: "none", borderRadius: "14px", padding: "15px 24px", fontSize: "14.5px", fontWeight: "700", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "9px", letterSpacing: ".3px", boxShadow: "0 6px 24px rgba(91,45,142,.38)", transition: "opacity .2s, box-shadow .2s, transform .1s", fontFamily: "'DM Sans', sans-serif" },
     btnOff: { opacity: .4, cursor: "not-allowed", boxShadow: "none" },
     spin: { width: "16px", height: "16px", borderTopWidth: "2.5px", borderTopStyle: "solid", borderTopColor: "#fff", borderRightWidth: "2.5px", borderRightStyle: "solid", borderRightColor: "rgba(255,255,255,.35)", borderBottomWidth: "2.5px", borderBottomStyle: "solid", borderBottomColor: "rgba(255,255,255,.35)", borderLeftWidth: "2.5px", borderLeftStyle: "solid", borderLeftColor: "rgba(255,255,255,.35)", borderRadius: "50%", display: "inline-block", animation: "spin .7s linear infinite" },
