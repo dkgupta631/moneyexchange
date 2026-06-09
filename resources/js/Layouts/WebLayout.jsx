@@ -129,7 +129,7 @@ export default function WebLayout({ children }) {
                                         <img src="/website/assets/flags/th.png" width="20" className="me-2" />{t('Thai')}
                                     </a>
                                     <a href="/lang/km" className="dropdown-item">
-                                        <img src="/website/assets/flags/kH.png" width="20" className="me-2" />{t('Khmer')}
+                                        <img src="/website/assets/flags/kh.png" width="20" className="me-2" />{t('Khmer')}
                                     </a>
                                 </div>
                             </div>
