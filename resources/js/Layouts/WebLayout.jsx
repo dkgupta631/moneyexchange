@@ -138,8 +138,7 @@ export default function WebLayout({ children }) {
                     </div>
                 </nav>
             </div>
-            {/* <!-- Navbar & Hero End --> */}
-
+            {/* <!-- Navbar & Hero End --> */} 
             <main>
                 {children}
             </main>
